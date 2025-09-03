@@ -19,9 +19,9 @@ export default class GPUManager {
 
         // Uniform variables
         this.uniform_data = {
-            render_scale: Vector.vec(1.0, 1.0),
+            canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
+            render_scale: 1,
             temporal_counter: 0.0,
-            aspect_ratio: 1.0,
             camera_rotation: Matrix.mat(1.0),
             camera_position: Vector.vec(0.0),
             fov: 1.0,
@@ -57,7 +57,7 @@ export default class GPUManager {
         this.uniform_buffer = this.device.createBuffer({
             label: "Unifrom Buffer",
             size: uniform_array.byteLength,
-            usage: GPUBufferUsage.UNIFORM |GPUBufferUsage.COPY_DST
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         });
 
         // Pipelines
@@ -122,10 +122,10 @@ export default class GPUManager {
         compute_pass.setBindGroup(0, this.compute_bind_group);
         compute_pass.dispatchWorkgroups(
             Math.ceil(
-                this.base_render_size.x * this.uniform_data.render_scale.x / this.workgroup_size.x
+                this.uniform_data.canvas_size.x / this.uniform_data.render_scale / this.workgroup_size.x
             ), 
             Math.ceil(
-                this.base_render_size.y * this.uniform_data.render_scale.y / this.workgroup_size.y
+                this.uniform_data.canvas_size.y / this.uniform_data.render_scale / this.workgroup_size.y
             )
         );
         compute_pass.end();
@@ -235,7 +235,7 @@ export default class GPUManager {
         const sampler = device.createSampler({
             addressModeU: "repeat",
             addressModeV: "repeat",
-            magFilter: "linear",
+            magFilter: "nearest",
             minFilter: "nearest",
             mipmapFilter: "nearest",
             maxAnisotrophy: 1
@@ -284,5 +284,12 @@ export default class GPUManager {
         });
 
         return [render_pipeline, render_bind_group];
+    }
+
+    syncResolution() {
+        const canvas_dimensions = this.canvas.getBoundingClientRect();
+        this.uniform_data.canvas_size = Vector.vec(canvas_dimensions.width, canvas_dimensions.height);
+        this.canvas.height = canvas_dimensions.height;
+        this.canvas.width = canvas_dimensions.width;
     }
 }

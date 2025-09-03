@@ -1,17 +1,18 @@
 export default class Input {
-    constructor(camera, gui) {
+    constructor(gpu_manager, camera, gui) {
         this.key_states = {};
         this.camera = camera;
+        this.gpu_manager = gpu_manager;
         this.gui = gui;
 
-        document.addEventListener('keypress', (event) => this.keyboard_press(event.key));
-        document.addEventListener('keyup', (event) => this.keyboard_release(event.key));
+        document.addEventListener('keydown', (event) => this.keyboard_press(event));
+        document.addEventListener('keyup', (event) => this.keyboard_release(event));
         document.addEventListener('mousemove', (event) => this.mouse_move(event));
         document.addEventListener('wheel', (event) => this.mouse_scroll(event));
     }
 
-    keyboard_press(key) {
-        switch (key) {
+    keyboard_press(event) {
+        switch (event.key) {
             case "w":
                 this.key_states.w = true; 
                 break;
@@ -30,14 +31,21 @@ export default class Input {
             case "e":
                 this.key_states.e = true; 
                 break;
-            case " ":
+            case "ArrowUp":
+                this.gpu_manager.uniform_data.render_scale = Math.max(this.gpu_manager.uniform_data.render_scale / 2, 1);
+                break;
+            case "ArrowDown":
+                this.gpu_manager.uniform_data.render_scale = Math.min(this.gpu_manager.uniform_data.render_scale * 2, 16);
+                break;
+            case "Tab":
+                event.preventDefault();
                 this.gui.toggle();
                 break;
         }
     }
 
-    keyboard_release(key) {
-        switch (key) {
+    keyboard_release(event) {
+        switch (event.key) {
             case "w":
                 this.key_states.w = false; 
                 break;

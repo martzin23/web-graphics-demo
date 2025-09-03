@@ -10,4 +10,5 @@ body {
 canvas {
     width: 80%;
     height: 80%;
+    border-radius: 1rem;
 }

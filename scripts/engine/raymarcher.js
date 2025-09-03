@@ -2,6 +2,7 @@ import GPUManager from '../view/gpu_manager.js';
 import Camera from '../utility/camera.js';
 import Input from '../control/input.js';
 import GUI from '../control/gui.js';
+import Vector from '../utility/vector.js';
 
 export default class RayMarcher {
     static async initialize() {
@@ -17,7 +18,9 @@ export default class RayMarcher {
         this.gpu_manager = gpu_manager;
         this.camera = new Camera();
         this.gui = new GUI(this.camera);
-        this.input = new Input(this.camera, this.gui);
+        this.input = new Input(this.gpu_manager, this.camera, this.gui);
+
+        this.gpu_manager.syncResolution();
     }
     async update() {
         if (this.gui.focused())
@@ -26,7 +29,6 @@ export default class RayMarcher {
         this.gpu_manager.uniform_data.fov = this.camera.fov;
         this.gpu_manager.uniform_data.camera_rotation = this.camera.getRotationMatrix();
         this.gpu_manager.uniform_data.camera_position = this.camera.position;
-        this.gpu_manager.uniform_data.aspect_ratio = this.gpu_manager.canvas.height / this.gpu_manager.canvas.width;
         
         // if (this.frame > 1)
         //     this.running = false;
