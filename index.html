@@ -1,12 +1,14 @@
 <!-- 
 TODO
-ui input
-design page
+fullscreen ui
 error page
 float buffer
 ping pong buffer
 migrate raymarching
 
+BUGS
+fullscreen esc
+fullscreen defocus
 -->
 
 <!DOCTYPE html>
@@ -15,16 +17,203 @@ migrate raymarching
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Raymarcher</title>
-		<link rel="stylesheet" href="./styles/ray_marcher.css">
-		<script type="module" defer src="./scripts/main.js"></script>
+	<link rel="stylesheet" href="./styles/ray_marcher.css">
+	<script type="module" defer src="./scripts/main.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
+
 <body>
-	<body>
-		<canvas id="canvas" width="64" height="64"></canvas>
-		<div>
-			<button id="a">Fov+</button>
-			<button id="b">Fov-</button>
+
+	<header class="block">
+		<div class="button active">
+			<i class="fa fa-cog"></i>
+			<p>General</p>
 		</div>
-	</body>
+		<div class="button">
+			<i class="fa fa-location-arrow"></i>
+			<p>RayMarching</p>
+		</div>
+		<div class="button">
+			<i class="fa fa-cube"></i>
+			<p>SDF</p>
+		</div>
+		<div class="button">
+			<i class="fa fa-area-chart"></i>
+			<p>Heightmap</p>
+		</div>
+		<div class="button">
+			<i class="fa fa-code"></i>
+			<p>Code</p>
+		</div>
+		<div class="button">
+			<i class="fa fa-info"></i>
+			<p>Info</p>
+		</div>
+	</header>
+
+	<menu class="block">
+		<figure>
+			<figcaption>
+				<hr>
+				<p>Display</p>
+			</figcaption>
+			<div class="incrementer">
+				<div class="value" id="input-resolution-value">1/1x</div>
+				<div class="button round" id="input-resolution-increase"><i class="fa fa-plus"></i></div>
+				<div class="button round" id="input-resolution-decrease"><i class="fa fa-minus"></i></div>
+				<p>Resolution</p>
+			</div>
+			<div>
+				<div id="input-sync-resolution"></div>
+			</div>
+			<div id="test"></div>
+		</figure>
+
+		<figure>
+			<figcaption>
+				<hr>
+				<p>Camera</p>
+			</figcaption>
+			<div class="drag">
+				<input type="text" value="1" pattern="[0-9]+.[0-9]+|[0-9]+" required id="input-fov-value">
+				<div class="button" id="input-fov-drag">
+					<i class="fa fa-sort-desc fa-rotate-90"></i>
+					<i class="fa fa-sort-asc fa-rotate-90"></i>
+				</div>
+				<p>FOV</p>
+			</div>
+		</figure>
+
+		<figure>
+			<figcaption>
+				<hr>
+				<p>Widget List</p>
+			</figcaption>
+			<div>
+				<div class="button">Button</div>
+			</div>
+			<div class="slider">
+				<input type="text" value="0" pattern="[0-9]+.[0-9]+|[0-9]+" required>
+				<input type="range">
+				<p>Slider</p>
+			</div>
+			<div class="incrementer">
+				<input type="text" value="0" pattern="[0-9]+" required oninput="if (this.checkValidity()) console.log('aaa');">
+				<div class="button round"><i class="fa fa-plus"></i></div>
+				<div class="button round"><i class="fa fa-minus"></i></div>
+				<p>Integer</p>
+			</div>
+			<div class="slider">
+				<input type="text"  value="0">
+				<input type="range">
+				<p>Log</p>
+			</div>
+			<div class="color">
+				<input type="color">
+				<p>Color</p>
+			</div>
+			<div class="drag">
+				<input type="text" value="0">
+				<div class="button">
+					<i class="fa fa-sort-desc fa-rotate-90"></i>
+					<i class="fa fa-sort-asc fa-rotate-90"></i>
+				</div>
+				<p>Drag</p>
+			</div>
+			<div class="toggle">
+				<div class="boolean" value="false" onclick="this.setAttribute('value', 'true'); console.log(this);">
+					<div></div>
+				</div>
+				<p>Toggle</p>
+			</div>
+			<div>
+				<div class="tooltip" tooltip="This is a very long sentence for testing purposes.">
+					<i class="fa fa-question"></i>
+				</div>
+				<p>Tooltip</p>
+			</div>
+			<div>
+				<div class="comment">This is a comment.</div>
+			</div>
+			<div class="vector">
+				<div class="column">
+					<div class="row">
+						<input type="text" value="0" pattern="[0-9]+.[0-9]+|[0-9]+" required>
+						<div class="button">
+							<i class="fa fa-sort-desc fa-rotate-90"></i>
+							<i class="fa fa-sort-asc fa-rotate-90"></i>
+						</div>
+						<p>X</p>
+					</div>
+					<div class="row">
+						<input type="text" value="0" pattern="[0-9]+.[0-9]+|[0-9]+" required>
+						<div class="button">
+							<i class="fa fa-sort-desc fa-rotate-90"></i>
+							<i class="fa fa-sort-asc fa-rotate-90"></i>
+						</div>
+						<p>Y</p>
+
+					</div>
+					<div class="row">
+						<input type="text" value="0" pattern="[0-9]+.[0-9]+|[0-9]+" required>
+						<div class="button">
+							<i class="fa fa-sort-desc fa-rotate-90"></i>
+							<i class="fa fa-sort-asc fa-rotate-90"></i>
+						</div>
+						<p>Z</p>
+					</div>
+				</div>
+				<p>Vector</p>
+			</div>
+			<div class="switch">
+				<div class="button">a</div>
+				<div class="button">b</div>
+				<div class="button">c</div>
+				<div class="button">d</div>
+				<p>Switch</p>
+			</div>
+		</figure>
+
+		<figure class="hidden">
+			<figcaption>
+				<hr>
+				<p>Info</p>
+			</figcaption>
+			<div class="comment">This is a fiwanf wanif wfhiwahfiowahfoiwa woifawiofhj waifwioa jifwapogr</div>
+		</figure>
+
+		<figure class="hidden">
+			<figcaption>
+				<hr>
+				<p>Controls</p>
+			</figcaption>
+			<div>
+				<div class="value">WASDQE</div>
+				<p>Movement</p>
+			</div>
+			<div>
+				<div class="value">Scroll</div>
+				<p>Change camera speed</p>
+			</div>
+			<div>
+				<div class="value">Up/Down arrow</div>
+				<p>Change resolution</p>
+			</div>
+			<div>
+				<div class="value">LMB</div>
+				<p>Controll camera (click on canvas)</p>
+			</div>
+			<div>
+				<div class="value">Space</div>
+				<p>Toggle fullscreen</p>
+			</div>
+			<div>
+				<div class="value">Esc</div>
+				<p>Exit fullscreen / Exit camera controll</p>
+			</div>
+		</figure>
+	</menu>
+
+	<canvas id="canvas" class="block"></canvas>
 </body>
 </html>

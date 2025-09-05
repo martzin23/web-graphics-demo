@@ -5,13 +5,13 @@ export default class Input {
         this.gpu_manager = gpu_manager;
         this.gui = gui;
 
-        document.addEventListener('keydown', (event) => this.keyboard_press(event));
-        document.addEventListener('keyup', (event) => this.keyboard_release(event));
-        document.addEventListener('mousemove', (event) => this.mouse_move(event));
-        document.addEventListener('wheel', (event) => this.mouse_scroll(event));
+        document.addEventListener('keydown', (event) => this.keyboardPress(event));
+        document.addEventListener('keyup', (event) => this.keyboardRelease(event));
+        document.addEventListener('mousemove', (event) => this.mouseMove(event));
+        document.addEventListener('wheel', (event) => this.mouseScroll(event));
     }
 
-    keyboard_press(event) {
+    keyboardPress(event) {
         switch (event.key) {
             case "w":
                 this.key_states.w = true; 
@@ -39,12 +39,16 @@ export default class Input {
                 break;
             case "Tab":
                 event.preventDefault();
-                this.gui.toggle();
+                this.gui.toggleVisibility();
+                break;
+            case " ":
+                this.gui.toggleFullscreen();
+                setTimeout(() => {this.gpu_manager.syncResolution();}, 100);
                 break;
         }
     }
 
-    keyboard_release(event) {
+    keyboardRelease(event) {
         switch (event.key) {
             case "w":
                 this.key_states.w = false; 
@@ -67,13 +71,13 @@ export default class Input {
         }   
     }
 
-    mouse_move(event) {
-        if (this.gui.focused())
+    mouseMove(event) {
+        if (this.gui.isFocused())
             this.camera.rotate(event.movementX, event.movementY);
     }
 
-    mouse_scroll(event) {
-        if (this.gui.focused()) {
+    mouseScroll(event) {
+        if (this.gui.isFocused()) {
             if(event.deltaY < 0)
                 this.camera.speed *= 1.25;
             else

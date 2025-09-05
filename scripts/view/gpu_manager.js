@@ -27,11 +27,7 @@ export default class GPUManager {
             fov: 1.0,
             sun_direction : Vector.vec(1.0),
             padding: 0.0
-            // max_marches : 100,
-            // max_bounces : 3,
-            // epsilon : 0.0001,
         };
-        // console.log(GPUManager.packUniforms(this.uniform_data));
 
         // Context and WebGPU
         const canvas_format = navigator.gpu.getPreferredCanvasFormat();
@@ -96,22 +92,19 @@ export default class GPUManager {
         }
     }
 
-    static packUniforms(data) {
-        let array = [];
-        for (const el in data) {
-            if (Vector.test(data[el]))
-                array.push(Vector.array(data[el]));
-            else if (Matrix.test(data[el]))
-                array.push(Matrix.array(data[el]));
-            else
-                array.push(data[el]);
-        }
-        return array.flat();
-    }
-
     writeUniforms() {
         const uniform_array = new Float32Array(GPUManager.packUniforms(this.uniform_data));
         this.device.queue.writeBuffer(this.uniform_buffer, 0, uniform_array);
+    }
+
+    syncResolution() {
+        let canvas_dimensions = this.canvas.getBoundingClientRect();
+        canvas_dimensions.width = Math.min(canvas_dimensions.width, this.base_render_size.x);
+        canvas_dimensions.height = Math.min(canvas_dimensions.height, this.base_render_size.y);
+        
+        this.uniform_data.canvas_size = Vector.vec(canvas_dimensions.width, canvas_dimensions.height);
+        this.canvas.height = canvas_dimensions.height;
+        this.canvas.width = canvas_dimensions.width;
     }
 
     render() {
@@ -144,6 +137,19 @@ export default class GPUManager {
         render_pass.end();
 			
         this.device.queue.submit([command_encoder.finish()]);
+    }
+
+    static packUniforms(data) {
+        let array = [];
+        for (const el in data) {
+            if (Vector.test(data[el]))
+                array.push(Vector.array(data[el]));
+            else if (Matrix.test(data[el]))
+                array.push(Matrix.array(data[el]));
+            else
+                array.push(data[el]);
+        }
+        return array.flat();
     }
 
     static makeComputePipeline(device, compute_shader_code, color_buffer_view, uniform_buffer) {
@@ -284,12 +290,5 @@ export default class GPUManager {
         });
 
         return [render_pipeline, render_bind_group];
-    }
-
-    syncResolution() {
-        const canvas_dimensions = this.canvas.getBoundingClientRect();
-        this.uniform_data.canvas_size = Vector.vec(canvas_dimensions.width, canvas_dimensions.height);
-        this.canvas.height = canvas_dimensions.height;
-        this.canvas.width = canvas_dimensions.width;
     }
 }
