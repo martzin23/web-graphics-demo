@@ -45,7 +45,7 @@ export default class GUI {
     }
 
     updateGUI() {
-        element.dispatchEvent(update_event);
+        document.querySelectorAll("menu *").forEach(element => {element.dispatchEvent(this.update_event);});
     }
 
     setupGUI() {
@@ -67,6 +67,7 @@ export default class GUI {
             document.addEventListener(eventType, () => {
                 const menu = document.getElementById("menu");
                 const unselected = document.getElementById("group-unselected");
+
                 if (!this.isFullscreen() && menu.classList.contains("hidden")) {
                     menu.classList.remove("hidden");
                     unselected.classList.remove("hidden");
@@ -122,14 +123,28 @@ export default class GUI {
         );
 
         // Display
-        Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu_manager.uniform_data.render_scale = value;}, "Resolution division", 1, 1, 16, 2, true);
+        Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu_manager.uniform_data.render_scale = value;},() => this.gpu_manager.uniform_data.render_scale , "Resolution division", 1, 16, 2, true);
         Widgets.createButton(document.getElementById("group-display"), () => {this.gpu_manager.syncResolution();}, "Fix Aspect Ratio");
 
         // Camera
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.fov = value;}, "FOV", 0.5, 0, Infinity, 0.01);
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.fov = value;}, () => this.camera.fov, "FOV", 0, Infinity, 0.01);
         // Widgets.createDrag("group-camera", (value) => {this.camera.position.x = parseFloat(value);}, "Position X");
         // Widgets.createDrag("group-camera", (value) => {this.camera.position.y = parseFloat(value);}, "Position Y");
         // Widgets.createDrag("group-camera", (value) => {this.camera.position.z = parseFloat(value);}, "Position Z");
+        Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Test");
+        Widgets.createToggle(
+            document.getElementById("group-display"),
+            (value) => { this.toggleFullscreen(); },
+            () => this.isFullscreen(),
+            "Fullscreen",
+        );
 
+        // Widgets.createColor(
+        //     document.getElementById("group-camera"), 
+        //     (value) => {document.getElementById("group-camera").style.backgroundColor = value}, 
+        //     () => document.getElementById("group-camera").style.backgroundColor, 
+        //     "Color", 
+        //     true);
+        // };
     }
 }

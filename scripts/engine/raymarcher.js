@@ -20,16 +20,17 @@ export default class RayMarcher {
         this.input = new Input(this.gpu_manager, this.camera, this.gui);
 
         this.gpu_manager.syncResolution();
+        this.slow_update = setInterval(() => {
+            this.gui.updateGUI();
+        }, 250);
     }
     async update() {
         if (this.gui.isFocused())
             this.camera.update(this.input.key_states);
-
+        
         this.gpu_manager.uniform_data.fov = this.camera.fov;
         this.gpu_manager.uniform_data.camera_rotation = this.camera.getRotationMatrix();
         this.gpu_manager.uniform_data.camera_position = this.camera.position;
-        // console.log(this.camera.position);
-        // console.log(this.gui.isFullscreen());
         
         // this.running = false;
     }

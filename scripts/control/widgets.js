@@ -1,33 +1,43 @@
 
-export function createButton(parent, func = () => { console.log("Pressed"); }, name = "Name") {
+export function createButton(parent, set = () => { console.log("Pressed"); }, name = "Name") {
     const element_base = document.createElement("div");
     element_base.className = "button";
     element_base.innerHTML = name;
-    element_base.addEventListener("click", func);
+    element_base.addEventListener("click", set);
 
     parent.appendChild(element_base);
     return element_base;
 }
 
-export function createToggle(parent, func = (bool) => { console.log(bool); }, name = "Name", def = false) {
-    const element_handle = document.createElement("div");
+export function createToggle(parent, set = (bool) => { console.log(bool); }, get = () => undefined, name = "Name") {
+    const default_value = get();
+
     const element_bool = document.createElement("div");
     element_bool.className = "boolean";
-    if (def)
+    if (default_value)
         element_bool.setAttribute("value", "true");
     else
         element_bool.setAttribute("value", "false");
-    element_bool.appendChild(element_handle);
+    element_bool.appendChild(document.createElement("div"));
+
     element_bool.addEventListener("click", function() {
         if (this.getAttribute("value") == "false") {
-            func(true);
+            set(true);
             this.setAttribute("value", "true");
         }
         else {
-            func(false);
+            set(false);
             this.setAttribute("value", "false");
         }
     });   
+
+    element_bool.addEventListener("updategui", function() {
+        const value = get();
+        if (value)
+            this.setAttribute("value", "true");
+        else
+            this.setAttribute("value", "false");
+    });
 
     const element_text = document.createElement("p");
     element_text.innerText = name;
@@ -38,18 +48,17 @@ export function createToggle(parent, func = (bool) => { console.log(bool); }, na
     element_base.appendChild(element_text);
     
     parent.appendChild(element_base);
-    func(def);  
     return element_base;
 }
 
-export function createSlider(parent, func = (value) => { console.log(value); }, name = "Name", def = 0, min = 0, max = 1) {
-    def = resizeNumber(Math.max(Math.min(def, max), min));
+export function createSlider(parent, set = (value) => { console.log(value); }, get = () => undefined, name = "Name", min = 0, max = 1) {
+    const default_value = resizeNumber(Math.max(Math.min(get(), max), min));
 
     const element_text = document.createElement("input");
     element_text.setAttribute("type", "text");
     element_text.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
     element_text.setAttribute("required", "");
-    element_text.setAttribute("value", def);
+    element_text.setAttribute("value", default_value);
 
     const element_range = document.createElement("input");
     element_range.setAttribute("type", "range");
@@ -57,18 +66,18 @@ export function createSlider(parent, func = (value) => { console.log(value); }, 
     element_range.setAttribute("min", "0");
     element_range.setAttribute("max", "100");
     element_range.setAttribute("step", "1");
-    element_range.setAttribute("value", ((def - min) / (max - min)) * 100);
+    element_range.setAttribute("value", ((default_value - min) / (max - min)) * 100);
 
     element_text.addEventListener("focusout", function() {
         if (this.checkValidity()) {
             const temp = resizeNumber(Math.min(Math.max(parseFloat(this.value), min), max));
             this.value = temp;
             element_range.value = ((temp - min) / (max - min)) * 100;
-            func(real_value);
+            set(real_value);
         } else {
-            this.value = def;
-            element_range.value = ((def - min) / (max - min)) * 100;
-            func(def);
+            this.value = default_value;
+            element_range.value = ((default_value - min) / (max - min)) * 100;
+            set(def);
         }
     });
 
@@ -76,7 +85,14 @@ export function createSlider(parent, func = (value) => { console.log(value); }, 
         const factor = parseInt(this.value) / 100;
         const temp = resizeNumber((min + factor * (max - min)));
         element_text.value = temp;
-        func(temp);
+        set(temp);
+    });
+    
+    element_text.addEventListener("updategui", function() {
+        if (this.matches(":focus")) return;
+        const value = get();
+        this.value = value;
+        element_range.value = ((value - min) / (max - min)) * 100;
     });
 
     const element_name = document.createElement("p");
@@ -89,18 +105,17 @@ export function createSlider(parent, func = (value) => { console.log(value); }, 
     element_base.appendChild(element_name);
     
     parent.appendChild(element_base);
-    func(def);
     return element_base;
 }
 
-export function createIncrement(parent, func = (value) => {console.log(value);}, name = "Name", def = 0, min = -Infinity, max = Infinity, step = 1, multiply = false) {
-    def = resizeNumber(Math.max(Math.min(def, max), min));
+export function createIncrement(parent, set = (value) => {console.log(value);}, get = () => undefined, name = "Name", min = -Infinity, max = Infinity, step = 1, multiply = false) {
+    const default_value = resizeNumber(Math.max(Math.min(get(), max), min));
 
     const element_text = document.createElement("input");
     element_text.setAttribute("type", "text");
     element_text.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
     element_text.setAttribute("required", "");
-    element_text.setAttribute("value", def);
+    element_text.setAttribute("value", default_value);
 
     const element_plus = document.createElement("i");
     element_plus.className = "fa fa-plus";
@@ -130,36 +145,45 @@ export function createIncrement(parent, func = (value) => {console.log(value);},
         if (this.checkValidity()) {
             const value = resizeNumber(Math.min(Math.max(parseFloat(this.value), min), max));
             this.value = value;
-            func(value);
+            set(value);
         } else {
-            this.value = def;
-            func(def);
+            this.value = default_value;
+            set(default_value);
         }
+    });
+    
+    element_text.addEventListener("updategui", function() {
+        if (this.matches(":focus")) return;
+        this.value = get();
     });
 
     element_increment.addEventListener("click", function() {
         const temp = multiply ? parseFloat(element_text.value) * step : parseFloat(element_text.value) + step;
         const value = resizeNumber(Math.min(Math.max(temp, min), max));
         element_text.value = value;
-        func(value);
+        set(value);
     });
 
     element_decrement.addEventListener("click", function() {
         const temp = multiply ? parseFloat(element_text.value) / step : parseFloat(element_text.value) - step;
         const value = resizeNumber(Math.min(Math.max(temp, min), max));
         element_text.value = value;
-        func(value);
+        set(value);
     });
     
     parent.appendChild(element_base);
-    func(def);
     return element_base;
 }
 
-export function createColor(parent, func = (value) => {console.log(value);}, name = "Name", def = "#ffffffff", hex = false) {
+export function createColor(parent, set = (value) => {console.log(value);}, get = () => undefined, name = "Name", hex = false) {
+    const default_value = hex ? get() : rgb2hex(get());
+    console.log(default_value);
+    console.log(get());
+
     const element_color = document.createElement("input");
     element_color.setAttribute("type", "color");
-    element_color.setAttribute("value", def);
+    element_color.setAttribute("value", default_value);
+    
 
     const element_name = document.createElement("p");
     element_name.innerText = name;
@@ -170,22 +194,27 @@ export function createColor(parent, func = (value) => {console.log(value);}, nam
     element_base.appendChild(element_name);
 
     element_color.addEventListener("input", function() {
-        func(hex ? this.value : hex2rgb(this.value));
+        set(hex ? this.value : hex2rgb(this.value));
+    });
+    
+    element_color.addEventListener("updategui", function() {
+        if (this.matches(":focus")) return;
+        this.value = hex ? get() : rgb2hex(get());
+        // console.log(rgb2hex(get()));
     });
     
     parent.appendChild(element_base);
-    func(def);
     return element_base;
 }
 
-export function createDrag(parent, func = (value) => {console.log(value);}, name = "Name", def = 0.0, min = -Infinity, max = Infinity, sen = 0.01) {
-    def = resizeNumber(Math.max(Math.min(def,  max), min));
+export function createDrag(parent, set = (value) => {console.log(value);}, get = () => undefined, name = "Name", min = -Infinity, max = Infinity, sen = 0.01) {
+    const default_value = resizeNumber(Math.max(Math.min(get(),  max), min));
 
     const element_text = document.createElement("input");
     element_text.setAttribute("type", "text");
     element_text.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
     element_text.setAttribute("required", "");
-    element_text.setAttribute("value", def);
+    element_text.setAttribute("value", default_value);
 
     const element_left = document.createElement("i");
     element_left.className = "fa fa-sort-desc fa-rotate-90";
@@ -211,18 +240,23 @@ export function createDrag(parent, func = (value) => {console.log(value);}, name
         if (this.checkValidity()) {
             const value = resizeNumber(Math.min(Math.max(parseFloat(this.value), min), max));
             this.value = value;
-            func(value);
+            set(value);
         } else {
             this.value = def;
-            func(def);
+            set(default_value);
         }
+    });
+    
+    element_text.addEventListener("updategui", function() {
+        if (this.matches(":focus")) return;
+        this.value = get();
     });
 
     element_button.addEventListener("mousedown", function() {
         const mousemove_listener = (event) => {
-            const value = resizeNumber(Math.max(Math.min(parseFloat(parseFloat(element_text.value)) + event.movementX * sen, max), min));
+            const value = resizeNumber(Math.max(Math.min(parseFloat(element_text.value) + event.movementX * sen, max), min));
             element_text.value = value;
-            func(value);
+            set(value);
 
             const mouseup_listener = () => {
                 document.removeEventListener("mousemove", mousemove_listener);
@@ -235,17 +269,17 @@ export function createDrag(parent, func = (value) => {console.log(value);}, name
     });
     
     parent.appendChild(element_base);
-    func(def);
     return element_base;
 }
 
-export function createVector(parent, func = (value) => {console.log(value);}, name = "Name", def = {x:0, y:0, z:0}, sen = 0.01) {
+export function createVector(parent, set = (value) => {console.log(value);}, get = () => undefined, name = "Name", sen = 0.01) {
+    const default_value = get();
 
     const element_text_x = document.createElement("input");
     element_text_x.setAttribute("type", "text");
     element_text_x.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
     element_text_x.setAttribute("required", "");
-    element_text_x.setAttribute("value", def.x);
+    element_text_x.setAttribute("value", default_value.x);
 
     const element_left_x = document.createElement("i");
     element_left_x.className = "fa fa-sort-desc fa-rotate-90";
@@ -273,7 +307,7 @@ export function createVector(parent, func = (value) => {console.log(value);}, na
     element_text_y.setAttribute("type", "text");
     element_text_y.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
     element_text_y.setAttribute("required", "");
-    element_text_y.setAttribute("value", def.y);
+    element_text_y.setAttribute("value", default_value.y);
 
     const element_left_y = document.createElement("i");
     element_left_y.className = "fa fa-sort-desc fa-rotate-90";
@@ -301,7 +335,7 @@ export function createVector(parent, func = (value) => {console.log(value);}, na
     element_text_z.setAttribute("type", "text");
     element_text_z.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
     element_text_z.setAttribute("required", "");
-    element_text_z.setAttribute("value", def.z);
+    element_text_z.setAttribute("value", default_value.z);
 
     const element_left_z = document.createElement("i");
     element_left_z.className = "fa fa-sort-desc fa-rotate-90";
@@ -324,11 +358,31 @@ export function createVector(parent, func = (value) => {console.log(value);}, na
     element_drag_z.appendChild(element_name_z);
 
 
+
+    element_text_x.addEventListener("focusout", function() {
+        if (this.checkValidity()) {
+            const value = resizeNumber(parseFloat(this.value));
+            this.value = value;
+            set({
+                x: parseFloat(value),
+                y: parseFloat(element_text_y.value),
+                z: parseFloat(element_text_z.value)
+            });
+        } else {
+            this.value = get().x;
+        }
+    });
+    
+    element_text_x.addEventListener("updategui", function() {
+        if (this.matches(":focus")) return;
+        this.value = get().x;
+    });
+
     element_button_x.addEventListener("mousedown", function() {
         const mousemove_listener = (event) => {
-            const value = resizeNumber(Math.max(Math.min(parseFloat(parseFloat(element_text_x.value)) + event.movementX * sen, max), min));
+            const value = resizeNumber(parseFloat(element_text_x.value) + event.movementX * sen);
             element_text_x.value = value;
-            func({
+            set({
                 x: parseFloat(value),
                 y: parseFloat(element_text_y.value),
                 z: parseFloat(element_text_z.value)
@@ -342,12 +396,33 @@ export function createVector(parent, func = (value) => {console.log(value);}, na
         document.addEventListener("mousemove", mousemove_listener);
     });
 
+
+
+    element_text_y.addEventListener("focusout", function() {
+        if (this.checkValidity()) {
+            const value = resizeNumber(parseFloat(this.value));
+            this.value = value;
+            set({
+                x: parseFloat(element_text_x.value),
+                y: parseFloat(value),
+                z: parseFloat(element_text_z.value)
+            });
+        } else {
+            this.value = get().y;
+        }
+    });
+    
+    element_text_y.addEventListener("updategui", function() {
+        if (this.matches(":focus")) return;
+        this.value = get().y;
+    });
+
     element_button_y.addEventListener("mousedown", function() {
         const mousemove_listener = (event) => {
-            const value = resizeNumber(Math.max(Math.min(parseFloat(parseFloat(element_text_y.value)) + event.movementX * sen, max), min));
+            const value = resizeNumber(parseFloat(element_text_y.value) + event.movementX * sen);
             element_text_y.value = value;
-            func({
-                x: parseFloat(element_text_z.value),
+            set({
+                x: parseFloat(element_text_x.value),
                 y: parseFloat(value),
                 z: parseFloat(element_text_z.value)
             });
@@ -360,11 +435,32 @@ export function createVector(parent, func = (value) => {console.log(value);}, na
         document.addEventListener("mousemove", mousemove_listener);
     });
 
-    element_button_y.addEventListener("mousedown", function() {
+
+
+    element_text_z.addEventListener("focusout", function() {
+        if (this.checkValidity()) {
+            const value = resizeNumber(parseFloat(this.value));
+            this.value = value;
+            set({
+                x: parseFloat(element_text_x.value),
+                y: parseFloat(element_text_y.value),
+                z: parseFloat(value)
+            });
+        } else {
+            this.value = get().z;
+        }
+    });
+    
+    element_text_z.addEventListener("updategui", function() {
+        if (this.matches(":focus")) return;
+        this.value = get().z;
+    });
+
+    element_button_z.addEventListener("mousedown", function() {
         const mousemove_listener = (event) => {
-            const value = resizeNumber(Math.max(Math.min(parseFloat(parseFloat(element_text_z.value)) + event.movementX * sen, max), min));
+            const value = resizeNumber(parseFloat(element_text_z.value) + event.movementX * sen);
             element_text_z.value = value;
-            func({
+            set({
                 x: parseFloat(element_text_x.value),
                 y: parseFloat(element_text_y.value),
                 z: parseFloat(value)
@@ -394,11 +490,10 @@ export function createVector(parent, func = (value) => {console.log(value);}, na
     element_base.appendChild(element_name);
 
     parent.appendChild(element_base);
-    func(def);
     return element_base;
 }
 
-export function createSwitch(parent, func = (value) => {console.log(value);}, options = ['a', 'b', 'c', 'd'], def = 'a', name) {
+export function createSwitch(parent, set = (value) => {console.log(value);}, options = ['a', 'b', 'c', 'd'], def = 'a', name) {
     const element_base = document.createElement("div");
     element_base.className = "switch";
 
@@ -406,11 +501,11 @@ export function createSwitch(parent, func = (value) => {console.log(value);}, op
         const element_button = createButton(element_base, function() {
             if (this.classList.contains('active')) {
                 this.parentNode.childNodes.forEach((el) => {el.classList.remove("active")});
-                func(null);
+                set(null);
             } else {
                 this.parentNode.childNodes.forEach((el) => {el.classList.remove("active")});
                 this.classList.toggle("active");
-                func(el);
+                set(el);
             }
         }, el);
         if (el === def)
@@ -424,7 +519,7 @@ export function createSwitch(parent, func = (value) => {console.log(value);}, op
     }
 
     parent.appendChild(element_base);
-    func(def);
+    set(def);
     return element_base;
 }
 
@@ -446,4 +541,16 @@ function hex2rgb(hex) {
         y: hex2float(hexes[1]), 
         z: hex2float(hexes[2])
     };
+}
+
+function rgb2hex(rgb) {
+    const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
+    return "#" + 
+        digits.indexOf(Math.floor(rgb.x * 256 / 16)) +    
+        digits.indexOf(Math.floor(rgb.x * 256 % 16)) +    
+        digits.indexOf(Math.floor(rgb.y * 256 / 16)) +    
+        digits.indexOf(Math.floor(rgb.y * 256 % 16)) +    
+        digits.indexOf(Math.floor(rgb.z * 256 / 16)) +    
+        digits.indexOf(Math.floor(rgb.z * 256 % 16))
+    ;
 }

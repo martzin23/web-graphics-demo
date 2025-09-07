@@ -90,7 +90,7 @@ body {
 }
 
 :root:fullscreen .block {
-    background-color: var(--block-light);
+    background-color: var(--block-dark);
 }
 
 :root:fullscreen header>div {
@@ -420,7 +420,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .drag {
-    width: 100%;
+    /* width: 100%; */
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -449,13 +449,17 @@ input[type="range"]::-webkit-slider-thumb:hover {
     width: 100%;
     display: flex;
     flex-direction: row;
-    align-items: center;
     justify-content: flex-start;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 1rem;
 }
 
 .vector input[type="text"] {
-    width: 25%;
+    width: 100%;
+}
+
+.vector>p {
+    width: 100%;
 }
 
 .switch {
