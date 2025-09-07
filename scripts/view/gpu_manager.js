@@ -57,7 +57,7 @@ export default class GPUManager {
                 width: this.base_render_size.x,
                 height: this.base_render_size.y
             },
-            format: "rgba8unorm",
+            format: "rgba32float",
             usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING
         });
         const color_buffer_view = this.color_buffer.createView();
@@ -165,7 +165,7 @@ function makeComputePipeline(device, compute_shader_code, color_buffer_view, uni
                 visibility: GPUShaderStage.COMPUTE,
                 storageTexture: {
                     access: "write-only",
-                    format: "rgba8unorm",
+                    format: "rgba32float",
                     viewDimension: "2d"
                 } 
             },
@@ -226,7 +226,9 @@ function makeRenderPipeline(device, render_shader_code, color_buffer_view, unifo
             {
                 binding: 1,
                 visibility: GPUShaderStage.FRAGMENT,
-                texture: {}
+                texture: {
+                    sampleType: 'unfilterable-float'
+                }
             },
             {
                 binding: 2,

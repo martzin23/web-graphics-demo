@@ -200,7 +200,6 @@ export function createColor(parent, set = (value) => {console.log(value);}, get 
     element_color.addEventListener("updategui", function() {
         if (this.matches(":focus")) return;
         this.value = hex ? get() : rgb2hex(get());
-        // console.log(rgb2hex(get()));
     });
     
     parent.appendChild(element_base);

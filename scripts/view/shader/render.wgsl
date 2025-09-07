@@ -42,7 +42,6 @@ fn vertexMain(@builtin(vertex_index) VertexIndex: u32) -> VertexOutput {
 @fragment
     fn fragmentMain(@location(0) texture_coordinate: vec2f) -> @location(0) vec4f {
     let texture_size = vec2f(textureDimensions(color_buffer));
-    // return textureSample(color_buffer, screen_sampler, texture_coordinate * vec2f(1.0 / uniforms.aspect_ratio, 1.0 / (texture_size.x / texture_size.y)));
-    return textureSample(color_buffer, screen_sampler, texture_coordinate * (uniforms.canvas_size / texture_size) / uniforms.render_scale);
-    // return textureSample(color_buffer, screen_sampler, texture_coordinate);
+    let uv = texture_coordinate * (uniforms.canvas_size / texture_size) / uniforms.render_scale;
+    return textureLoad(color_buffer, vec2u(uv * texture_size), 0);
 }
