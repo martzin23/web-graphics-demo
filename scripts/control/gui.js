@@ -1,39 +1,13 @@
+import * as Widgets from './widgets.js';
+
 export default class GUI {
     constructor(camera, gpu_manager) {
-        this.active = true;
-        this.camera = camera;
         this.canvas = document.getElementById("canvas");
         this.gpu_manager = gpu_manager;
-
-        // this.mouse_movement = {x: 0, y: 0};
-        this.value_element = null;
-        this.active_function = null;
+        this.camera = camera;
+        this.update_event;
         
-        this.setupCallbacks();
-    }
-
-    mouseClick(event) {
-        switch (event.button) {
-            case 0:
-                this.toggleFocus();
-                break;
-            case 1:
-                break;
-            case 2:
-                break;
-        }
-    }
-
-    mouseMove(event) {
-        // this.mouse_movement.x = event.movementX;
-        // this.mouse_movement.y = event.movementY;
-        if (this.value_element) {
-            if (this.value_element.checkValidity()) {
-                const value = Math.max(parseFloat(this.value_element.value) + event.movementX * 0.01, 0);
-                this.value_element.value = value;
-                this.active_function(value);
-            }
-        }
+        this.setupGUI();
     }
 
     isFocused() {
@@ -41,15 +15,7 @@ export default class GUI {
     }
 
     isFullscreen() {
-        return window.fullscreen;
-    }
-
-    toggleVisibility() {
-        if (this.active)
-            console.log("gui off");
-        else
-            console.log("gui on");
-        this.active = !this.active;
+        return (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) !== undefined;
     }
 
     toggleFullscreen() {
@@ -60,6 +26,7 @@ export default class GUI {
                 document.webkitExitFullscreen().catch(() => {});
             else if (document.msExitFullscreen)
                 document.msExitFullscreen().catch(() => {});
+
         } else {
             if (document.documentElement.requestFullscreen)
                 document.documentElement.requestFullscreen();
@@ -77,84 +44,92 @@ export default class GUI {
             this.canvas.requestPointerLock({ unadjustedMovement: true }).catch(() => {});
     }
 
-    setupCallbacks() {
-        this.canvas.addEventListener('click', (event) => this.mouseClick(event));
-        document.addEventListener("mousemove", (event) => this.mouseMove(event));
-        document.addEventListener("mouseup", () => {this.value_element = null});
+    updateGUI() {
+        element.dispatchEvent(update_event);
+    }
 
-        // Display
-        const input_resolution_value = document.getElementById('input-resolution-value');
-        document.getElementById("input-resolution-increase").addEventListener("click", () => {
-            this.gpu_manager.uniform_data.render_scale = Math.max(this.gpu_manager.uniform_data.render_scale / 2, 1);
-            input_resolution_value.innerText = "1/" + this.gpu_manager.uniform_data.render_scale + "x";
-        });
-        document.getElementById("input-resolution-decrease").addEventListener("click", () => {
-            this.gpu_manager.uniform_data.render_scale = Math.min(this.gpu_manager.uniform_data.render_scale * 2, 16);
-            input_resolution_value.innerText = "1/" + this.gpu_manager.uniform_data.render_scale + "x";
+    setupGUI() {
+        this.canvas.addEventListener('click', (event) => {
+            if (event.button == 0)
+                this.toggleFocus();
         });
 
-        const input_fov_drag = document.getElementById("input-fov-drag");
-        input_fov_drag.addEventListener("mousedown", () => {
-            this.value_element = document.getElementById("input-fov-value");
-            this.active_function = function(value) {
-                this.camera.fov = value;
-            }
+        window.addEventListener('resize', () => {
+            this.gpu_manager.syncResolution();
+        });
+
+        this.update_event = new CustomEvent('updategui', {
+            bubbles: true,
+            cancelable: true
+        });
+
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach((eventType) => {
+            document.addEventListener(eventType, () => {
+                const menu = document.getElementById("menu");
+                const unselected = document.getElementById("group-unselected");
+                if (!this.isFullscreen() && menu.classList.contains("hidden")) {
+                    menu.classList.remove("hidden");
+                    unselected.classList.remove("hidden");
+                } else if (this.isFullscreen() && !unselected.classList.contains("hidden")) {
+                    menu.classList.add("hidden");
+                    unselected.classList.add("hidden");
+                }
+            })
         })
 
-        this.createButton("input-sync-resolution", () => {this.gpu_manager.syncResolution();}, "Fix Aspect Ratio");
-        this.createToggle("test", (value) => { console.log(value); }, "fwan");
-    }
+        // Tabs
+        Widgets.createSwitch(
+            document.getElementById("group-tabs"), 
+            (value) => {
+                document.getElementById("menu").classList.remove("hidden");
+                Array.from(document.getElementById("menu").childNodes).filter((el) => (el.nodeType !== Node.TEXT_NODE)).forEach((el) => {el.classList.add("hidden");});
+                
+                switch(value) {
+                    case '<i class="fa fa-cog"></i>General':
+                        document.getElementById("group-display").classList.remove("hidden");
+                        document.getElementById("group-camera").classList.remove("hidden");
+                        document.getElementById("group-widgets").classList.remove("hidden");
+                        break;
+                    case '<i class="fa fa-location-arrow"></i>RayMarching':
+                        break;
+                    case '<i class="fa fa-cube"></i>SDF':
+                        break;
+                    case '<i class="fa fa-area-chart"></i>Heightmap':
+                        break;
+                    case '<i class="fa fa-code"></i>Code':
+                        break;
+                    case '<i class="fa fa-info"></i>Info':
+                        document.getElementById("group-info").classList.remove("hidden");
+                        document.getElementById("group-controls").classList.remove("hidden");
+                        break;
+                    default:
+                        if (this.isFullscreen())
+                            document.getElementById("menu").classList.add("hidden");
+                        else
+                            document.getElementById("group-unselected").classList.remove("hidden");
+                        break;
+                }
+            }, 
+            [
+                '<i class="fa fa-cog"></i>General', 
+                '<i class="fa fa-location-arrow"></i>RayMarching', 
+                '<i class="fa fa-cube"></i>SDF',
+                '<i class="fa fa-area-chart"></i>Heightmap',
+                '<i class="fa fa-code"></i>Code',
+                '<i class="fa fa-info"></i>Info'
+            ], 
+            '<i class="fa fa-cog"></i>General'
+        );
 
-    createButton(id, func = () => {}, name = "Name") {
-        const element = document.getElementById(id);
-        element.className = "button";
-        element.innerText = name;
-        element.addEventListener("click", func);
-    }
+        // Display
+        Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu_manager.uniform_data.render_scale = value;}, "Resolution division", 1, 1, 16, 2, true);
+        Widgets.createButton(document.getElementById("group-display"), () => {this.gpu_manager.syncResolution();}, "Fix Aspect Ratio");
 
-    createToggle(id, func, name = "Name", def = false) {
-        const handle = document.createElement("div");
-
-        const bool = document.createElement("div");
-        if (def)
-            bool.className = "true";
-        else
-            bool.className = "false";
-        bool.appendChild(handle);
-
-        const text = document.createElement("p");
-        text.innerText = name;
-
-        const element = document.getElementById(id);
-        element.appendChild(bool);
-        element.appendChild(text);
-        // element.addEventListener("click", () => {
-        //     if (this.classList.indexOf("active") !== undefined) {
-        //         func(true);
-        //         this.classList.push("active");
-        //     }
-        //     else {
-        //         func(false);
-        //         this.classList.splice(this.classList.indexOf("active"), 1);
-        //     }
-        // });   
-        console.log(element);
-        func(def);   
-    }
-
-    createSlider(name, elem, func, def, min, max, multi, step, log) {
-
-    }
-
-    createToggle(name, elem, func, def, min, max, multi, step) {
-
-    }
-
-    createIncrement(name, elem, func, def, min, max, step) {
-
-    }
-
-    createColor(name, elem, func, def) {
+        // Camera
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.fov = value;}, "FOV", 0.5, 0, Infinity, 0.01);
+        // Widgets.createDrag("group-camera", (value) => {this.camera.position.x = parseFloat(value);}, "Position X");
+        // Widgets.createDrag("group-camera", (value) => {this.camera.position.y = parseFloat(value);}, "Position Y");
+        // Widgets.createDrag("group-camera", (value) => {this.camera.position.z = parseFloat(value);}, "Position Z");
 
     }
 }

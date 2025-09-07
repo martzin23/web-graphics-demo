@@ -28,6 +28,8 @@ export default class RayMarcher {
         this.gpu_manager.uniform_data.fov = this.camera.fov;
         this.gpu_manager.uniform_data.camera_rotation = this.camera.getRotationMatrix();
         this.gpu_manager.uniform_data.camera_position = this.camera.position;
+        // console.log(this.camera.position);
+        // console.log(this.gui.isFullscreen());
         
         // this.running = false;
     }

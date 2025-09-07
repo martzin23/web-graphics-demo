@@ -1,14 +1,16 @@
 <!-- 
 TODO
-fullscreen ui
-error page
-float buffer
-ping pong buffer
-migrate raymarching
+widget update functions
 
-BUGS
-fullscreen esc
-fullscreen defocus
+shader
+	float buffer
+	migrate raymarching
+	menu setup
+css colors rework
+main in raymarcher
+heightmap
+custom code
+
 -->
 
 <!DOCTYPE html>
@@ -24,93 +26,47 @@ fullscreen defocus
 
 <body>
 
-	<header class="block">
-		<div class="button active">
-			<i class="fa fa-cog"></i>
-			<p>General</p>
-		</div>
-		<div class="button">
-			<i class="fa fa-location-arrow"></i>
-			<p>RayMarching</p>
-		</div>
-		<div class="button">
-			<i class="fa fa-cube"></i>
-			<p>SDF</p>
-		</div>
-		<div class="button">
-			<i class="fa fa-area-chart"></i>
-			<p>Heightmap</p>
-		</div>
-		<div class="button">
-			<i class="fa fa-code"></i>
-			<p>Code</p>
-		</div>
-		<div class="button">
-			<i class="fa fa-info"></i>
-			<p>Info</p>
+	<header>
+		<div class="block">
+			<div id="group-tabs"></div>
+			<a href="https://github.com/martzin23/WebGPU-Demo" class="button">
+				<i class="fa fa-link"></i>
+				<p>GitHub</p>
+			</a>
 		</div>
 	</header>
 
-	<menu class="block">
-		<figure>
+	<menu class="block" id="menu">
+		<figure id="group-display">
 			<figcaption>
 				<hr>
 				<p>Display</p>
 			</figcaption>
-			<div class="incrementer">
-				<div class="value" id="input-resolution-value">1/1x</div>
-				<div class="button round" id="input-resolution-increase"><i class="fa fa-plus"></i></div>
-				<div class="button round" id="input-resolution-decrease"><i class="fa fa-minus"></i></div>
-				<p>Resolution</p>
-			</div>
-			<div>
-				<div id="input-sync-resolution"></div>
-			</div>
-			<div id="test"></div>
 		</figure>
 
-		<figure>
+		<figure id="group-camera">
 			<figcaption>
 				<hr>
 				<p>Camera</p>
 			</figcaption>
-			<div class="drag">
-				<input type="text" value="1" pattern="[0-9]+.[0-9]+|[0-9]+" required id="input-fov-value">
-				<div class="button" id="input-fov-drag">
-					<i class="fa fa-sort-desc fa-rotate-90"></i>
-					<i class="fa fa-sort-asc fa-rotate-90"></i>
-				</div>
-				<p>FOV</p>
-			</div>
 		</figure>
 
-		<figure>
+		<figure id="group-widgets">
 			<figcaption>
 				<hr>
 				<p>Widget List</p>
 			</figcaption>
 			<div>
+				<div class="comment" tooltip="This is tooltip.">This is a comment.</div>
+			</div>
+			<div>
 				<div class="button">Button</div>
 			</div>
-			<div class="slider">
-				<input type="text" value="0" pattern="[0-9]+.[0-9]+|[0-9]+" required>
-				<input type="range">
-				<p>Slider</p>
-			</div>
-			<div class="incrementer">
-				<input type="text" value="0" pattern="[0-9]+" required oninput="if (this.checkValidity()) console.log('aaa');">
-				<div class="button round"><i class="fa fa-plus"></i></div>
-				<div class="button round"><i class="fa fa-minus"></i></div>
-				<p>Integer</p>
-			</div>
-			<div class="slider">
-				<input type="text"  value="0">
-				<input type="range">
-				<p>Log</p>
-			</div>
-			<div class="color">
-				<input type="color">
-				<p>Color</p>
+			<div class="toggle">
+				<div class="boolean" value="false" onclick="this.setAttribute('value', 'true'); console.log(this);">
+					<div></div>
+				</div>
+				<p>Toggle</p>
 			</div>
 			<div class="drag">
 				<input type="text" value="0">
@@ -120,22 +76,22 @@ fullscreen defocus
 				</div>
 				<p>Drag</p>
 			</div>
-			<div class="toggle">
-				<div class="boolean" value="false" onclick="this.setAttribute('value', 'true'); console.log(this);">
-					<div></div>
-				</div>
-				<p>Toggle</p>
+			<div class="incrementer">
+				<input type="text" value="0" pattern="[0-9]+" required oninput="if (this.checkValidity()) console.log('aaa');">
+				<div class="button round"><i class="fa fa-plus"></i></div>
+				<div class="button round"><i class="fa fa-minus"></i></div>
+				<p>Integer</p>
 			</div>
-			<div>
-				<div class="tooltip" tooltip="This is a very long sentence for testing purposes.">
-					<i class="fa fa-question"></i>
-				</div>
-				<p>Tooltip</p>
+			<div class="slider">
+				<input type="text" value="0" pattern="[0-9]+.[0-9]+|[0-9]+" required>
+				<input type="range">
+				<p>Slider</p>
 			</div>
-			<div>
-				<div class="comment">This is a comment.</div>
+			<div class="color">
+				<input type="color">
+				<p>Color</p>
 			</div>
-			<div class="vector">
+			<!-- <div class="vector">
 				<div class="column">
 					<div class="row">
 						<input type="text" value="0" pattern="[0-9]+.[0-9]+|[0-9]+" required>
@@ -164,8 +120,8 @@ fullscreen defocus
 					</div>
 				</div>
 				<p>Vector</p>
-			</div>
-			<div class="switch">
+			</div> -->
+			<div class="switch row">
 				<div class="button">a</div>
 				<div class="button">b</div>
 				<div class="button">c</div>
@@ -174,7 +130,7 @@ fullscreen defocus
 			</div>
 		</figure>
 
-		<figure class="hidden">
+		<figure id="group-info" class="hidden">
 			<figcaption>
 				<hr>
 				<p>Info</p>
@@ -182,35 +138,42 @@ fullscreen defocus
 			<div class="comment">This is a fiwanf wanif wfhiwahfiowahfoiwa woifawiofhj waifwioa jifwapogr</div>
 		</figure>
 
-		<figure class="hidden">
+		<figure id="group-controls" class="hidden">
 			<figcaption>
 				<hr>
 				<p>Controls</p>
 			</figcaption>
-			<div>
+			<div class="row">
 				<div class="value">WASDQE</div>
 				<p>Movement</p>
 			</div>
-			<div>
+			<div class="row">
 				<div class="value">Scroll</div>
 				<p>Change camera speed</p>
 			</div>
-			<div>
+			<div class="row">
 				<div class="value">Up/Down arrow</div>
 				<p>Change resolution</p>
 			</div>
-			<div>
+			<div class="row">
 				<div class="value">LMB</div>
 				<p>Controll camera (click on canvas)</p>
 			</div>
-			<div>
+			<div class="row">
 				<div class="value">Space</div>
 				<p>Toggle fullscreen</p>
 			</div>
-			<div>
+			<div class="row">
 				<div class="value">Esc</div>
 				<p>Exit fullscreen / Exit camera controll</p>
 			</div>
+		</figure>
+		<figure id="group-unselected">
+			<figcaption>
+				<hr>
+				<p>Unselected</p>
+			</figcaption>
+			<div class="comment">No settings tab selected.</div>
 		</figure>
 	</menu>
 

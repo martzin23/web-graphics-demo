@@ -37,13 +37,9 @@ export default class Input {
             case "ArrowDown":
                 this.gpu_manager.uniform_data.render_scale = Math.min(this.gpu_manager.uniform_data.render_scale * 2, 16);
                 break;
-            case "Tab":
+            case "F11":
                 event.preventDefault();
-                this.gui.toggleVisibility();
-                break;
-            case " ":
                 this.gui.toggleFullscreen();
-                setTimeout(() => {this.gpu_manager.syncResolution();}, 100);
                 break;
         }
     }

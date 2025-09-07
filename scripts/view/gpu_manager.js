@@ -2,9 +2,22 @@ import Vector from '../utility/vector.js';
 import Matrix from '../utility/matrix.js';
 
 export default class GPUManager {
-    
-    constructor(canvas, device, compute_shader, render_shader) {
+    static async initialize(canvas, compute_url, render_url) {
+        if (!navigator.gpu)
+            throw new Error("WebGPU not supported on this browser.");
+			
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter)
+            throw new Error("No appropriate GPUAdapter found.");
+			
+        const device = await adapter.requestDevice();
+        const compute_shader = await (await fetch(compute_url)).text();
+        const render_shader = await (await fetch(render_url)).text();
 
+        return new GPUManager(canvas, device, compute_shader, render_shader);
+    }
+
+    constructor(canvas, device, compute_shader, render_shader) {
         this.canvas = canvas;
         this.device = device;
         this.context;
@@ -49,7 +62,7 @@ export default class GPUManager {
         });
         const color_buffer_view = this.color_buffer.createView();
 
-        const uniform_array = new Float32Array(GPUManager.packUniforms(this.uniform_data));
+        const uniform_array = new Float32Array(packUniforms(this.uniform_data));
         this.uniform_buffer = this.device.createBuffer({
             label: "Unifrom Buffer",
             size: uniform_array.byteLength,
@@ -57,24 +70,8 @@ export default class GPUManager {
         });
 
         // Pipelines
-        [this.compute_pipeline, this.compute_bind_group] = GPUManager.makeComputePipeline(this.device, compute_shader, color_buffer_view, this.uniform_buffer);
-        [this.render_pipeline, this.render_bind_group] = GPUManager.makeRenderPipeline(this.device, render_shader, color_buffer_view, this.uniform_buffer);
-    }
-
-    static async initialize(canvas, compute_url, render_url) {
-
-        if (!navigator.gpu)
-            throw new Error("WebGPU not supported on this browser.");
-			
-        const adapter = await navigator.gpu.requestAdapter();
-        if (!adapter)
-            throw new Error("No appropriate GPUAdapter found.");
-			
-        const device = await adapter.requestDevice();
-        const compute_shader = await (await fetch(compute_url)).text();
-        const render_shader = await (await fetch(render_url)).text();
-
-        return new GPUManager(canvas, device, compute_shader, render_shader);
+        [this.compute_pipeline, this.compute_bind_group] = makeComputePipeline(this.device, compute_shader, color_buffer_view, this.uniform_buffer);
+        [this.render_pipeline, this.render_bind_group] = makeRenderPipeline(this.device, render_shader, color_buffer_view, this.uniform_buffer);
     }
     
     destroy() {
@@ -93,7 +90,7 @@ export default class GPUManager {
     }
 
     writeUniforms() {
-        const uniform_array = new Float32Array(GPUManager.packUniforms(this.uniform_data));
+        const uniform_array = new Float32Array(packUniforms(this.uniform_data));
         this.device.queue.writeBuffer(this.uniform_buffer, 0, uniform_array);
     }
 
@@ -138,157 +135,157 @@ export default class GPUManager {
 			
         this.device.queue.submit([command_encoder.finish()]);
     }
+}
 
-    static packUniforms(data) {
-        let array = [];
-        for (const el in data) {
-            if (Vector.test(data[el]))
-                array.push(Vector.array(data[el]));
-            else if (Matrix.test(data[el]))
-                array.push(Matrix.array(data[el]));
-            else
-                array.push(data[el]);
-        }
-        return array.flat();
+function packUniforms(data) {
+    let array = [];
+    for (const el in data) {
+        if (Vector.test(data[el]))
+            array.push(Vector.array(data[el]));
+        else if (Matrix.test(data[el]))
+            array.push(Matrix.array(data[el]));
+        else
+            array.push(data[el]);
     }
+    return array.flat();
+}
 
-    static makeComputePipeline(device, compute_shader_code, color_buffer_view, uniform_buffer) {
+function makeComputePipeline(device, compute_shader_code, color_buffer_view, uniform_buffer) {
 
-        const compute_module = device.createShaderModule({
-            label: "Compute Shader Module",
-            code: compute_shader_code
-        });
-        
-        const compute_bind_group_layout = device.createBindGroupLayout({
-            label: "Compute Bind Group Layout",
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.COMPUTE,
-                    storageTexture: {
-                        access: "write-only",
-                        format: "rgba8unorm",
-                        viewDimension: "2d"
-                    } 
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {}
-                }
-            ]
-        });
-                
-        const compute_bind_group = device.createBindGroup({
-            label: "Compute Bind Group",
-            layout: compute_bind_group_layout,
-            entries: [
-                {
-                    binding: 0,
-                    resource: color_buffer_view
-                },
-                {
-                    binding: 1,
-                    resource: uniform_buffer
-                }
-            ]
-        });
-
-        const compute_pipeline_layout = device.createPipelineLayout({
-            bindGroupLayouts: [compute_bind_group_layout]
-        });
-
-        const compute_pipeline = device.createComputePipeline({
-            label: "Compute Pipeline",
-            layout: compute_pipeline_layout,
-            compute: {
-            module: compute_module,
-            entryPoint: "computeMain",
-            }
-        });
-
-        return [compute_pipeline, compute_bind_group];
-    }
-
-    static makeRenderPipeline(device, render_shader_code, color_buffer_view, uniform_buffer) {
+    const compute_module = device.createShaderModule({
+        label: "Compute Shader Module",
+        code: compute_shader_code
+    });
     
-        const render_module = device.createShaderModule({
-            label: "Render Shader Module",
-            code: render_shader_code
-        });
-
-        const render_bind_group_layout = device.createBindGroupLayout({
-            label: "Render Bind Group Layout",
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    sampler: {}
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    texture: {}
-                },
-                {
-                    binding: 2,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    buffer: {}
-                }
-            ]
-        });
-
-        const sampler = device.createSampler({
-            addressModeU: "repeat",
-            addressModeV: "repeat",
-            magFilter: "nearest",
-            minFilter: "nearest",
-            mipmapFilter: "nearest",
-            maxAnisotrophy: 1
-        });
-        
-        const render_bind_group = device.createBindGroup({
-            label: "Render Bind Group",
-            layout: render_bind_group_layout,
-            entries: [
-                {
-                    binding: 0,
-                    resource: sampler
-                },
-                {
-                    binding: 1,
-                    resource: color_buffer_view
-                },
-                {
-                    binding: 2,
-                    resource: uniform_buffer
-                }
-            ]
-        });
-
-        const render_pipeline_layout = device.createPipelineLayout({
-            bindGroupLayouts: [render_bind_group_layout]
-        });
-                
-        const render_pipeline = device.createRenderPipeline({
-            label: "Render Pipeline",
-            layout: render_pipeline_layout,
-            vertex: {
-                module: render_module,
-                entryPoint: "vertexMain"
+    const compute_bind_group_layout = device.createBindGroupLayout({
+        label: "Compute Bind Group Layout",
+        entries: [
+            {
+                binding: 0,
+                visibility: GPUShaderStage.COMPUTE,
+                storageTexture: {
+                    access: "write-only",
+                    format: "rgba8unorm",
+                    viewDimension: "2d"
+                } 
             },
-            fragment: {
-                module: render_module,
-                entryPoint: "fragmentMain",
-                targets: [{
-                    format: "bgra8unorm"
-                }]
-            },
-            primitive: {
-                topology: "triangle-list"
+            {
+                binding: 1,
+                visibility: GPUShaderStage.COMPUTE,
+                buffer: {}
             }
-        });
+        ]
+    });
+            
+    const compute_bind_group = device.createBindGroup({
+        label: "Compute Bind Group",
+        layout: compute_bind_group_layout,
+        entries: [
+            {
+                binding: 0,
+                resource: color_buffer_view
+            },
+            {
+                binding: 1,
+                resource: uniform_buffer
+            }
+        ]
+    });
 
-        return [render_pipeline, render_bind_group];
-    }
+    const compute_pipeline_layout = device.createPipelineLayout({
+        bindGroupLayouts: [compute_bind_group_layout]
+    });
+
+    const compute_pipeline = device.createComputePipeline({
+        label: "Compute Pipeline",
+        layout: compute_pipeline_layout,
+        compute: {
+        module: compute_module,
+        entryPoint: "computeMain",
+        }
+    });
+
+    return [compute_pipeline, compute_bind_group];
+}
+
+function makeRenderPipeline(device, render_shader_code, color_buffer_view, uniform_buffer) {
+
+    const render_module = device.createShaderModule({
+        label: "Render Shader Module",
+        code: render_shader_code
+    });
+
+    const render_bind_group_layout = device.createBindGroupLayout({
+        label: "Render Bind Group Layout",
+        entries: [
+            {
+                binding: 0,
+                visibility: GPUShaderStage.FRAGMENT,
+                sampler: {}
+            },
+            {
+                binding: 1,
+                visibility: GPUShaderStage.FRAGMENT,
+                texture: {}
+            },
+            {
+                binding: 2,
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: {}
+            }
+        ]
+    });
+
+    const sampler = device.createSampler({
+        addressModeU: "repeat",
+        addressModeV: "repeat",
+        magFilter: "nearest",
+        minFilter: "nearest",
+        mipmapFilter: "nearest",
+        maxAnisotrophy: 1
+    });
+    
+    const render_bind_group = device.createBindGroup({
+        label: "Render Bind Group",
+        layout: render_bind_group_layout,
+        entries: [
+            {
+                binding: 0,
+                resource: sampler
+            },
+            {
+                binding: 1,
+                resource: color_buffer_view
+            },
+            {
+                binding: 2,
+                resource: uniform_buffer
+            }
+        ]
+    });
+
+    const render_pipeline_layout = device.createPipelineLayout({
+        bindGroupLayouts: [render_bind_group_layout]
+    });
+            
+    const render_pipeline = device.createRenderPipeline({
+        label: "Render Pipeline",
+        layout: render_pipeline_layout,
+        vertex: {
+            module: render_module,
+            entryPoint: "vertexMain"
+        },
+        fragment: {
+            module: render_module,
+            entryPoint: "fragmentMain",
+            targets: [{
+                format: "bgra8unorm"
+            }]
+        },
+        primitive: {
+            topology: "triangle-list"
+        }
+    });
+
+    return [render_pipeline, render_bind_group];
 }
