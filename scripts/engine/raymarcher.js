@@ -28,9 +28,9 @@ export default class RayMarcher {
         if (this.gui.isFocused())
             this.camera.update(this.input.key_states);
         
-        this.gpu_manager.uniform_data.fov = this.camera.fov;
-        this.gpu_manager.uniform_data.camera_rotation = this.camera.getRotationMatrix();
-        this.gpu_manager.uniform_data.camera_position = this.camera.position;
+        this.gpu_manager.uniforms.fov = this.camera.fov;
+        this.gpu_manager.uniforms.camera_rotation = this.camera.getRotationMatrix();
+        this.gpu_manager.uniforms.camera_position = this.camera.position;
         
         // if (typeof this.camera.sensitivity === 'string')
         //     console.log("!!!");

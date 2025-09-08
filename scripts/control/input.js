@@ -32,10 +32,10 @@ export default class Input {
                 this.key_states.e = true; 
                 break;
             case "ArrowUp":
-                this.gpu_manager.uniform_data.render_scale = Math.max(this.gpu_manager.uniform_data.render_scale / 2, 1);
+                this.gpu_manager.uniforms.render_scale = Math.max(this.gpu_manager.uniforms.render_scale - 1, 1);
                 break;
             case "ArrowDown":
-                this.gpu_manager.uniform_data.render_scale = Math.min(this.gpu_manager.uniform_data.render_scale * 2, 16);
+                this.gpu_manager.uniforms.render_scale = Math.min(this.gpu_manager.uniforms.render_scale + 1, 16);
                 break;
             case "F11":
                 event.preventDefault();

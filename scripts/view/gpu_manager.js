@@ -31,37 +31,28 @@ export default class GPUManager {
         this.base_render_size = {x: 2560, y: 1440}
 
         // Uniform variables
-        this.uniform_data = {
+        this.uniforms = {
             canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
             render_scale: 1,
             temporal_counter: 0.0,
+
             camera_rotation: Matrix.mat(1.0),
             camera_position: Vector.vec(0.0),
             fov: 1.0,
-            sun_direction : Vector.vec(1.0),
-            padding: 0.0
-        };
 
-        /*
-        this.uniform_data = {
-            canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
-            render_scale: 1,
-            temporal_counter: 0.0,
-            camera_rotation: Matrix.mat(1.0),
-            camera_position: Vector.vec(0.0),
-            fov: 1.0,
-            sun_direction : Vector.vec(1.0),
-            shader_mode
-            max_bounces
-            max_marches
-            epsilon
-            detail
-            focus_distance
-            focus_strength
-        };
-        */ 
+            sun_direction: Vector.vec(1.0),
+            shader_mode: 0,
 
-        
+            max_bounces: 5,
+            max_marches: 100,
+            epsilon: 0.0001,
+            detail: 10,
+            
+            focus_distance: 1.0,
+            focus_strength: 0.0,
+            padding_1: 1,
+            padding_2: 0
+        };
 
         // Context and WebGPU
         const canvas_format = navigator.gpu.getPreferredCanvasFormat();
@@ -83,7 +74,7 @@ export default class GPUManager {
         });
         const color_buffer_view = this.color_buffer.createView();
 
-        const uniform_array = new Float32Array(packUniforms(this.uniform_data));
+        const uniform_array = new Float32Array(packUniforms(this.uniforms));
         this.uniform_buffer = this.device.createBuffer({
             label: "Unifrom Buffer",
             size: uniform_array.byteLength,
@@ -111,7 +102,7 @@ export default class GPUManager {
     }
 
     writeUniforms() {
-        const uniform_array = new Float32Array(packUniforms(this.uniform_data));
+        const uniform_array = new Float32Array(packUniforms(this.uniforms));
         this.device.queue.writeBuffer(this.uniform_buffer, 0, uniform_array);
     }
 
@@ -120,7 +111,7 @@ export default class GPUManager {
         canvas_dimensions.width = Math.min(canvas_dimensions.width, this.base_render_size.x);
         canvas_dimensions.height = Math.min(canvas_dimensions.height, this.base_render_size.y);
         
-        this.uniform_data.canvas_size = Vector.vec(canvas_dimensions.width, canvas_dimensions.height);
+        this.uniforms.canvas_size = Vector.vec(canvas_dimensions.width, canvas_dimensions.height);
         this.canvas.height = canvas_dimensions.height;
         this.canvas.width = canvas_dimensions.width;
     }
@@ -133,10 +124,10 @@ export default class GPUManager {
         compute_pass.setBindGroup(0, this.compute_bind_group);
         compute_pass.dispatchWorkgroups(
             Math.ceil(
-                this.uniform_data.canvas_size.x / this.uniform_data.render_scale / this.workgroup_size.x
+                this.uniforms.canvas_size.x / this.uniforms.render_scale / this.workgroup_size.x
             ), 
             Math.ceil(
-                this.uniform_data.canvas_size.y / this.uniform_data.render_scale / this.workgroup_size.y
+                this.uniforms.canvas_size.y / this.uniforms.render_scale / this.workgroup_size.y
             )
         );
         compute_pass.end();

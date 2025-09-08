@@ -90,7 +90,9 @@ body {
 }
 
 :root:fullscreen .block {
-    background-color: var(--block-default);
+    background-color: var(--block-dark);
+    backdrop-filter: blur(0.5rem);
+    /* backdrop-filter: invert() blur(1rem); */
 }
 
 :root:fullscreen header>div {
@@ -211,6 +213,10 @@ a {
 a:hover {
     color: var(--text-default);
 }
+
+/* p {
+    width: max-content;
+} */
 
 .comment {
     transition: 0.25s;
