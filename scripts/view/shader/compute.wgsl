@@ -13,8 +13,12 @@ struct UniformBuffer {
     detail: f32,
     focus_distance: f32,
     focus_strength: f32,
-    padding_1: f32,
-    padding_2: f32
+    custom_a: f32,
+    custom_b: f32,
+    custom_c: f32,
+    custom_d: f32,
+    custom_e: f32,
+    custom_f: f32
 }
 struct Ray {
     origin: vec3f,
@@ -122,38 +126,38 @@ fn skyValue(direction: vec3f) -> vec3f {
     return mix(night_color, day_color, day_factor) + sun_value * day_factor;
 }
 
-// fn SDF(p : vec3f) -> f32 {
-//     return length(p) - 0.5;
-// }
-
 fn SDF(p : vec3f) -> f32 {
-    // const scale = custom_float2;
-    // const folding_limit = custom_float3;
-    // const min_radius2 = custom_float4;
-    // const fixed_radius2 = custom_float1;
-    let scale = -2.0;
-    let folding_limit = 1.0;
-    let min_radius2 = uniforms.padding_2;
-    let fixed_radius2 = uniforms.padding_1;
-
-    var z = p;
-    var dr = 1.0;
-    for (var n = 0; n < i32(uniforms.detail) + 2; n++) {
-        z = clamp(z, -vec3f(folding_limit), vec3f(folding_limit)) * 2.0 - z;
-
-        let r2 = dot(z,z);
-        if (r2 < min_radius2) { 
-            let temp = fixed_radius2 / min_radius2;
-            z *= temp;
-            dr *= temp;
-        } else if (r2 < fixed_radius2) { 
-            let temp = fixed_radius2 / r2;
-            z *= temp;
-            dr *= temp;
-        }
-        z = scale * z + p;  
-        dr = dr * abs(scale) + 1.0;
-    }
-    let r = length(z);
-    return r / abs(dr);
+    return length(p) - 0.5;
 }
+
+// fn SDF(p : vec3f) -> f32 {
+//     // const scale = custom_float2;
+//     // const folding_limit = custom_float3;
+//     // const min_radius2 = custom_float4;
+//     // const fixed_radius2 = custom_float1;
+//     let scale = uniforms.custom_a;
+//     let folding_limit = uniforms.custom_b;
+//     let min_radius2 = uniforms.custom_c;
+//     let fixed_radius2 = uniforms.custom_d;
+
+//     var z = p;
+//     var dr = 1.0;
+//     for (var n = 0; n < i32(uniforms.detail) + 2; n++) {
+//         z = clamp(z, -vec3f(folding_limit), vec3f(folding_limit)) * 2.0 - z;
+
+//         let r2 = dot(z,z);
+//         if (r2 < min_radius2) { 
+//             let temp = fixed_radius2 / min_radius2;
+//             z *= temp;
+//             dr *= temp;
+//         } else if (r2 < fixed_radius2) { 
+//             let temp = fixed_radius2 / r2;
+//             z *= temp;
+//             dr *= temp;
+//         }
+//         z = scale * z + p;  
+//         dr = dr * abs(scale) + 1.0;
+//     }
+//     let r = length(z);
+//     return r / abs(dr);
+// }

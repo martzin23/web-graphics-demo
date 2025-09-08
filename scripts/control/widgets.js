@@ -52,8 +52,9 @@ export function createToggle(parent, set = (bool) => {}, get = () => false, name
 }
 
 export function createSlider(parent, set = (value) => {}, get = () => 0.0, name = "Slider", min = 0, max = 1, log = false) {
-    if (log) min = Math.max(min, 0.00001);
+    if (log) min = Math.max(min, 0.000001);
     const default_value = resizeNumber(Math.max(Math.min(get(), max), min));
+    const resolution = 1000.0;
 
     const fac2val = function(fac) {
         if (!log)
@@ -79,25 +80,25 @@ export function createSlider(parent, set = (value) => {}, get = () => 0.0, name 
     element_range.setAttribute("type", "range");
     element_range.setAttribute("value", "1");
     element_range.setAttribute("min", "0");
-    element_range.setAttribute("max", "100");
+    element_range.setAttribute("max", resolution);
     element_range.setAttribute("step", "1");
-    element_range.setAttribute("value", val2fac(default_value) * 100);
+    element_range.setAttribute("value", val2fac(default_value) * resolution);
 
     element_text.addEventListener("focusout", function() {
         if (this.checkValidity()) {
             const value = resizeNumber(Math.min(Math.max(parseFloat(this.value), min), max));
             this.value = value;
-            element_range.value = val2fac(value) * 100;
+            element_range.value = val2fac(value) * resolution;
             set(parseFloat(value));
         } else {
             const value = resizeNumber(get());
             this.value = value;
-            element_range.value = val2fac(value) * 100;
+            element_range.value = val2fac(value) * resolution;
         }
     });
 
     element_range.addEventListener("input", function() {
-        const factor = parseInt(this.value) / 100.0;
+        const factor = parseInt(this.value) / resolution;
         const temp = resizeNumber(fac2val(factor));
         element_text.value = temp;
         set(parseFloat(temp));
@@ -107,7 +108,7 @@ export function createSlider(parent, set = (value) => {}, get = () => 0.0, name 
         if (this.matches(":focus")) return;
         const value = resizeNumber(get());
         this.value = value;
-        element_range.value = val2fac(value) * 100;
+        element_range.value = val2fac(value) * resolution;
     });
 
     const element_name = document.createElement("p");
@@ -506,13 +507,13 @@ export function createVector(parent, set = (value) => {}, get = () => {return {x
     return element_base;
 }
 
-export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', 'c', 'd'], def = 'a', name) {
+export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', 'c', 'd'], def = 'a', name, none = false) {
     const element_base = document.createElement("div");
     element_base.className = "switch";
 
     options.forEach((el) => {
         const element_button = createButton(element_base, function() {
-            if (this.classList.contains('active')) {
+            if (this.classList.contains('active') && none) {
                 this.parentNode.childNodes.forEach((el) => {el.classList.remove("active")});
                 set(null);
             } else {
@@ -536,7 +537,25 @@ export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', '
     return element_base;
 }
 
-function resizeNumber(number, size = 6) {
+export function addTooltip(element, tooltip, icon) {
+    if (icon) {
+        const i = document.createElement("i");
+        i.classList.add("fa");
+        i.classList.add(icon);
+
+        const p = document.createElement("p");
+        p.classList.add("button");
+        p.classList.add("round");
+        p.setAttribute("tooltip", tooltip);
+        p.appendChild(i);
+
+        element.appendChild(p);
+    } else {
+        element.setAttribute("tooltip", tooltip);
+    }
+}
+
+function resizeNumber(number, size = 7) {
     const digits = number.toString().replace(".","").length;
     const decimals = number.toString().split(".")[1] ? number.toString().split(".")[1].length : 0;
     const delta = digits > size ? decimals - (digits - size) : decimals;

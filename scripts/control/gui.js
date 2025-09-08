@@ -77,7 +77,25 @@ export default class GUI {
                     unselected.classList.add("hidden");
                 }
             })
-        })
+        });
+
+        HTMLElement.prototype.addTooltip = function(tooltip, icon) {
+            if (icon) {
+                const i = document.createElement("i");
+                i.classList.add("fa");
+                i.classList.add(icon);
+
+                const p = document.createElement("p");
+                p.classList.add("button");
+                p.classList.add("round");
+                p.setAttribute("tooltip", tooltip);
+                p.appendChild(i);
+
+                this.appendChild(p);
+            } else {
+                this.setAttribute("tooltip", tooltip);
+            }
+        }
     }
 
     setupWidgets() {
@@ -98,6 +116,7 @@ export default class GUI {
                         document.getElementById("group-shading").classList.remove("hidden");
                         document.getElementById("group-lens").classList.remove("hidden");
                         document.getElementById("group-marching").classList.remove("hidden");
+                        document.getElementById("group-sdf-options").classList.remove("hidden");
                         break;
                     case '<i class="fa fa-cube"></i>SDF':
                         document.getElementById("group-sdf").classList.remove("hidden");
@@ -130,17 +149,23 @@ export default class GUI {
                 '<i class="fa fa-code"></i>Code',
                 '<i class="fa fa-info"></i>Info'
             ], 
-            '<i class="fa fa-cog"></i>General'
+            '<i class="fa fa-cog"></i>General',
+            undefined,
+            true
         );
 
+        let temp;
+
         // Display
-        Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu_manager.uniforms.render_scale = value;},() => this.gpu_manager.uniforms.render_scale , "Resolution division", 1, 16);
-        Widgets.createToggle(document.getElementById("group-display"), (value) => {  }, () => false, "Auto refresh");
         Widgets.createButton(document.getElementById("group-display"), () => {this.gpu_manager.syncResolution();}, "Fix aspect ratio");
+        Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
+        Widgets.createToggle(document.getElementById("group-display"), (value) => {  }, () => false, "Auto refresh");
 
         // Camera
         Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Position");
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.rotation.h = value;}, () => this.camera.rotation.h, "Horizontal rotation", -180, 180, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.rotation.v = value;}, () => this.camera.rotation.v, "Vertical rotation", -90, 90, 0.1);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {this.camera.speed = value;}, () => this.camera.speed, "Speed", 0, 10, true);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {this.camera.sensitivity = value;}, () => this.camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.fov = value;}, () => this.camera.fov, "Field of view", 0, Infinity, 0.01);
@@ -176,12 +201,17 @@ export default class GUI {
         Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu_manager.uniforms.focus_strength = value;}, () => this.gpu_manager.uniforms.focus_strength, "Focus blur", 0.0, 1.0);
 
         // Marching
-        Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu_manager.uniforms.max_marches = value;}, () => this.gpu_manager.uniforms.max_marches, "Max marches", 0, Infinity, 100);
+        Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu_manager.uniforms.max_marches = value;}, () => this.gpu_manager.uniforms.max_marches, "Max marches", 0, Infinity, 50);
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu_manager.uniforms.max_bounces = value;}, () => this.gpu_manager.uniforms.max_bounces, "Max bounces", 0, Infinity);
         Widgets.createSlider(document.getElementById("group-marching"), (value) => {this.gpu_manager.uniforms.epsilon = value;}, () => this.gpu_manager.uniforms.epsilon, "Epsilon", 0.0, 0.1, true);
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu_manager.uniforms.detail = value;}, () => this.gpu_manager.uniforms.detail, "Detail", 0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {this.gpu_manager.uniforms.padding_1 = value;}, () => this.gpu_manager.uniforms.padding_1, "T");
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {this.gpu_manager.uniforms.padding_2 = value;}, () => this.gpu_manager.uniforms.padding_2, "T");
+
+        Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_a = value;}, () => this.gpu_manager.uniforms.custom_a, "A");
+        Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_b = value;}, () => this.gpu_manager.uniforms.custom_b, "B");
+        Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_c = value;}, () => this.gpu_manager.uniforms.custom_c, "C");
+        Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_d = value;}, () => this.gpu_manager.uniforms.custom_d, "D");
+        Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_e = value;}, () => this.gpu_manager.uniforms.custom_e, "E");
+        Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_f = value;}, () => this.gpu_manager.uniforms.custom_f, "F");
 
         // Widget list
         Widgets.createButton(document.getElementById("group-widgets"));

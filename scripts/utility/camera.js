@@ -3,7 +3,7 @@ import Matrix from './matrix.js';
 
 export default class Camera {
     constructor(
-        position = Vector.vec(0.0, -2.0, 0.0), 
+        position = Vector.vec(0.0, -5.0, 0.0), 
         rotation = {h : 0.0, v : 0.0}, 
         fov = 0.5, 
         speed = 0.05, 

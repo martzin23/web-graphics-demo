@@ -50,8 +50,13 @@ export default class GPUManager {
             
             focus_distance: 1.0,
             focus_strength: 0.0,
-            padding_1: 1,
-            padding_2: 0
+            custom_a: 1.0,
+            custom_b: 1.0,
+
+            custom_c: 1.0,
+            custom_d: 1.0,
+            custom_e: 1.0,
+            custom_f: 1.0
         };
 
         // Context and WebGPU
@@ -177,6 +182,7 @@ function makeComputePipeline(device, compute_shader_code, color_buffer_view, uni
                 visibility: GPUShaderStage.COMPUTE,
                 storageTexture: {
                     access: "write-only",
+                    // access: "read-write",
                     format: "rgba32float",
                     viewDimension: "2d"
                 } 

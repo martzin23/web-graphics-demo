@@ -20,9 +20,7 @@ export default class RayMarcher {
         this.input = new Input(this.gpu_manager, this.camera, this.gui);
 
         this.gpu_manager.syncResolution();
-        this.slow_update = setInterval(() => {
-            this.gui.updateGUI();
-        }, 250);
+        this.slow_update = setInterval(() => { this.gui.updateGUI(); }, 250);
     }
     async update() {
         if (this.gui.isFocused())
@@ -31,16 +29,14 @@ export default class RayMarcher {
         this.gpu_manager.uniforms.fov = this.camera.fov;
         this.gpu_manager.uniforms.camera_rotation = this.camera.getRotationMatrix();
         this.gpu_manager.uniforms.camera_position = this.camera.position;
-        
-        // if (typeof this.camera.sensitivity === 'string')
-        //     console.log("!!!");
-        // this.running = false;
     }
 
     render() {
         this.gpu_manager.writeUniforms();
         this.gpu_manager.render();
+
         this.frame++;
+        this.gpu_manager.uniforms.temporal_counter += 1;
     }
 
     destroy() {
@@ -49,5 +45,4 @@ export default class RayMarcher {
             this.gpu_manager = null;
         }
     }
-
 }
