@@ -1,25 +1,32 @@
 struct UniformBuffer {
     canvas_size: vec2f,
+    buffer_size: vec2f,
+
     render_scale: f32,
     temporal_counter: f32,
+    focus_distance: f32,
+    focus_strength: f32,
+    
     camera_rotation: mat4x4f,
     camera_position: vec3f,
     fov: f32,
+
     sun_direction: vec3f,
     shader_mode: f32,
+
     max_bounces: f32,
     max_marches: f32,
     epsilon: f32,
     detail: f32,
-    focus_distance: f32,
-    focus_strength: f32,
+
     custom_a: f32,
     custom_b: f32,
     custom_c: f32,
-    custom_d: f32,
-    custom_e: f32,
-    custom_f: f32
+    custom_d: f32
 }
+struct BufferData {
+    colors: array<vec4<f32>>
+};
 struct Ray {
     origin: vec3f,
     direction: vec3f
@@ -32,8 +39,9 @@ struct Data {
     marches: i32
 }
 
+var<private> state: u32;
 
-@group(0) @binding(0) var color_buffer : texture_storage_2d<rgba32float, write>;
+@group(0) @binding(0) var<storage, read_write> color_buffer: BufferData;
 @group(0) @binding(1) var<uniform> uniforms : UniformBuffer;
 
 @compute @workgroup_size(8,8,1)
@@ -42,13 +50,17 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
     // Getting coordinates
     let screen_size = vec2u(uniforms.canvas_size);
     let screen_position = vec2u(u32(GlobalInvocationID.x), u32(GlobalInvocationID.y));
-    if (screen_position.x > screen_size.x || screen_position.y > screen_size.y) { return; }
+    // if (screen_position.x > screen_size.x || screen_position.y > screen_size.y) { return; }
+    let index = screen_position.x + screen_position.y * u32(uniforms.buffer_size.y);
+    if (index > u32(uniforms.buffer_size.x * uniforms.buffer_size.y)) { return; }
     let screen_normalized = vec2f(GlobalInvocationID.xy) / vec2f(screen_size) * uniforms.render_scale;
+    state = index + u32(uniforms.temporal_counter) * 69420;
 
     // Camera ray
     var camera_ray: Ray;
     camera_ray.origin = uniforms.camera_position;
     camera_ray.direction = (uniforms.camera_rotation * vec4f(normalize(vec3f((screen_normalized.x * 2.0 - 1.0) * uniforms.fov, 1.0, -(screen_normalized.y * 2.0 - 1.0) * (f32(screen_size.y) / f32(screen_size.x)) * uniforms.fov)),1.0)).xyz;
+    camera_ray.direction = normalize(camera_ray.direction + randomDirection() * 0.0005 * uniforms.fov * uniforms.render_scale);
 
     // Shading
     var pixel_color: vec3f;
@@ -65,7 +77,6 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
         case (1) {
             let data: Data = rayMarch(camera_ray);
             let diffuse = dot(data.normal, normalize(uniforms.sun_direction));
-            // let diffuse = 1 - (data.marches / uniforms.max_marches);
             if (data.collided) {
                 pixel_color = vec3f(diffuse);
             } else {
@@ -73,11 +84,12 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
             }
         }
     }
-
-    textureStore(color_buffer, screen_position, vec4f(pixel_color, 1.0));
+    
+    
+    var previous_color = color_buffer.colors[index];
+    let output_color = previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter);
+    color_buffer.colors[index] = vec4f(output_color, previous_color.w);
 }
-
-// fn pathTrace()
 
 fn rayMarch(ray: Ray) -> Data {
     var data: Data;
@@ -126,38 +138,55 @@ fn skyValue(direction: vec3f) -> vec3f {
     return mix(night_color, day_color, day_factor) + sun_value * day_factor;
 }
 
+// fn SDF(p : vec3f) -> f32 {
+//     return length(p) - 0.5;
+// }
+
 fn SDF(p : vec3f) -> f32 {
-    return length(p) - 0.5;
+    // const scale = custom_float2;
+    // const folding_limit = custom_float3;
+    // const min_radius2 = custom_float4;
+    // const fixed_radius2 = custom_float1;
+    let scale = uniforms.custom_a;
+    let folding_limit = uniforms.custom_b;
+    let min_radius2 = uniforms.custom_c;
+    let fixed_radius2 = uniforms.custom_d;
+
+    var z = p;
+    var dr = 1.0;
+    for (var n = 0; n < i32(uniforms.detail) + 2; n++) {
+        z = clamp(z, -vec3f(folding_limit), vec3f(folding_limit)) * 2.0 - z;
+
+        let r2 = dot(z,z);
+        if (r2 < min_radius2) { 
+            let temp = fixed_radius2 / min_radius2;
+            z *= temp;
+            dr *= temp;
+        } else if (r2 < fixed_radius2) { 
+            let temp = fixed_radius2 / r2;
+            z *= temp;
+            dr *= temp;
+        }
+        z = scale * z + p;  
+        dr = dr * abs(scale) + 1.0;
+    }
+    let r = length(z);
+    return r / abs(dr);
 }
 
-// fn SDF(p : vec3f) -> f32 {
-//     // const scale = custom_float2;
-//     // const folding_limit = custom_float3;
-//     // const min_radius2 = custom_float4;
-//     // const fixed_radius2 = custom_float1;
-//     let scale = uniforms.custom_a;
-//     let folding_limit = uniforms.custom_b;
-//     let min_radius2 = uniforms.custom_c;
-//     let fixed_radius2 = uniforms.custom_d;
+fn randomUniform() -> f32 {
+    // https://www.youtube.com/@SebastianLague
+    state *= (state + 195439) * (state + 124395) * (state + 845921);
+    return f32(state) / f32(0xffffffff);
+}
 
-//     var z = p;
-//     var dr = 1.0;
-//     for (var n = 0; n < i32(uniforms.detail) + 2; n++) {
-//         z = clamp(z, -vec3f(folding_limit), vec3f(folding_limit)) * 2.0 - z;
+fn randomNormal() -> f32 {
+    // https://stackoverflow.com/a/6178290
+    let theta = 2 * 3.1415926 * randomUniform();
+    let rho = sqrt(-2 * log(randomUniform()));
+    return rho * cos(theta);
+}
 
-//         let r2 = dot(z,z);
-//         if (r2 < min_radius2) { 
-//             let temp = fixed_radius2 / min_radius2;
-//             z *= temp;
-//             dr *= temp;
-//         } else if (r2 < fixed_radius2) { 
-//             let temp = fixed_radius2 / r2;
-//             z *= temp;
-//             dr *= temp;
-//         }
-//         z = scale * z + p;  
-//         dr = dr * abs(scale) + 1.0;
-//     }
-//     let r = length(z);
-//     return r / abs(dr);
-// }
+fn randomDirection() -> vec3f {
+    return normalize(vec3(randomNormal(), randomNormal(), randomNormal()));
+}

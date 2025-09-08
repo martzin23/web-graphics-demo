@@ -28,13 +28,17 @@ export default class GPUManager {
         this.render_bind_group;
         this.render_pipeline;
         this.workgroup_size = {x: 8, y: 8};
-        this.base_render_size = {x: 2560, y: 1440}
+        this.base_render_size = {x: 2560, y: 1440};
 
         // Uniform variables
         this.uniforms = {
             canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
+            buffer_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
+
             render_scale: 1,
-            temporal_counter: 0.0,
+            temporal_counter: 1.0,
+            focus_distance: 1.0,
+            focus_strength: 0.0,
 
             camera_rotation: Matrix.mat(1.0),
             camera_position: Vector.vec(0.0),
@@ -47,16 +51,11 @@ export default class GPUManager {
             max_marches: 100,
             epsilon: 0.0001,
             detail: 10,
-            
-            focus_distance: 1.0,
-            focus_strength: 0.0,
-            custom_a: 1.0,
-            custom_b: 1.0,
 
-            custom_c: 1.0,
-            custom_d: 1.0,
-            custom_e: 1.0,
-            custom_f: 1.0
+            custom_a: -2.0,
+            custom_b: 1.0,
+            custom_c: 0.5,
+            custom_d: 2.0
         };
 
         // Context and WebGPU
@@ -69,15 +68,12 @@ export default class GPUManager {
         });
 
         // Buffers
-        this.color_buffer = this.device.createTexture({
-            size: {
-                width: this.base_render_size.x,
-                height: this.base_render_size.y
-            },
-            format: "rgba32float",
-            usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING
+        const color_buffer_size = this.base_render_size.x * this.base_render_size.y * 16;
+        this.color_buffer = this.device.createBuffer({
+            label: "Color Storage Buffer",
+            size: color_buffer_size,
+            usage: GPUBufferUsage.STORAGE
         });
-        const color_buffer_view = this.color_buffer.createView();
 
         const uniform_array = new Float32Array(packUniforms(this.uniforms));
         this.uniform_buffer = this.device.createBuffer({
@@ -87,8 +83,8 @@ export default class GPUManager {
         });
 
         // Pipelines
-        [this.compute_pipeline, this.compute_bind_group] = makeComputePipeline(this.device, compute_shader, color_buffer_view, this.uniform_buffer);
-        [this.render_pipeline, this.render_bind_group] = makeRenderPipeline(this.device, render_shader, color_buffer_view, this.uniform_buffer);
+        [this.compute_pipeline, this.compute_bind_group] = makeComputePipeline(this.device, compute_shader, this.color_buffer, this.uniform_buffer, color_buffer_size);
+        [this.render_pipeline, this.render_bind_group] = makeRenderPipeline(this.device, render_shader, this.color_buffer, this.uniform_buffer, color_buffer_size);
     }
     
     destroy() {
@@ -167,7 +163,7 @@ function packUniforms(data) {
     return array.flat();
 }
 
-function makeComputePipeline(device, compute_shader_code, color_buffer_view, uniform_buffer) {
+function makeComputePipeline(device, compute_shader_code, color_buffer, uniform_buffer, color_buffer_size) {
 
     const compute_module = device.createShaderModule({
         label: "Compute Shader Module",
@@ -180,12 +176,9 @@ function makeComputePipeline(device, compute_shader_code, color_buffer_view, uni
             {
                 binding: 0,
                 visibility: GPUShaderStage.COMPUTE,
-                storageTexture: {
-                    access: "write-only",
-                    // access: "read-write",
-                    format: "rgba32float",
-                    viewDimension: "2d"
-                } 
+                buffer: {
+                    type: 'storage'
+                }
             },
             {
                 binding: 1,
@@ -201,7 +194,11 @@ function makeComputePipeline(device, compute_shader_code, color_buffer_view, uni
         entries: [
             {
                 binding: 0,
-                resource: color_buffer_view
+                resource: {
+                    buffer: color_buffer,
+                    offset: 0,
+                    size: color_buffer_size
+                }
             },
             {
                 binding: 1,
@@ -226,7 +223,7 @@ function makeComputePipeline(device, compute_shader_code, color_buffer_view, uni
     return [compute_pipeline, compute_bind_group];
 }
 
-function makeRenderPipeline(device, render_shader_code, color_buffer_view, uniform_buffer) {
+function makeRenderPipeline(device, render_shader_code, color_buffer, uniform_buffer, color_buffer_size) {
 
     const render_module = device.createShaderModule({
         label: "Render Shader Module",
@@ -239,8 +236,8 @@ function makeRenderPipeline(device, render_shader_code, color_buffer_view, unifo
             {
                 binding: 0,
                 visibility: GPUShaderStage.FRAGMENT,
-                texture: {
-                    sampleType: 'unfilterable-float'
+                buffer: {
+                    type: 'storage',
                 }
             },
             {
@@ -250,23 +247,18 @@ function makeRenderPipeline(device, render_shader_code, color_buffer_view, unifo
             }
         ]
     });
-
-    // const sampler = device.createSampler({
-    //     addressModeU: "repeat",
-    //     addressModeV: "repeat",
-    //     magFilter: "nearest",
-    //     minFilter: "nearest",
-    //     mipmapFilter: "nearest",
-    //     maxAnisotrophy: 1
-    // });
     
     const render_bind_group = device.createBindGroup({
         label: "Render Bind Group",
         layout: render_bind_group_layout,
         entries: [
             {
-                binding:0,
-                resource: color_buffer_view
+                binding: 0,
+                resource: {
+                    buffer: color_buffer,
+                    offset: 0,
+                    size: color_buffer_size
+                }
             },
             {
                 binding: 1,

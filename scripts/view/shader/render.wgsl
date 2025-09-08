@@ -1,15 +1,18 @@
 struct UniformBuffer {
-    canvas_size : vec2f,
-    render_scale : f32
+    canvas_size: vec2f,
+    buffer_size: vec2f,
+    render_scale: f32
 }
 struct VertexOutput {
     @builtin(position) position: vec4f,
     @location(0) texture_coordinate: vec2f
 };
+struct BufferData {
+    colors: array<vec4<f32>>
+};
 
-@group(0) @binding(0) var color_buffer: texture_2d<f32>;
+@group(0) @binding(0) var<storage, read_write> color_buffer: BufferData;
 @group(0) @binding(1) var<uniform> uniforms : UniformBuffer;
-
 
 @vertex
 fn vertexMain(@builtin(vertex_index) VertexIndex: u32) -> VertexOutput {
@@ -40,11 +43,10 @@ fn vertexMain(@builtin(vertex_index) VertexIndex: u32) -> VertexOutput {
 
 @fragment
     fn fragmentMain(@location(0) texture_coordinate: vec2f) -> @location(0) vec4f {
-    let texture_size = vec2f(textureDimensions(color_buffer));
-    let screen_coordinate = texture_coordinate * (uniforms.canvas_size / texture_size) / uniforms.render_scale;
-    let pixel_color = textureLoad(color_buffer, vec2u(screen_coordinate * texture_size), 0).xyz;
+    let pixel_coordinate = vec2u(texture_coordinate * uniforms.canvas_size / uniforms.render_scale);
+    let index = pixel_coordinate.x + pixel_coordinate.y * u32(uniforms.buffer_size.y);
+    let pixel_color = color_buffer.colors[index].xyz;
     return vec4f(transformColor(pixel_color), 1.0);
-    // return vec4f(pixel_color, 1.0);
 }
 
 fn transformColor(color: vec3f) -> vec3f {

@@ -6,6 +6,7 @@ export default class GUI {
         this.gpu_manager = gpu_manager;
         this.camera = camera;
         this.update_event;
+        this.auto_refresh = true;
         
         this.setupCallbacks();
         this.setupWidgets();
@@ -95,7 +96,14 @@ export default class GUI {
             } else {
                 this.setAttribute("tooltip", tooltip);
             }
-        }
+        };
+        
+        ["click", "resize", "mousemove", "keydown"].forEach(element => {
+            document.addEventListener(element, () => {
+                if (this.auto_refresh)
+                    this.gpu_manager.uniforms.temporal_counter = 1;
+            })
+        });
     }
 
     setupWidgets() {
@@ -154,13 +162,12 @@ export default class GUI {
             true
         );
 
-        let temp;
-
         // Display
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu_manager.uniforms.render_scale = value;},() => this.gpu_manager.uniforms.render_scale , "Resolution division", 1, 16);
         Widgets.createButton(document.getElementById("group-display"), () => {this.gpu_manager.syncResolution();}, "Fix aspect ratio");
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
-        Widgets.createToggle(document.getElementById("group-display"), (value) => {  }, () => false, "Auto refresh");
+        Widgets.createButton(document.getElementById("group-display"), () => { this.gpu_manager.uniforms.temporal_counter = 1 }, "Refresh screen");
+        Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh");
 
         // Camera
         Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Position");
@@ -210,8 +217,6 @@ export default class GUI {
         Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_b = value;}, () => this.gpu_manager.uniforms.custom_b, "B");
         Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_c = value;}, () => this.gpu_manager.uniforms.custom_c, "C");
         Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_d = value;}, () => this.gpu_manager.uniforms.custom_d, "D");
-        Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_e = value;}, () => this.gpu_manager.uniforms.custom_e, "E");
-        Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_f = value;}, () => this.gpu_manager.uniforms.custom_f, "F");
 
         // Widget list
         Widgets.createButton(document.getElementById("group-widgets"));
