@@ -90,7 +90,7 @@ body {
 }
 
 :root:fullscreen .block {
-    background-color: var(--block-dark);
+    background-color: var(--block-default);
 }
 
 :root:fullscreen header>div {
@@ -246,7 +246,7 @@ a:hover {
     background-color: var(--background-light);
     box-shadow: 0.25rem 0.25rem 0rem var(--shadow);
 
-    animation-name: hover-appear;
+    animation-name: tooltip-appear;
     animation-duration: 1s;
 }
 
@@ -257,10 +257,15 @@ input[type="text"] {
     border-radius: 0.5rem;
     border: none;
     padding: 0.5rem;
+    width: 6rem;
 }
 
 input[type="text"]:invalid {
     background-color: var(--error-dark);
+}
+
+input[type="color"] {
+    width: 6rem;
 }
 
 input[type="button"] {
@@ -380,90 +385,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* ----------------------------------------- */
 
-.toggle {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-}
-
-.slider {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-}
-
-.slider>input[type="text"] {
-    width: 25%;
-}
-
-.slider>input[type="range"] {
-    width: 50%;
-}
-
-.incrementer {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-}
-
-.incrementer>input[type="text"] {
-    width: 25%;
-}
-
-.drag {
-    /* width: 100%; */
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-}
-
-.drag>input[type="text"] {
-    width: 25%;
-}
-
-.color {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-}
-
-.color>input[type="color"] {
-    width: 25%;
-}
-
-.vector {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1rem;
-}
-
-.vector input[type="text"] {
-    width: 100%;
-}
-
-.vector>p {
-    width: 100%;
-}
-
-.switch {
-    width: 100%;
+.toggle, .slider, .incrementer, .drag, .color, .vector, .switch{
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -473,7 +395,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* ----------------------------------------- */
 
-@keyframes hover-appear {
+@keyframes tooltip-appear {
     0% {
         opacity: 0%;
     }

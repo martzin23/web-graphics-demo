@@ -32,6 +32,8 @@ export default class RayMarcher {
         this.gpu_manager.uniform_data.camera_rotation = this.camera.getRotationMatrix();
         this.gpu_manager.uniform_data.camera_position = this.camera.position;
         
+        // if (typeof this.camera.sensitivity === 'string')
+        //     console.log("!!!");
         // this.running = false;
     }
 

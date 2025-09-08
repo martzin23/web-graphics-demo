@@ -7,7 +7,8 @@ export default class GUI {
         this.camera = camera;
         this.update_event;
         
-        this.setupGUI();
+        this.setupCallbacks();
+        this.setupWidgets();
     }
 
     isFocused() {
@@ -48,7 +49,7 @@ export default class GUI {
         document.querySelectorAll("menu *").forEach(element => {element.dispatchEvent(this.update_event);});
     }
 
-    setupGUI() {
+    setupCallbacks() {
         this.canvas.addEventListener('click', (event) => {
             if (event.button == 0)
                 this.toggleFocus();
@@ -77,6 +78,9 @@ export default class GUI {
                 }
             })
         })
+    }
+
+    setupWidgets() {
 
         // Tabs
         Widgets.createSwitch(
@@ -89,7 +93,6 @@ export default class GUI {
                     case '<i class="fa fa-cog"></i>General':
                         document.getElementById("group-display").classList.remove("hidden");
                         document.getElementById("group-camera").classList.remove("hidden");
-                        document.getElementById("group-widgets").classList.remove("hidden");
                         break;
                     case '<i class="fa fa-location-arrow"></i>RayMarching':
                         break;
@@ -100,8 +103,8 @@ export default class GUI {
                     case '<i class="fa fa-code"></i>Code':
                         break;
                     case '<i class="fa fa-info"></i>Info':
-                        document.getElementById("group-info").classList.remove("hidden");
                         document.getElementById("group-controls").classList.remove("hidden");
+                        document.getElementById("group-widgets").classList.remove("hidden");
                         break;
                     default:
                         if (this.isFullscreen())
@@ -123,21 +126,26 @@ export default class GUI {
         );
 
         // Display
+        Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu_manager.uniform_data.render_scale = value;},() => this.gpu_manager.uniform_data.render_scale , "Resolution division", 1, 16, 2, true);
-        Widgets.createButton(document.getElementById("group-display"), () => {this.gpu_manager.syncResolution();}, "Fix Aspect Ratio");
+        Widgets.createToggle(document.getElementById("group-display"), (value) => {  }, () => false, "Auto refresh");
+        Widgets.createButton(document.getElementById("group-display"), () => {this.gpu_manager.syncResolution();}, "Fix aspect ratio");
 
         // Camera
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.fov = value;}, () => this.camera.fov, "FOV", 0, Infinity, 0.01);
-        // Widgets.createDrag("group-camera", (value) => {this.camera.position.x = parseFloat(value);}, "Position X");
-        // Widgets.createDrag("group-camera", (value) => {this.camera.position.y = parseFloat(value);}, "Position Y");
-        // Widgets.createDrag("group-camera", (value) => {this.camera.position.z = parseFloat(value);}, "Position Z");
-        Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Test");
-        Widgets.createToggle(
-            document.getElementById("group-display"),
-            (value) => { this.toggleFullscreen(); },
-            () => this.isFullscreen(),
-            "Fullscreen",
-        );
+        Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Position");
+        Widgets.createSlider(document.getElementById("group-camera"), (value) => {this.camera.speed = value;}, () => this.camera.speed, "Speed", 0, 10, true);
+        Widgets.createSlider(document.getElementById("group-camera"), (value) => {this.camera.sensitivity = value;}, () => this.camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.fov = value;}, () => this.camera.fov, "Field of view", 0, Infinity, 0.01);
+        Widgets.createButton(document.getElementById("group-camera"), () => {this.camera.position = {x: 0, y: 0, z: 0}}, "Reset position");
+
+        Widgets.createButton(document.getElementById("group-widgets"));
+        Widgets.createToggle(document.getElementById("group-widgets"));
+        Widgets.createDrag(document.getElementById("group-widgets"));
+        Widgets.createIncrement(document.getElementById("group-widgets"));
+        Widgets.createSlider(document.getElementById("group-widgets"));
+        // Widgets.createColor(document.getElementById("group-widgets"));
+        Widgets.createVector(document.getElementById("group-widgets"));
+        Widgets.createSwitch(document.getElementById("group-widgets"));
 
         // Widgets.createColor(
         //     document.getElementById("group-camera"), 
@@ -146,5 +154,6 @@ export default class GUI {
         //     "Color", 
         //     true);
         // };
+
     }
 }

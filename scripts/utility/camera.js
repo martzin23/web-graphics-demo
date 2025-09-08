@@ -7,18 +7,13 @@ export default class Camera {
         rotation = {h : 0.0, v : 0.0}, 
         fov = 0.5, 
         speed = 0.05, 
-        sensitivity = 0.1,
-        focus_distance = 1.0,
-        focus_blur = 0.0
+        sensitivity = 0.1
     ) {
         this.position = position;
         this.rotation = rotation;
         this.fov = fov;
         this.speed = speed;
         this.sensitivity = sensitivity;
-        this.focus_distance = focus_distance;
-        this.focus_blur = focus_blur;
-        this.cursor = {}
     }
 
     getRotationMatrix() {

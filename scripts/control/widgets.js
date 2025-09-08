@@ -1,5 +1,5 @@
 
-export function createButton(parent, set = () => { console.log("Pressed"); }, name = "Name") {
+export function createButton(parent, set = () => {}, name = "Button") {
     const element_base = document.createElement("div");
     element_base.className = "button";
     element_base.innerHTML = name;
@@ -9,7 +9,7 @@ export function createButton(parent, set = () => { console.log("Pressed"); }, na
     return element_base;
 }
 
-export function createToggle(parent, set = (bool) => { console.log(bool); }, get = () => undefined, name = "Name") {
+export function createToggle(parent, set = (bool) => {}, get = () => false, name = "Toggle") {
     const default_value = get();
 
     const element_bool = document.createElement("div");
@@ -51,8 +51,23 @@ export function createToggle(parent, set = (bool) => { console.log(bool); }, get
     return element_base;
 }
 
-export function createSlider(parent, set = (value) => { console.log(value); }, get = () => undefined, name = "Name", min = 0, max = 1) {
+export function createSlider(parent, set = (value) => {}, get = () => 0.0, name = "Slider", min = 0, max = 1, log = false) {
+    if (log) min = Math.max(min, 0.00001);
     const default_value = resizeNumber(Math.max(Math.min(get(), max), min));
+
+    const fac2val = function(fac) {
+        if (!log)
+            return min + fac * (max - min);
+        else
+            return min * Math.pow(max / min, fac);
+    }
+
+    const val2fac = function(val) {
+        if (!log)
+            return (val - min) / (max - min);
+        else
+            return (Math.log(val) - Math.log(min)) / (Math.log(max) - Math.log(min));
+    }
 
     const element_text = document.createElement("input");
     element_text.setAttribute("type", "text");
@@ -66,33 +81,33 @@ export function createSlider(parent, set = (value) => { console.log(value); }, g
     element_range.setAttribute("min", "0");
     element_range.setAttribute("max", "100");
     element_range.setAttribute("step", "1");
-    element_range.setAttribute("value", ((default_value - min) / (max - min)) * 100);
+    element_range.setAttribute("value", val2fac(default_value) * 100);
 
     element_text.addEventListener("focusout", function() {
         if (this.checkValidity()) {
-            const temp = resizeNumber(Math.min(Math.max(parseFloat(this.value), min), max));
-            this.value = temp;
-            element_range.value = ((temp - min) / (max - min)) * 100;
-            set(real_value);
+            const value = resizeNumber(Math.min(Math.max(parseFloat(this.value), min), max));
+            this.value = value;
+            element_range.value = val2fac(value) * 100;
+            set(parseFloat(value));
         } else {
-            this.value = default_value;
-            element_range.value = ((default_value - min) / (max - min)) * 100;
-            set(def);
+            const value = resizeNumber(get());
+            this.value = value;
+            element_range.value = val2fac(value) * 100;
         }
     });
 
     element_range.addEventListener("input", function() {
-        const factor = parseInt(this.value) / 100;
-        const temp = resizeNumber((min + factor * (max - min)));
+        const factor = parseInt(this.value) / 100.0;
+        const temp = resizeNumber(fac2val(factor));
         element_text.value = temp;
-        set(temp);
+        set(parseFloat(temp));
     });
     
     element_text.addEventListener("updategui", function() {
         if (this.matches(":focus")) return;
-        const value = get();
+        const value = resizeNumber(get());
         this.value = value;
-        element_range.value = ((value - min) / (max - min)) * 100;
+        element_range.value = val2fac(value) * 100;
     });
 
     const element_name = document.createElement("p");
@@ -108,7 +123,7 @@ export function createSlider(parent, set = (value) => { console.log(value); }, g
     return element_base;
 }
 
-export function createIncrement(parent, set = (value) => {console.log(value);}, get = () => undefined, name = "Name", min = -Infinity, max = Infinity, step = 1, multiply = false) {
+export function createIncrement(parent, set = (value) => {}, get = () => 0.0, name = "Increment", min = -Infinity, max = Infinity, step = 1, multiply = false) {
     const default_value = resizeNumber(Math.max(Math.min(get(), max), min));
 
     const element_text = document.createElement("input");
@@ -145,37 +160,37 @@ export function createIncrement(parent, set = (value) => {console.log(value);}, 
         if (this.checkValidity()) {
             const value = resizeNumber(Math.min(Math.max(parseFloat(this.value), min), max));
             this.value = value;
-            set(value);
+            set(parseFloat(value));
         } else {
-            this.value = default_value;
-            set(default_value);
+            this.value = resizeNumber(get());
         }
     });
     
     element_text.addEventListener("updategui", function() {
         if (this.matches(":focus")) return;
-        this.value = get();
+        const value = resizeNumber(get());
+        this.value = value;
     });
 
     element_increment.addEventListener("click", function() {
         const temp = multiply ? parseFloat(element_text.value) * step : parseFloat(element_text.value) + step;
         const value = resizeNumber(Math.min(Math.max(temp, min), max));
         element_text.value = value;
-        set(value);
+        set(parseFloat(value));
     });
 
     element_decrement.addEventListener("click", function() {
         const temp = multiply ? parseFloat(element_text.value) / step : parseFloat(element_text.value) - step;
         const value = resizeNumber(Math.min(Math.max(temp, min), max));
         element_text.value = value;
-        set(value);
+        set(parseFloat(value));
     });
     
     parent.appendChild(element_base);
     return element_base;
 }
 
-export function createColor(parent, set = (value) => {console.log(value);}, get = () => undefined, name = "Name", hex = false) {
+export function createColor(parent, set = (value) => {}, get = () => "#ffffff", name = "Name", hex = false) {
     const default_value = hex ? get() : rgb2hex(get());
     console.log(default_value);
     console.log(get());
@@ -206,7 +221,7 @@ export function createColor(parent, set = (value) => {console.log(value);}, get 
     return element_base;
 }
 
-export function createDrag(parent, set = (value) => {console.log(value);}, get = () => undefined, name = "Name", min = -Infinity, max = Infinity, sen = 0.01) {
+export function createDrag(parent, set = (value) => {}, get = () => 0.0, name = "Drag", min = -Infinity, max = Infinity, sen = 0.01) {
     const default_value = resizeNumber(Math.max(Math.min(get(),  max), min));
 
     const element_text = document.createElement("input");
@@ -239,23 +254,22 @@ export function createDrag(parent, set = (value) => {console.log(value);}, get =
         if (this.checkValidity()) {
             const value = resizeNumber(Math.min(Math.max(parseFloat(this.value), min), max));
             this.value = value;
-            set(value);
+            set(parseFloat(value));
         } else {
-            this.value = def;
-            set(default_value);
+            this.value = resizeNumber(get());
         }
     });
     
     element_text.addEventListener("updategui", function() {
         if (this.matches(":focus")) return;
-        this.value = get();
+        this.value = resizeNumber(get());
     });
 
     element_button.addEventListener("mousedown", function() {
         const mousemove_listener = (event) => {
             const value = resizeNumber(Math.max(Math.min(parseFloat(element_text.value) + event.movementX * sen, max), min));
             element_text.value = value;
-            set(value);
+            set(parseFloat(value));
 
             const mouseup_listener = () => {
                 document.removeEventListener("mousemove", mousemove_listener);
@@ -271,7 +285,7 @@ export function createDrag(parent, set = (value) => {console.log(value);}, get =
     return element_base;
 }
 
-export function createVector(parent, set = (value) => {console.log(value);}, get = () => undefined, name = "Name", sen = 0.01) {
+export function createVector(parent, set = (value) => {}, get = () => {return {x:0, y:0, z:0};}, name = "Vector", sen = 0.01) {
     const default_value = get();
 
     const element_text_x = document.createElement("input");
@@ -374,7 +388,7 @@ export function createVector(parent, set = (value) => {console.log(value);}, get
     
     element_text_x.addEventListener("updategui", function() {
         if (this.matches(":focus")) return;
-        this.value = get().x;
+        this.value = resizeNumber(get().x);
     });
 
     element_button_x.addEventListener("mousedown", function() {
@@ -413,7 +427,7 @@ export function createVector(parent, set = (value) => {console.log(value);}, get
     
     element_text_y.addEventListener("updategui", function() {
         if (this.matches(":focus")) return;
-        this.value = get().y;
+        this.value = resizeNumber(get().y);
     });
 
     element_button_y.addEventListener("mousedown", function() {
@@ -452,7 +466,7 @@ export function createVector(parent, set = (value) => {console.log(value);}, get
     
     element_text_z.addEventListener("updategui", function() {
         if (this.matches(":focus")) return;
-        this.value = get().z;
+        this.value = resizeNumber(get().z);
     });
 
     element_button_z.addEventListener("mousedown", function() {
@@ -492,7 +506,7 @@ export function createVector(parent, set = (value) => {console.log(value);}, get
     return element_base;
 }
 
-export function createSwitch(parent, set = (value) => {console.log(value);}, options = ['a', 'b', 'c', 'd'], def = 'a', name) {
+export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', 'c', 'd'], def = 'a', name) {
     const element_base = document.createElement("div");
     element_base.className = "switch";
 

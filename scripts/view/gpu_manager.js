@@ -42,6 +42,27 @@ export default class GPUManager {
             padding: 0.0
         };
 
+        /*
+        this.uniform_data = {
+            canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
+            render_scale: 1,
+            temporal_counter: 0.0,
+            camera_rotation: Matrix.mat(1.0),
+            camera_position: Vector.vec(0.0),
+            fov: 1.0,
+            sun_direction : Vector.vec(1.0),
+            shader_mode
+            max_bounces
+            max_marches
+            epsilon
+            detail
+            focus_distance
+            focus_strength
+        };
+        */ 
+
+        
+
         // Context and WebGPU
         const canvas_format = navigator.gpu.getPreferredCanvasFormat();
         this.context = this.canvas.getContext("webgpu");
@@ -221,46 +242,37 @@ function makeRenderPipeline(device, render_shader_code, color_buffer_view, unifo
             {
                 binding: 0,
                 visibility: GPUShaderStage.FRAGMENT,
-                sampler: {}
-            },
-            {
-                binding: 1,
-                visibility: GPUShaderStage.FRAGMENT,
                 texture: {
                     sampleType: 'unfilterable-float'
                 }
             },
             {
-                binding: 2,
+                binding: 1,
                 visibility: GPUShaderStage.FRAGMENT,
                 buffer: {}
             }
         ]
     });
 
-    const sampler = device.createSampler({
-        addressModeU: "repeat",
-        addressModeV: "repeat",
-        magFilter: "nearest",
-        minFilter: "nearest",
-        mipmapFilter: "nearest",
-        maxAnisotrophy: 1
-    });
+    // const sampler = device.createSampler({
+    //     addressModeU: "repeat",
+    //     addressModeV: "repeat",
+    //     magFilter: "nearest",
+    //     minFilter: "nearest",
+    //     mipmapFilter: "nearest",
+    //     maxAnisotrophy: 1
+    // });
     
     const render_bind_group = device.createBindGroup({
         label: "Render Bind Group",
         layout: render_bind_group_layout,
         entries: [
             {
-                binding: 0,
-                resource: sampler
-            },
-            {
-                binding: 1,
+                binding:0,
                 resource: color_buffer_view
             },
             {
-                binding: 2,
+                binding: 1,
                 resource: uniform_buffer
             }
         ]
