@@ -27,9 +27,10 @@ export default class GPUManager {
         this.compute_pipeline;
         this.render_bind_group;
         this.render_pipeline;
-        this.workgroup_size = {x: 8, y: 8};
+        this.workgroup_size = {x: 16, y: 16};
+        // this.workgroup_size = {x: 256, y: 1};
         this.base_render_size = {x: 2560, y: 1440};
-
+        
         // Uniform variables
         this.uniforms = {
             canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
@@ -131,6 +132,19 @@ export default class GPUManager {
                 this.uniforms.canvas_size.y / this.uniforms.render_scale / this.workgroup_size.y
             )
         );
+        // compute_pass.dispatchWorkgroups(
+        //     Math.floor(
+        //         this.uniforms.buffer_size.x / this.workgroup_size.x
+        //     ), 
+        //     Math.floor(
+        //         this.uniforms.buffer_size.y / this.workgroup_size.y
+        //     )
+        // );
+        // compute_pass.dispatchWorkgroups(
+        //     Math.ceil(
+        //         (this.uniforms.canvas_size.x * this.uniforms.canvas_size.y) / (this.uniforms.render_scale) / (this.workgroup_size.x)
+        //     )
+        // );
         compute_pass.end();
 
         const render_pass = command_encoder.beginRenderPass({

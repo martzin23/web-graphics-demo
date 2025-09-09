@@ -25,10 +25,12 @@ export default class RayMarcher {
     async update() {
         if (this.gui.isFocused())
             this.camera.update(this.input.key_states);
+        if (this.input.key_pressed && this.gui.auto_refresh)
+            this.gpu_manager.uniforms.temporal_counter = 1;
         
-        this.gpu_manager.uniforms.fov = this.camera.fov;
         this.gpu_manager.uniforms.camera_rotation = this.camera.getRotationMatrix();
         this.gpu_manager.uniforms.camera_position = this.camera.position;
+        this.gpu_manager.uniforms.fov = this.camera.fov;
     }
 
     render() {

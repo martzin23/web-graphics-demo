@@ -1,6 +1,7 @@
 export default class Input {
     constructor(gpu_manager, camera, gui) {
         this.key_states = {};
+        this.key_pressed = false;
         this.camera = camera;
         this.gpu_manager = gpu_manager;
         this.gui = gui;
@@ -12,6 +13,7 @@ export default class Input {
     }
 
     keyboardPress(event) {
+        this.key_pressed = true;
         switch (event.key) {
             case "w":
                 this.key_states.w = true; 
@@ -41,10 +43,15 @@ export default class Input {
                 event.preventDefault();
                 this.gui.toggleFullscreen();
                 break;
+            case " ":
+                event.preventDefault();
+                this.gui.auto_refresh = !this.gui.auto_refresh;
+                break;
         }
     }
 
     keyboardRelease(event) {
+        this.key_pressed = false;
         switch (event.key) {
             case "w":
                 this.key_states.w = false; 

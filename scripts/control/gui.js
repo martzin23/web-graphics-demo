@@ -98,7 +98,7 @@ export default class GUI {
             }
         };
         
-        ["click", "resize", "mousemove", "keydown"].forEach(element => {
+        ["click", "resize", "mousemove"].forEach(element => {
             document.addEventListener(element, () => {
                 if (this.auto_refresh)
                     this.gpu_manager.uniforms.temporal_counter = 1;
@@ -186,7 +186,7 @@ export default class GUI {
                     case "Marches":
                         this.gpu_manager.uniforms.shader_mode = 0;
                         break;
-                    case "Phong":
+                    case "Normals":
                         this.gpu_manager.uniforms.shader_mode = 1;
                         break;
                     case "Path traced":
@@ -198,14 +198,14 @@ export default class GUI {
 
                 }
             },
-            ["Marches", "Phong", "Path traced"],
+            ["Marches", "Normals", "Path traced"],
             "Marches",
             "Shading mode"
         );
 
         // Lens
-        Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu_manager.uniforms.focus_distance = value;}, () => this.gpu_manager.uniforms.focus_distance, "Focus distance", 0.0, 10.0, true);
-        Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu_manager.uniforms.focus_strength = value;}, () => this.gpu_manager.uniforms.focus_strength, "Focus blur", 0.0, 1.0);
+        Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu_manager.uniforms.focus_distance = value;}, () => this.gpu_manager.uniforms.focus_distance, "Focus distance", 0.0, 20.0, true);
+        Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu_manager.uniforms.focus_strength = value;}, () => this.gpu_manager.uniforms.focus_strength, "Focus blur", 0.0, 0.1);
 
         // Marching
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu_manager.uniforms.max_marches = value;}, () => this.gpu_manager.uniforms.max_marches, "Max marches", 0, Infinity, 50);

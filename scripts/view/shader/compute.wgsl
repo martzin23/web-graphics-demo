@@ -40,27 +40,25 @@ struct Data {
 }
 
 var<private> state: u32;
-
 @group(0) @binding(0) var<storage, read_write> color_buffer: BufferData;
 @group(0) @binding(1) var<uniform> uniforms : UniformBuffer;
 
-@compute @workgroup_size(8,8,1)
+@compute @workgroup_size(16,16,1)
+// @compute @workgroup_size(256,1,1)
 fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
 
     // Getting coordinates
-    let screen_size = vec2u(uniforms.canvas_size);
-    let screen_position = vec2u(u32(GlobalInvocationID.x), u32(GlobalInvocationID.y));
-    // if (screen_position.x > screen_size.x || screen_position.y > screen_size.y) { return; }
-    let index = screen_position.x + screen_position.y * u32(uniforms.buffer_size.y);
-    if (index > u32(uniforms.buffer_size.x * uniforms.buffer_size.y)) { return; }
-    let screen_normalized = vec2f(GlobalInvocationID.xy) / vec2f(screen_size) * uniforms.render_scale;
+    let index = GlobalInvocationID.x + GlobalInvocationID.y * u32(uniforms.buffer_size.x);
+    let aspect_ratio = uniforms.canvas_size.y / uniforms.canvas_size.x;
+    let screen_normalized = vec2f(GlobalInvocationID.xy) / uniforms.canvas_size * uniforms.render_scale;
     state = index + u32(uniforms.temporal_counter) * 69420;
 
     // Camera ray
     var camera_ray: Ray;
     camera_ray.origin = uniforms.camera_position;
-    camera_ray.direction = (uniforms.camera_rotation * vec4f(normalize(vec3f((screen_normalized.x * 2.0 - 1.0) * uniforms.fov, 1.0, -(screen_normalized.y * 2.0 - 1.0) * (f32(screen_size.y) / f32(screen_size.x)) * uniforms.fov)),1.0)).xyz;
+    camera_ray.direction = (uniforms.camera_rotation * vec4f(normalize(vec3f((screen_normalized.x * 2.0 - 1.0) * uniforms.fov, 1.0, -(screen_normalized.y * 2.0 - 1.0) * aspect_ratio * uniforms.fov)),1.0)).xyz;
     camera_ray.direction = normalize(camera_ray.direction + randomDirection() * 0.0005 * uniforms.fov * uniforms.render_scale);
+    camera_ray = focusBlur(camera_ray, uniforms.focus_distance, uniforms.focus_strength);
 
     // Shading
     var pixel_color: vec3f;
@@ -68,20 +66,20 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
         default {
             let data: Data = rayMarch(camera_ray);
             let factor = 1 - (f32(data.marches) / uniforms.max_marches);
+            pixel_color = vec3f(mix(0.0, factor, f32(data.collided)));
+        }
+        case (1) {
+            let data: Data = rayMarch(camera_ray);
+            // let diffuse = dot(, normalize(uniforms.sun_direction));
+            let factor = 1 - (f32(data.marches) / uniforms.max_marches);
             if (data.collided) {
-                pixel_color = vec3f(factor);
+                pixel_color = vec3f(((data.normal * 2.0 + 1.0) * 0.5 + 0.5) * factor);
             } else {
                 pixel_color = vec3f(0.0);
             }
         }
-        case (1) {
-            let data: Data = rayMarch(camera_ray);
-            let diffuse = dot(data.normal, normalize(uniforms.sun_direction));
-            if (data.collided) {
-                pixel_color = vec3f(diffuse);
-            } else {
-                pixel_color = vec3f(0.0);
-            }
+        case (2) {
+            pixel_color = pathTrace(camera_ray);
         }
     }
     
@@ -91,12 +89,45 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
     color_buffer.colors[index] = vec4f(output_color, previous_color.w);
 }
 
+fn pathTrace(camera_ray: Ray) -> vec3f {
+    var ray = camera_ray;
+    var sample_color = vec3f(0.0);
+    var ray_color = vec3f(1.0);
+
+    for (var bounce_counter = 0; bounce_counter < i32(uniforms.max_bounces); bounce_counter++) {
+        let data = rayMarch(ray);
+
+        if (!data.collided) {
+            if (data.dist > 10 || bounce_counter == 0) {
+                let sky = skyValue(ray.direction);
+                sample_color += sky * ray_color;
+            }
+            else {
+                sample_color += 0 * ray_color;
+            }
+            break;
+        }
+        
+        ray.direction = normalize(randomDirection() + data.normal);
+        ray.origin = data.position + ray.direction * uniforms.epsilon;
+        
+        let color = vec3(1.0);
+        // vec3 color = -data.normal * 0.25 + 0.75;
+        let emission = vec3(0.0);
+        sample_color += emission * color * ray_color;
+        ray_color *= color;
+    }
+
+    return sample_color;
+}
+
 fn rayMarch(ray: Ray) -> Data {
     var data: Data;
     data.position = ray.origin;
     data.collided = false;
+    data.marches = 0;
 
-    for (data.marches = 0; data.marches < i32(uniforms.max_marches); data.marches++) {
+    for (; data.marches < i32(uniforms.max_marches); data.marches++) {
         let d = SDF(data.position);
         if (d < pow(2, -uniforms.detail)) {
             data.collided = true;
@@ -110,12 +141,20 @@ fn rayMarch(ray: Ray) -> Data {
     return data;
 }
 
+fn focusBlur(ray: Ray, range: f32, strength: f32) -> Ray {
+    let focus_point = ray.origin + ray.direction * range;
+    var result: Ray;
+    result.origin = ray.origin + randomDirection() * strength;
+    result.direction = normalize(focus_point - result.origin);
+    return result;
+}
+
 fn derivateNormal(position: vec3f, epsilon: f32) -> vec3f {
     var normal: vec3f;
-	normal.x = (SDF(position + vec3f(epsilon, 0.0, 0.0)) - SDF(position - vec3f(epsilon, 0.0, 0.0))) / (2 * epsilon);
-	normal.y = (SDF(position + vec3f(0.0, epsilon, 0.0)) - SDF(position - vec3f(0.0, epsilon, 0.0))) / (2 * epsilon);
-	normal.z = (SDF(position + vec3f(0.0, 0.0, epsilon)) - SDF(position - vec3f(0.0, 0.0, epsilon))) / (2 * epsilon);
-    return normalize(normal);
+	normal.x = (SDF(position + vec3f(epsilon, 0.0, 0.0)) - SDF(position - vec3f(epsilon, 0.0, 0.0)));
+	normal.y = (SDF(position + vec3f(0.0, epsilon, 0.0)) - SDF(position - vec3f(0.0, epsilon, 0.0)));
+	normal.z = (SDF(position + vec3f(0.0, 0.0, epsilon)) - SDF(position - vec3f(0.0, 0.0, epsilon)));
+    return normalize(normal  / (2 * epsilon));
 }
 
 fn skyValue(direction: vec3f) -> vec3f {
@@ -128,8 +167,8 @@ fn skyValue(direction: vec3f) -> vec3f {
     const sky_intensity = 0.5;
 
     let altitude = dot(direction, vec3f(0.0, 0.0, 1.0));
-    let day_factor = dot(vec3f(0.0, 0.0, 1.0), uniforms.sun_direction) * 0.5 + 0.5;
-    let sun_factor = pow(dot(direction, uniforms.sun_direction) * 0.5 + 0.5, 100.0 + (1 - day_factor) * 1000.0);
+    let day_factor = dot(vec3f(0.0, 0.0, 1.0), normalize(uniforms.sun_direction)) * 0.5 + 0.5;
+    let sun_factor = pow(dot(direction,  normalize(uniforms.sun_direction)) * 0.5 + 0.5, 100.0 + (1 - day_factor) * 1000.0);
 
     let day_color = mix(horizon_color, zenith_color, pow(clamp(abs(altitude), 0.0, 1.0), 0.5)) * sky_intensity;
     let night_color = day_color * vec3f(0.1, 0.1, 0.3);
