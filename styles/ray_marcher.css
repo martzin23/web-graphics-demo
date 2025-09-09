@@ -91,7 +91,7 @@ body {
 
 :root:fullscreen .block {
     background-color: var(--block-dark);
-    backdrop-filter: blur(0.5rem);
+    backdrop-filter: blur(4px);
     /* backdrop-filter: invert() blur(1rem); */
 }
 

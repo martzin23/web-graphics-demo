@@ -103,4 +103,11 @@ export default class Matrix {
                 a[3][0]*b[0][3] + a[3][1]*b[1][3] + a[3][2]*b[2][3] + a[3][3]*b[3][3]]
             ];
     }   
+
+    static rot2dir(horizontal, vertical) {
+        let temp = Matrix.mat();
+        temp = Matrix.rot(temp, vertical, Vector.vec(1.0, 0.0, 0.0));
+        temp = Matrix.rot(temp, horizontal, Vector.vec(0.0, 0.0, 1.0));
+        return Vector.xyz(Matrix.mul(temp, Vector.vec(0.0, 1.0, 0.0, 0.0)));
+    }
 }

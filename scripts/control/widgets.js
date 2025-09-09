@@ -507,22 +507,22 @@ export function createVector(parent, set = (value) => {}, get = () => {return {x
     return element_base;
 }
 
-export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', 'c', 'd'], def = 'a', name, none = false) {
+export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', 'c', 'd'], def = 'a', name, unselectable = false) {
     const element_base = document.createElement("div");
     element_base.className = "switch";
 
-    options.forEach((el) => {
+    options.forEach((name, index) => {
         const element_button = createButton(element_base, function() {
-            if (this.classList.contains('active') && none) {
+            if (this.classList.contains('active') && unselectable) {
                 this.parentNode.childNodes.forEach((el) => {el.classList.remove("active")});
                 set(null);
             } else {
                 this.parentNode.childNodes.forEach((el) => {el.classList.remove("active")});
                 this.classList.toggle("active");
-                set(el);
+                set(index);
             }
-        }, el);
-        if (el === def)
+        }, name);
+        if (name === def)
             element_button.classList.add("active");
     });
 
@@ -533,7 +533,7 @@ export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', '
     }
 
     parent.appendChild(element_base);
-    set(def);
+    set(options.indexOf(def));
     return element_base;
 }
 

@@ -43,9 +43,27 @@ export default class Input {
                 event.preventDefault();
                 this.gui.toggleFullscreen();
                 break;
-            case " ":
+            case "Tab":
                 event.preventDefault();
                 this.gui.auto_refresh = !this.gui.auto_refresh;
+                break;
+            case "1":
+                this.gui.switch_tab(0); 
+                break;
+            case "2":
+                this.gui.switch_tab(1); 
+                break;
+            case "3":
+                this.gui.switch_tab(2); 
+                break;
+            case "4":
+                this.gui.switch_tab(3);  
+                break;
+            case "5":
+                this.gui.switch_tab(4); 
+                break;
+            case "6":
+                this.gui.switch_tab(5); 
                 break;
         }
     }

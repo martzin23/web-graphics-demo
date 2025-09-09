@@ -7,6 +7,7 @@ export default class GUI {
         this.camera = camera;
         this.update_event;
         this.auto_refresh = true;
+        this.switch_tab;
         
         this.setupCallbacks();
         this.setupWidgets();
@@ -109,46 +110,58 @@ export default class GUI {
     setupWidgets() {
 
         // Tabs
+        this.switch_tab = function(value, button = false) {
+            if (!button) {
+                document.getElementById("group-tabs").firstChild.childNodes.forEach((element, index) => {
+                    if (element.classList.contains("active") && index == value) {
+                        element.classList.remove("active");
+                        value = null;
+                    }
+                    else if (index == value)
+                        element.classList.add("active");
+                    else
+                        element.classList.remove("active");
+                });
+            }
+            document.getElementById("menu").classList.remove("hidden");
+            Array.from(document.getElementById("menu").childNodes).filter((el) => (el.nodeType !== Node.TEXT_NODE)).forEach((el) => {el.classList.add("hidden");});
+            switch(value) {
+                case 0:
+                    document.getElementById("group-display").classList.remove("hidden");
+                    document.getElementById("group-camera").classList.remove("hidden");
+                    break;
+                case 1:
+                    document.getElementById("group-shading").classList.remove("hidden");
+                    document.getElementById("group-lens").classList.remove("hidden");
+                    document.getElementById("group-marching").classList.remove("hidden");
+                    document.getElementById("group-sdf-options").classList.remove("hidden");
+                    break;
+                case 2:
+                    document.getElementById("group-sdf").classList.remove("hidden");
+                    document.getElementById("group-sdf-options").classList.remove("hidden");
+                    break;
+                case 3:
+                    document.getElementById("group-heightmap").classList.remove("hidden");
+                    break;
+                case 4:
+                    document.getElementById("group-custom-sdf").classList.remove("hidden");
+                    document.getElementById("group-code").classList.remove("hidden");
+                    break;
+                case 5:
+                    document.getElementById("group-controls").classList.remove("hidden");
+                    document.getElementById("group-widgets").classList.remove("hidden");
+                    break;
+                default:
+                    if (this.isFullscreen())
+                        document.getElementById("menu").classList.add("hidden");
+                    else
+                        document.getElementById("group-unselected").classList.remove("hidden");
+                    break;
+            }
+        }
         Widgets.createSwitch(
             document.getElementById("group-tabs"), 
-            (value) => {
-                document.getElementById("menu").classList.remove("hidden");
-                Array.from(document.getElementById("menu").childNodes).filter((el) => (el.nodeType !== Node.TEXT_NODE)).forEach((el) => {el.classList.add("hidden");});
-                
-                switch(value) {
-                    case '<i class="fa fa-cog"></i>General':
-                        document.getElementById("group-display").classList.remove("hidden");
-                        document.getElementById("group-camera").classList.remove("hidden");
-                        break;
-                    case '<i class="fa fa-location-arrow"></i>RayMarching':
-                        document.getElementById("group-shading").classList.remove("hidden");
-                        document.getElementById("group-lens").classList.remove("hidden");
-                        document.getElementById("group-marching").classList.remove("hidden");
-                        document.getElementById("group-sdf-options").classList.remove("hidden");
-                        break;
-                    case '<i class="fa fa-cube"></i>SDF':
-                        document.getElementById("group-sdf").classList.remove("hidden");
-                        document.getElementById("group-sdf-options").classList.remove("hidden");
-                        break;
-                    case '<i class="fa fa-area-chart"></i>Heightmap':
-                        document.getElementById("group-heightmap").classList.remove("hidden");
-                        break;
-                    case '<i class="fa fa-code"></i>Code':
-                        document.getElementById("group-custom-sdf").classList.remove("hidden");
-                        document.getElementById("group-code").classList.remove("hidden");
-                        break;
-                    case '<i class="fa fa-info"></i>Info':
-                        document.getElementById("group-controls").classList.remove("hidden");
-                        document.getElementById("group-widgets").classList.remove("hidden");
-                        break;
-                    default:
-                        if (this.isFullscreen())
-                            document.getElementById("menu").classList.add("hidden");
-                        else
-                            document.getElementById("group-unselected").classList.remove("hidden");
-                        break;
-                }
-            }, 
+            (value) => { this.switch_tab(value, true); }, 
             [
                 '<i class="fa fa-cog"></i>General', 
                 '<i class="fa fa-location-arrow"></i>RayMarching', 
@@ -168,6 +181,7 @@ export default class GUI {
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
         Widgets.createButton(document.getElementById("group-display"), () => { this.gpu_manager.uniforms.temporal_counter = 1 }, "Refresh screen");
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh");
+        Widgets.createButton(document.getElementById("group-display"), () => { this.gpu_manager.screenshot("test.png"); }, "Screenshot");
 
         // Camera
         Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Position");
@@ -183,19 +197,15 @@ export default class GUI {
             document.getElementById("group-shading"),
             (value) => {
                 switch(value) {
-                    case "Marches":
-                        this.gpu_manager.uniforms.shader_mode = 0;
-                        break;
-                    case "Normals":
-                        this.gpu_manager.uniforms.shader_mode = 1;
-                        break;
-                    case "Path traced":
-                        this.gpu_manager.uniforms.shader_mode = 2;
-                        break;
                     default:
                         this.gpu_manager.uniforms.shader_mode = 0;
+                        break;2
+                    case 1:
+                        this.gpu_manager.uniforms.shader_mode = 1;
                         break;
-
+                    case 2:
+                        this.gpu_manager.uniforms.shader_mode = 2;
+                        break;
                 }
             },
             ["Marches", "Normals", "Path traced"],
@@ -217,6 +227,9 @@ export default class GUI {
         Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_b = value;}, () => this.gpu_manager.uniforms.custom_b, "B");
         Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_c = value;}, () => this.gpu_manager.uniforms.custom_c, "C");
         Widgets.createDrag(document.getElementById("group-sdf-options"), (value) => {this.gpu_manager.uniforms.custom_d = value;}, () => this.gpu_manager.uniforms.custom_d, "D");
+        
+        Widgets.createDrag(document.getElementById("group-marching"), (value) => {this.gpu_manager.sun_rotation.x = value;}, () => this.gpu_manager.sun_rotation.x, "Horizontal rotation", -180, 180, 0.1);
+        Widgets.createDrag(document.getElementById("group-marching"), (value) => {this.gpu_manager.sun_rotation.y = value;}, () => this.gpu_manager.sun_rotation.y, "Vertical rotation", -90, 90, 0.1);
 
         // Widget list
         Widgets.createButton(document.getElementById("group-widgets"));
