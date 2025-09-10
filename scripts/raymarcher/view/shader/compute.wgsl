@@ -177,26 +177,6 @@ fn rayMarch(ray: Ray) -> Data {
     return data;
 }
 
-fn rayMarch2(ray: Ray) -> Data {
-    var data: Data;
-    data.position = ray.origin;
-    data.collided = false;
-    data.marches = 0;
-
-    for (; data.marches < 100; data.marches++) {
-        let d = SDF(data.position);
-        if (d < pow(2, -uniforms.detail)) {
-            data.collided = true;
-            break;
-        }
-        data.position += d * ray.direction;
-    }
-
-    data.normal = derivateNormal(data.position, uniforms.epsilon);
-    data.dist = length(data.position - ray.origin); 
-    return data;
-}
-
 fn focusBlur(ray: Ray, range: f32, strength: f32) -> Ray {
     let focus_point = ray.origin + ray.direction * range;
     var result: Ray;

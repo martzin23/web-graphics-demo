@@ -130,7 +130,6 @@ export default class GPUManager {
     }
 
     async recompileShaders(url) {
-        
         const compute_url = '../scripts/raymarcher/view/shader/compute.wgsl';
         const render_url = '../scripts/raymarcher/view/shader/render.wgsl';
 
@@ -287,7 +286,7 @@ export default class GPUManager {
     }
 
     screenshot(filename) {
-        bufferToImage(filename, this.device, this.color_buffer, this.base_render_size.x, this.base_render_size.y);
+        bufferToImage(filename, this.device, this.color_buffer, this.base_render_size.x, this.base_render_size.y, this.uniforms.canvas_size.x, this.uniforms.canvas_size.y);
     }
 }
 
@@ -304,8 +303,13 @@ function packUniforms(data) {
     return array.flat();
 }
 
-async function bufferToImage(filename, device, buffer, width, height) {
-    const buffer_size = width * height * 16;
+async function bufferToImage(filename, device, buffer, buffer_width, buffer_height, render_width, render_height) {
+    buffer_width = Math.floor(buffer_width);
+    buffer_height = Math.floor(buffer_height);
+    render_width = Math.floor(render_width);
+    render_height = Math.floor(render_height);
+
+    const buffer_size = buffer_width * buffer_height * 16;
     const staging_buffer = device.createBuffer({
         size: buffer_size,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
@@ -317,33 +321,40 @@ async function bufferToImage(filename, device, buffer, width, height) {
 
     await staging_buffer.mapAsync(GPUMapMode.READ);
     const buffer_data = new Uint8Array(staging_buffer.getMappedRange());
-    // const floatData = new Float32Array(staging_buffer.getMappedRange());
     
-    // Convert from float32 to uint8
-    const floatData = new Float32Array(buffer_data.buffer);
-    // console.log("floatdata: " + floatData[0]);
-    const uint8Data = new Uint8ClampedArray(width * height * 4);
-    for (let i = 0; i < floatData.length; i++)
-        uint8Data[i] = Math.min(255, Math.max(0, floatData[i] * 255));
-    // console.log("uintdata: " + uint8Data[0]);
-    const image_data = new ImageData(uint8Data, width, height);
-    // console.log(image_data);
+    const float_data = new Float32Array(buffer_data.buffer);
+    const uint8_data = new Uint8ClampedArray(render_width * render_height * 4);
+    let uint8_index = 0;
+    for (let i = 0; i < float_data.length; i++) {
+        const x = Math.floor(i / 4) % buffer_width;
+        const y = Math.floor(Math.floor(i / 4) / buffer_width);
 
+        if (x >= render_width || y >= render_height)
+            continue;
+        if (uint8_index > render_width * render_height * 4)
+            break;
+
+        const e = 2.71828;
+        const value = 1 - Math.pow(e, -1 * float_data[i]);
+
+        uint8_data[uint8_index] = ((uint8_index + 1) % 4 == 0) ? 255 : Math.min(255, Math.max(0, value * 255));
+        uint8_index += 1;
+    }
+
+    const image_data = new ImageData(uint8_data, render_width, render_height);
+    const image_bitmap = await createImageBitmap(image_data);
+    
     const canvas = document.createElement('canvas');
-    canvas.width = image_data.width;
-    canvas.height = image_data.height;
-
-    const ctx = canvas.getContext('2d');
-    ctx.putImageData(image_data, 0, 0);
-
+    canvas.width = render_width;
+    canvas.height = render_height;
+    canvas.getContext('2d').drawImage(image_bitmap, 0, 0);
+    
     canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    });
+    }, 'image/png');
 }

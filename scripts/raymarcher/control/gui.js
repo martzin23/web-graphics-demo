@@ -101,7 +101,7 @@ export default class GUI {
     }
 
     scrollTab(delta) {
-        delta /= -100;
+        delta = delta > 0 ? -1 : 1;
         const tabs_count = document.getElementById("group-tabs").firstChild.childNodes.length;
         let target_tab;
         if (this.current_tab === null && delta < 0)
@@ -187,7 +187,17 @@ export default class GUI {
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu.uniforms.render_scale = value;},() => this.gpu.uniforms.render_scale , "Resolution division", 1, 16);
         Widgets.createButton(document.getElementById("group-display"), () => {this.gpu.syncResolution();}, "Fix aspect ratio");
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh");
-        Widgets.createButton(document.getElementById("group-display"), () => { this.gpu.screenshot("test.png"); }, '<i class="fa fa-download"></i>Screenshot');
+        Widgets.createButton(document.getElementById("group-display"), () => {
+            var current_date = new Date(); 
+            var date_time = "" 
+                + current_date.getFullYear()
+                + (current_date.getMonth()+1)
+                + current_date.getDate()
+                + current_date.getHours()
+                + current_date.getMinutes()
+                + current_date.getSeconds();
+            this.gpu.screenshot(date_time);
+        }, '<i class="fa fa-download"></i>Screenshot');
 
         // Camera
         Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Position");
@@ -220,7 +230,7 @@ export default class GUI {
             ["Marches", "Normals", "Pathtraced", "Detail"],
             "Marches",
             "Shading mode"
-        );
+        ).addTooltip("Set 'Max marches' to 1 when using 'Detail' mode");
 
         // Lens
         Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu.uniforms.focus_distance = value;}, () => this.gpu.uniforms.focus_distance, "Focus distance", 0.0, 20.0, true);
