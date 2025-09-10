@@ -1,20 +1,17 @@
 <!-- 
 TODO
-reorganize files
-	main in raymarcher
-	pages
-	gitignore & readme
+clean code
+	gpu
 screen shots
-
 css colors rework
+recompile
 custom code
 ray marching per frame
+camera switch h v
 
 BUGS
 color widget not working
-auto refresh rewrite
-numbers and tabs and inputs
-polish saving
+shader normals
 -->
 
 <!DOCTYPE html>
@@ -23,8 +20,8 @@ polish saving
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Raymarcher</title>
-	<link rel="stylesheet" href="./styles/ray_marcher.css">
-	<script type="module" defer src="./scripts/main.js"></script>
+	<link rel="stylesheet" href="../styles/style.css">
+	<script type="module" defer src="../scripts/raymarcher/engine.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
@@ -69,13 +66,6 @@ polish saving
 			</figcaption>
 		</figure>
 
-		<figure id="group-lens">
-			<figcaption>
-				<hr>
-				<p>Lens</p>
-			</figcaption>
-		</figure>
-
 		<figure id="group-sdf">
 			<figcaption>
 				<hr>
@@ -89,11 +79,18 @@ polish saving
 				<p>SDF Options</p>
 			</figcaption>
 		</figure>
-		
-		<figure id="group-heightmap">
+
+		<figure id="group-lens">
 			<figcaption>
 				<hr>
-				<p>Heightmap</p>
+				<p>Lens</p>
+			</figcaption>
+		</figure>
+
+		<figure id="group-sun">
+			<figcaption>
+				<hr>
+				<p>Sun Direction</p>
 			</figcaption>
 		</figure>
 

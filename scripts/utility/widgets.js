@@ -191,37 +191,6 @@ export function createIncrement(parent, set = (value) => {}, get = () => 0.0, na
     return element_base;
 }
 
-export function createColor(parent, set = (value) => {}, get = () => "#ffffff", name = "Name", hex = false) {
-    const default_value = hex ? get() : rgb2hex(get());
-    console.log(default_value);
-    console.log(get());
-
-    const element_color = document.createElement("input");
-    element_color.setAttribute("type", "color");
-    element_color.setAttribute("value", default_value);
-    
-
-    const element_name = document.createElement("p");
-    element_name.innerText = name;
-
-    const element_base = document.createElement("div");
-    element_base.className = "color";
-    element_base.appendChild(element_color);
-    element_base.appendChild(element_name);
-
-    element_color.addEventListener("input", function() {
-        set(hex ? this.value : hex2rgb(this.value));
-    });
-    
-    element_color.addEventListener("updategui", function() {
-        if (this.matches(":focus")) return;
-        this.value = hex ? get() : rgb2hex(get());
-    });
-    
-    parent.appendChild(element_base);
-    return element_base;
-}
-
 export function createDrag(parent, set = (value) => {}, get = () => 0.0, name = "Drag", min = -Infinity, max = Infinity, sen = 0.01) {
     const default_value = resizeNumber(Math.max(Math.min(get(),  max), min));
 
@@ -555,6 +524,37 @@ export function addTooltip(element, tooltip, icon) {
     }
 }
 
+// export function createColor(parent, set = (value) => {}, get = () => "#ffffff", name = "Name", hex = false) {
+//     const default_value = hex ? get() : rgb2hex(get());
+//     console.log(default_value);
+//     console.log(get());
+
+//     const element_color = document.createElement("input");
+//     element_color.setAttribute("type", "color");
+//     element_color.setAttribute("value", default_value);
+    
+
+//     const element_name = document.createElement("p");
+//     element_name.innerText = name;
+
+//     const element_base = document.createElement("div");
+//     element_base.className = "color";
+//     element_base.appendChild(element_color);
+//     element_base.appendChild(element_name);
+
+//     element_color.addEventListener("input", function() {
+//         set(hex ? this.value : hex2rgb(this.value));
+//     });
+    
+//     element_color.addEventListener("updategui", function() {
+//         if (this.matches(":focus")) return;
+//         this.value = hex ? get() : rgb2hex(get());
+//     });
+    
+//     parent.appendChild(element_base);
+//     return element_base;
+// }
+
 function resizeNumber(number, size = 7) {
     const digits = number.toString().replace(".","").length;
     const decimals = number.toString().split(".")[1] ? number.toString().split(".")[1].length : 0;
@@ -562,27 +562,27 @@ function resizeNumber(number, size = 7) {
     return number.toFixed(delta); 
 }
 
-function hex2rgb(hex) {
-    const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
-    const hex2float = (hex) => (digits.indexOf(hex[0]) * 16 + digits.indexOf(hex[1])) / 255.0;
+// function hex2rgb(hex) {
+//     const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
+//     const hex2float = (hex) => (digits.indexOf(hex[0]) * 16 + digits.indexOf(hex[1])) / 255.0;
 
-    const hexes = hex.replace("#", "").split(/(?=(?:..)*$)/);
+//     const hexes = hex.replace("#", "").split(/(?=(?:..)*$)/);
 
-    return {
-        x: hex2float(hexes[0]), 
-        y: hex2float(hexes[1]), 
-        z: hex2float(hexes[2])
-    };
-}
+//     return {
+//         x: hex2float(hexes[0]), 
+//         y: hex2float(hexes[1]), 
+//         z: hex2float(hexes[2])
+//     };
+// }
 
-function rgb2hex(rgb) {
-    const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
-    return "#" + 
-        digits.indexOf(Math.floor(rgb.x * 256 / 16)) +    
-        digits.indexOf(Math.floor(rgb.x * 256 % 16)) +    
-        digits.indexOf(Math.floor(rgb.y * 256 / 16)) +    
-        digits.indexOf(Math.floor(rgb.y * 256 % 16)) +    
-        digits.indexOf(Math.floor(rgb.z * 256 / 16)) +    
-        digits.indexOf(Math.floor(rgb.z * 256 % 16))
-    ;
-}
+// function rgb2hex(rgb) {
+//     const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
+//     return "#" + 
+//         digits.indexOf(Math.floor(rgb.x * 256 / 16)) +    
+//         digits.indexOf(Math.floor(rgb.x * 256 % 16)) +    
+//         digits.indexOf(Math.floor(rgb.y * 256 / 16)) +    
+//         digits.indexOf(Math.floor(rgb.y * 256 % 16)) +    
+//         digits.indexOf(Math.floor(rgb.z * 256 / 16)) +    
+//         digits.indexOf(Math.floor(rgb.z * 256 % 16))
+//     ;
+// }

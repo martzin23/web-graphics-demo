@@ -28,7 +28,6 @@ export default class Vector {
         return Float32Array(Vector.array(vec));
     }
 
-    // Not generic
     static test(vec) {
         return (
             vec !== null && typeof vec === 'object' &&
@@ -37,17 +36,32 @@ export default class Vector {
         );
     }
 
-    // Not generic
     static xyz(vec) {
         return Vector.vec(vec.x, vec.y, vec.z);
     }
 
-    // Not generic
     static xy(vec) {
         return Vector.vec(vec.x, vec.y);
     }
 
-    // Not generic
+    static dot(first, second) {
+        let result = 0;
+        for (const el in first)
+            result += first[el] * second[el];
+        return result;
+    }
+
+    static len(vec) {
+        return Math.sqrt(Vector.dot(vec, vec));
+    }
+
+    static norm(vec) {
+        if (vec.x == 0 && vec.y == 0 && vec.z == 0)
+            return Vector.vec(0.0);
+        else
+            return Vector.div(vec, Vector.len(vec));
+    }
+
     static add(...args) {
         let result = Vector.vec(0.0);
         for (let el of args) {
@@ -65,7 +79,6 @@ export default class Vector {
         return result;
     }
 
-    // Not generic
     static sub(first, ...second) {
         let result = first;
         for (let el of second) {
@@ -83,7 +96,6 @@ export default class Vector {
         return result;
     }
 
-    // Not generic
     static mul(first, second) {
         let result = first;
         if (Vector.test(second)) {
@@ -98,7 +110,6 @@ export default class Vector {
         return result;
     }
 
-    // Not generic
     static div(first, second) {
         let result = first;
         if (Vector.test(second)) {
@@ -113,26 +124,7 @@ export default class Vector {
         return result;
     }
 
-    static dot(first, second) {
-        let result = 0;
-        for (const el in first)
-            result += first[el] * second[el];
-        return result;
-    }
-
-    // Not generic
     static cross(first, second) {
         return Vector.vec(first.y * second.z - first.z * second.y, first.z * second.x - first.x * second.z, first.x * second.y - first.y * second.x);
-    }
-
-    static len(vec) {
-        return Math.sqrt(Vector.dot(vec, vec));
-    }
-
-    static norm(vec) {
-        if (vec.x == 0 && vec.y == 0 && vec.z == 0)
-            return Vector.vec(0.0);
-        else
-            return Vector.div(vec, Vector.len(vec));
     }
 }
