@@ -6,7 +6,7 @@ import Matrix from '../utility/matrix.js';
 
 class Engine {
     static async initialize() {
-        const gpu = await GPUManager.initialize(document.getElementById("canvas"), '../scripts/raymarcher/view/shader/compute.wgsl', '../scripts/raymarcher/view/shader/render.wgsl');
+        const gpu = await GPUManager.initialize(document.getElementById("canvas"), '../scripts/raymarcher/view/shader/compute.wgsl', '../scripts/raymarcher/view/shader/render.wgsl', '../scripts/raymarcher/view/shader/mandelbox.wgsl');
         return new Engine(gpu);
     }
 

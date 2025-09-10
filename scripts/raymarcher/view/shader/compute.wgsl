@@ -61,12 +61,15 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
     camera_ray = focusBlur(camera_ray, uniforms.focus_distance, uniforms.focus_strength);
 
     // Shading
+    var previous_color = color_buffer.colors[index];
+    var output_color: vec4f;
     var pixel_color: vec3f;
     switch (u32(uniforms.shader_mode)) {
         default {
             let data: Data = rayMarch(camera_ray);
             let factor = 1 - (f32(data.marches) / uniforms.max_marches);
             pixel_color = vec3f(mix(0.0, factor, f32(data.collided)));
+            output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
         }
         case (1) {
             let data: Data = rayMarch(camera_ray);
@@ -77,16 +80,49 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
             } else {
                 pixel_color = vec3f(0.0);
             }
+            output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
         }
         case (2) {
             pixel_color = pathTrace(camera_ray);
+            output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        }
+        case (3) {
+            if (uniforms.temporal_counter != 1) {
+                camera_ray.origin = camera_ray.origin + camera_ray.direction * previous_color.w;
+
+                if (SDF(camera_ray.origin) < pow(2, -uniforms.detail)) {
+                    let normal = derivateNormal(camera_ray.origin, uniforms.epsilon);
+                    let diffuse = clamp(dot(normal, uniforms.sun_direction), 0.0, 1.0);
+
+                    // var shadow_ray: Ray;
+                    // shadow_ray.direction = normalize(uniforms.sun_direction);
+                    // shadow_ray.origin = camera_ray.origin + shadow_ray.direction * 2 * pow(2, -uniforms.detail);
+                    // let shadow_data = rayMarch2(shadow_ray);
+                    // let shadow = f32(!shadow_data.collided);
+                    
+                    let pixel_color = vec3f(diffuse * clamp(mix(1.0, 0.0, previous_color.w / 2), 0.0, 1.0));
+                    // let pixel_color = vec3f(diffuse * shadow);
+                    // if (previous_color.x == 0) {
+                    //     output_color = vec4f(pixel_color, 0.0);
+                    // } else {
+                    //     output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 0);
+                    // }
+                    output_color = vec4f(0.99 * previous_color.xyz + 0.01 * pixel_color, 0.0);
+
+                } else if (previous_color.w > 100) {
+                    output_color = vec4f(0.0, 0.0, 0.0, 100);
+                } else {
+                    let camera_data: Data = rayMarch(camera_ray);
+                    let dist = length(camera_data.position - uniforms.camera_position);
+                    output_color = vec4f(previous_color.xyz, dist);
+                }
+            } else {
+                output_color = vec4f(0.0);
+            }
         }
     }
     
-    
-    var previous_color = color_buffer.colors[index];
-    let output_color = previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter);
-    color_buffer.colors[index] = vec4f(output_color, previous_color.w);
+    color_buffer.colors[index] = output_color;
 }
 
 fn pathTrace(camera_ray: Ray) -> vec3f {
@@ -141,6 +177,26 @@ fn rayMarch(ray: Ray) -> Data {
     return data;
 }
 
+fn rayMarch2(ray: Ray) -> Data {
+    var data: Data;
+    data.position = ray.origin;
+    data.collided = false;
+    data.marches = 0;
+
+    for (; data.marches < 100; data.marches++) {
+        let d = SDF(data.position);
+        if (d < pow(2, -uniforms.detail)) {
+            data.collided = true;
+            break;
+        }
+        data.position += d * ray.direction;
+    }
+
+    data.normal = derivateNormal(data.position, uniforms.epsilon);
+    data.dist = length(data.position - ray.origin); 
+    return data;
+}
+
 fn focusBlur(ray: Ray, range: f32, strength: f32) -> Ray {
     let focus_point = ray.origin + ray.direction * range;
     var result: Ray;
@@ -177,42 +233,6 @@ fn skyValue(direction: vec3f) -> vec3f {
     return mix(night_color, day_color, day_factor) + sun_value * day_factor;
 }
 
-// fn SDF(p : vec3f) -> f32 {
-//     return length(p) - 0.5;
-// }
-
-fn SDF(p : vec3f) -> f32 {
-    // const scale = custom_float2;
-    // const folding_limit = custom_float3;
-    // const min_radius2 = custom_float4;
-    // const fixed_radius2 = custom_float1;
-    let scale = uniforms.custom_a;
-    let folding_limit = uniforms.custom_b;
-    let min_radius2 = uniforms.custom_c;
-    let fixed_radius2 = uniforms.custom_d;
-
-    var z = p;
-    var dr = 1.0;
-    for (var n = 0; n < i32(uniforms.detail) + 2; n++) {
-        z = clamp(z, -vec3f(folding_limit), vec3f(folding_limit)) * 2.0 - z;
-
-        let r2 = dot(z,z);
-        if (r2 < min_radius2) { 
-            let temp = fixed_radius2 / min_radius2;
-            z *= temp;
-            dr *= temp;
-        } else if (r2 < fixed_radius2) { 
-            let temp = fixed_radius2 / r2;
-            z *= temp;
-            dr *= temp;
-        }
-        z = scale * z + p;  
-        dr = dr * abs(scale) + 1.0;
-    }
-    let r = length(z);
-    return r / abs(dr);
-}
-
 fn randomUniform() -> f32 {
     // https://www.youtube.com/@SebastianLague
     state *= (state + 195439) * (state + 124395) * (state + 845921);
@@ -229,3 +249,39 @@ fn randomNormal() -> f32 {
 fn randomDirection() -> vec3f {
     return normalize(vec3(randomNormal(), randomNormal(), randomNormal()));
 }
+
+// fn SDF(p : vec3f) -> f32 {
+//     return length(p) - 0.5;
+// }
+
+// fn SDF(p : vec3f) -> f32 {
+//     // const scale = custom_float2;
+//     // const folding_limit = custom_float3;
+//     // const min_radius2 = custom_float4;
+//     // const fixed_radius2 = custom_float1;
+//     let scale = uniforms.custom_a;
+//     let folding_limit = uniforms.custom_b;
+//     let min_radius2 = uniforms.custom_c;
+//     let fixed_radius2 = uniforms.custom_d;
+
+//     var z = p;
+//     var dr = 1.0;
+//     for (var n = 0; n < i32(uniforms.detail) + 2; n++) {
+//         z = clamp(z, -vec3f(folding_limit), vec3f(folding_limit)) * 2.0 - z;
+
+//         let r2 = dot(z,z);
+//         if (r2 < min_radius2) { 
+//             let temp = fixed_radius2 / min_radius2;
+//             z *= temp;
+//             dr *= temp;
+//         } else if (r2 < fixed_radius2) { 
+//             let temp = fixed_radius2 / r2;
+//             z *= temp;
+//             dr *= temp;
+//         }
+//         z = scale * z + p;  
+//         dr = dr * abs(scale) + 1.0;
+//     }
+//     let r = length(z);
+//     return r / abs(dr);
+// }

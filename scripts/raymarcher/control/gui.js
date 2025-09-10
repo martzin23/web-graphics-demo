@@ -11,6 +11,8 @@ export default class GUI {
         
         this.setupCallbacks();
         this.setupWidgets();
+
+        document.getElementById("input-code").value = `fn SDF(p: vec3f) -> f32 {\n\treturn length(p) - 1.0;\n}`;
     }
 
     isFocused() {
@@ -184,7 +186,6 @@ export default class GUI {
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu.uniforms.render_scale = value;},() => this.gpu.uniforms.render_scale , "Resolution division", 1, 16);
         Widgets.createButton(document.getElementById("group-display"), () => {this.gpu.syncResolution();}, "Fix aspect ratio");
-        Widgets.createButton(document.getElementById("group-display"), () => { this.gpu.refreshScreen() }, "Refresh screen");
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh");
         Widgets.createButton(document.getElementById("group-display"), () => { this.gpu.screenshot("test.png"); }, '<i class="fa fa-download"></i>Screenshot');
 
@@ -204,16 +205,19 @@ export default class GUI {
                 switch(value) {
                     default:
                         this.gpu.uniforms.shader_mode = 0;
-                        break;2
+                        break;
                     case 1:
                         this.gpu.uniforms.shader_mode = 1;
                         break;
                     case 2:
                         this.gpu.uniforms.shader_mode = 2;
                         break;
+                    case 3:
+                        this.gpu.uniforms.shader_mode = 3;
+                        break;
                 }
             },
-            ["Marches", "Normals", "Path traced"],
+            ["Marches", "Normals", "Pathtraced", "Detail"],
             "Marches",
             "Shading mode"
         );
@@ -223,7 +227,7 @@ export default class GUI {
         Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu.uniforms.focus_strength = value;}, () => this.gpu.uniforms.focus_strength, "Focus blur", 0.0, 0.1);
 
         // Marching
-        Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.max_marches = value;}, () => this.gpu.uniforms.max_marches, "Max marches", 0, Infinity, 50);
+        Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.max_marches = value;}, () => this.gpu.uniforms.max_marches, "Max marches", 1, Infinity, 50);
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.max_bounces = value;}, () => this.gpu.uniforms.max_bounces, "Max bounces", 0, Infinity);
         Widgets.createSlider(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.epsilon = value;}, () => this.gpu.uniforms.epsilon, "Epsilon", 0.0, 0.1, true);
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.detail = value;}, () => this.gpu.uniforms.detail, "Detail", 0, Infinity);
@@ -251,5 +255,7 @@ export default class GUI {
         // };
         Widgets.createVector(document.getElementById("group-widgets"));
         Widgets.createSwitch(document.getElementById("group-widgets"));
+
+        Widgets.createButton(document.getElementById("group-code"), () => {this.gpu.recompileShaders("../scripts/raymarcher/view/shader/sphere.wgsl");}, "Compile");
     }
 }

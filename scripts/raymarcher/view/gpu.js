@@ -2,7 +2,7 @@ import Vector from '../../utility/vector.js';
 import Matrix from '../../utility/matrix.js';
 
 export default class GPUManager {
-    static async initialize(canvas, compute_url, render_url) {
+    static async initialize(canvas, compute_url, render_url, sdf_url) {
         if (!navigator.gpu)
             throw new Error("WebGPU not supported on this browser.");
 			
@@ -13,11 +13,12 @@ export default class GPUManager {
         const device = await adapter.requestDevice();
         const compute_code = await (await fetch(compute_url)).text();
         const render_code = await (await fetch(render_url)).text();
+        const sdf_code = await (await fetch(sdf_url)).text();
 
-        return new GPUManager(canvas, device, compute_code, render_code);
+        return new GPUManager(canvas, device, compute_code, render_code, sdf_code);
     }
 
-    constructor(canvas, device, compute_shader_code, render_shader_code) {
+    constructor(canvas, device, compute_shader_code, render_shader_code, sdf_code) {
         this.canvas = canvas;
         this.device = device;
         this.context;
@@ -59,7 +60,7 @@ export default class GPUManager {
             custom_d: 2.0
         };
 
-        this.setupRendering(compute_shader_code, render_shader_code);
+        this.setupRendering(compute_shader_code, render_shader_code, sdf_code);
     }
     
     destroy() {
@@ -128,6 +129,18 @@ export default class GPUManager {
         this.uniforms.temporal_counter = 1;
     }
 
+    async recompileShaders(url) {
+        
+        const compute_url = '../scripts/raymarcher/view/shader/compute.wgsl';
+        const render_url = '../scripts/raymarcher/view/shader/render.wgsl';
+
+        const compute_shader_code = await (await fetch(compute_url)).text();
+        const render_shader_code = await (await fetch(render_url)).text();
+        const sdf_code = await (await fetch(url)).text();
+
+        this.setupRendering(compute_shader_code, render_shader_code, sdf_code);
+    }
+
     setupRendering(compute_shader_code, render_shader_code, sdf_code) {
 
         const canvas_format = navigator.gpu.getPreferredCanvasFormat();
@@ -154,7 +167,7 @@ export default class GPUManager {
 
         const compute_module = this.device.createShaderModule({
             label: "Compute Shader Module",
-            code: compute_shader_code
+            code: compute_shader_code + "\n" + sdf_code
         });
         
         const compute_bind_group_layout = this.device.createBindGroupLayout({
