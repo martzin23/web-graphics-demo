@@ -3,12 +3,16 @@ import Matrix from '../../utility/matrix.js';
 
 export default class GPUManager {
     static async initialize(canvas, compute_url, render_url, sdf_url) {
-        if (!navigator.gpu)
+        if (!navigator.gpu) {
+            document.getElementById("menu").innerText = "WebGPU not supported on this browser.";
             throw new Error("WebGPU not supported on this browser.");
+        }
 			
         const adapter = await navigator.gpu.requestAdapter();
-        if (!adapter)
+        if (!adapter) {
+            document.getElementById("menu").innerText = "No appropriate GPUAdapter found.";
             throw new Error("No appropriate GPUAdapter found.");
+        }
 			
         const device = await adapter.requestDevice();
         const compute_code = await (await fetch(compute_url)).text();
@@ -28,6 +32,9 @@ export default class GPUManager {
         this.compute_pipeline;
         this.render_bind_group;
         this.render_pipeline;
+        this.compute_module;
+        this.compute_shader_code = compute_shader_code;
+        this.render_shader_code = render_shader_code;
 
         this.workgroup_size = {x: 16, y: 16};
         this.base_render_size = {x: 2560, y: 1440};
@@ -61,6 +68,7 @@ export default class GPUManager {
         };
 
         this.setupRendering(compute_shader_code, render_shader_code, sdf_code);
+        this.syncResolution();
     }
     
     destroy() {
@@ -129,15 +137,24 @@ export default class GPUManager {
         this.uniforms.temporal_counter = 1;
     }
 
-    async recompileShaders(url) {
-        const compute_url = '../scripts/raymarcher/view/shader/compute.wgsl';
-        const render_url = '../scripts/raymarcher/view/shader/render.wgsl';
+    async recompileSDF(sdf_code) {
+        this.refreshScreen();
+        this.setupRendering(this.compute_shader_code, this.render_shader_code, sdf_code);
+    }
 
-        const compute_shader_code = await (await fetch(compute_url)).text();
-        const render_shader_code = await (await fetch(render_url)).text();
-        const sdf_code = await (await fetch(url)).text();
-
-        this.setupRendering(compute_shader_code, render_shader_code, sdf_code);
+    async getCompilationError() {
+        const compilation_info = await this.compute_module.getCompilationInfo();
+        if (compilation_info.messages.length > 0) {
+            let text = "";
+            for (const message of compilation_info.messages) {
+                const type = (message.type === 'error') ? 'ERROR' : 'WARNING';
+                text += type + ": " + message.message + "\n";
+            }
+            return text;
+            // return compilation_info.messages[0].message;
+        } else {
+            return "";
+        }
     }
 
     setupRendering(compute_shader_code, render_shader_code, sdf_code) {
@@ -164,7 +181,7 @@ export default class GPUManager {
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         });
 
-        const compute_module = this.device.createShaderModule({
+        this.compute_module = this.device.createShaderModule({
             label: "Compute Shader Module",
             code: compute_shader_code + "\n" + sdf_code
         });
@@ -214,7 +231,7 @@ export default class GPUManager {
             label: "Compute Pipeline",
             layout: compute_pipeline_layout,
             compute: {
-            module: compute_module,
+            module: this.compute_module,
             entryPoint: "computeMain",
             }
         });
@@ -285,8 +302,8 @@ export default class GPUManager {
         });
     }
 
-    screenshot(filename) {
-        bufferToImage(filename, this.device, this.color_buffer, this.base_render_size.x, this.base_render_size.y, this.uniforms.canvas_size.x, this.uniforms.canvas_size.y);
+    screenshot(file_name) {
+        bufferToImage(file_name, this.color_buffer, this.device, this.base_render_size.x, this.base_render_size.y, this.uniforms.canvas_size.x, this.uniforms.canvas_size.y);
     }
 }
 
@@ -303,7 +320,7 @@ function packUniforms(data) {
     return array.flat();
 }
 
-async function bufferToImage(filename, device, buffer, buffer_width, buffer_height, render_width, render_height) {
+async function bufferToImage(file_name, buffer, device, buffer_width, buffer_height, render_width, render_height) {
     buffer_width = Math.floor(buffer_width);
     buffer_height = Math.floor(buffer_height);
     render_width = Math.floor(render_width);
@@ -353,7 +370,7 @@ async function bufferToImage(filename, device, buffer, buffer_width, buffer_heig
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = filename;
+        a.download = file_name;
         a.click();
         URL.revokeObjectURL(url);
     }, 'image/png');

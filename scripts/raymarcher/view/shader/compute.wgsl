@@ -93,22 +93,10 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
                 if (SDF(camera_ray.origin) < pow(2, -uniforms.detail)) {
                     let normal = derivateNormal(camera_ray.origin, uniforms.epsilon);
                     let diffuse = clamp(dot(normal, uniforms.sun_direction), 0.0, 1.0);
-
-                    // var shadow_ray: Ray;
-                    // shadow_ray.direction = normalize(uniforms.sun_direction);
-                    // shadow_ray.origin = camera_ray.origin + shadow_ray.direction * 2 * pow(2, -uniforms.detail);
-                    // let shadow_data = rayMarch2(shadow_ray);
-                    // let shadow = f32(!shadow_data.collided);
-                    
                     let pixel_color = vec3f(diffuse * clamp(mix(1.0, 0.0, previous_color.w / 2), 0.0, 1.0));
-                    // let pixel_color = vec3f(diffuse * shadow);
-                    // if (previous_color.x == 0) {
-                    //     output_color = vec4f(pixel_color, 0.0);
-                    // } else {
-                    //     output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 0);
-                    // }
                     output_color = vec4f(0.99 * previous_color.xyz + 0.01 * pixel_color, 0.0);
-
+                
+                // non generic constant
                 } else if (previous_color.w > 100) {
                     output_color = vec4f(0.0, 0.0, 0.0, 100);
                 } else {
@@ -147,8 +135,8 @@ fn pathTrace(camera_ray: Ray) -> vec3f {
         ray.direction = normalize(randomDirection() + data.normal);
         ray.origin = data.position + ray.direction * uniforms.epsilon;
         
-        let color = vec3(1.0);
-        // vec3 color = -data.normal * 0.25 + 0.75;
+        // let color = vec3(1.0);
+        let color = -data.normal * 0.5 + 0.5;
         let emission = vec3(0.0);
         sample_color += emission * color * ray_color;
         ray_color *= color;

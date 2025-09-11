@@ -1,7 +1,12 @@
 <!-- 
 TODO
-screen shots
 custom code
+	instructions
+	tab functionality
+	linting?
+switch set index
+switch get index
+base error page
 camera switch h v
 css colors rework
 
@@ -69,10 +74,10 @@ shader normals
 			</figcaption>
 		</figure>
 		
-		<figure id="group-sdf-options">
+		<figure id="group-variables">
 			<figcaption>
 				<hr>
-				<p>SDF Options</p>
+				<p>SDF Variables</p>
 			</figcaption>
 		</figure>
 
@@ -95,14 +100,7 @@ shader normals
 				<hr>
 				<p>Custom Signed Distance Function</p>
 			</figcaption>
-			<div class="comment">You can write custom code for the shader here.</div>
-			<ul>
-				<li class="comment">test</li>
-				<li class="comment">test</li>
-				<li class="comment">test</li>
-				<li class="comment">test</li>
-				<li class="comment">test</li>
-			</ul>
+			<div class="comment">Custom signed distance function in WGSL.</div>
 		</figure>
 		
 		<figure id="group-code">
@@ -111,8 +109,16 @@ shader normals
 				<p>Code</p>
 			</figcaption>
 			<div lang="WGSL" class="code">
-				<textarea spellcheck="false" rows="30" class="code" id="input-code"></textarea>
+				<textarea spellcheck="false" rows="20" class="code" id="input-code"></textarea>
 			</div>
+		</figure>
+		
+		<figure id="group-error">
+			<figcaption>
+				<hr>
+				<p>Error message</p>
+			</figcaption>
+			<div id="output-error" class="error"></div>
 		</figure>
 
 		<figure id="group-controls" class="hidden">
@@ -140,14 +146,6 @@ shader normals
 				<div class="value">Up/Down arrow</div>
 				<p>Change resolution</p>
 			</div>
-		</figure>
-
-		<figure id="group-widgets">
-			<figcaption>
-				<hr>
-				<p>Widget List</p>
-			</figcaption>
-			<div class="comment" tooltip="This is a tooltip.">This is a comment.</div>
 		</figure>
 
 		<figure id="group-unselected">

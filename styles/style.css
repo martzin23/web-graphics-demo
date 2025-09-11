@@ -235,6 +235,10 @@ a:hover {
     padding: 0.5rem 1rem 0.5rem 1rem;
 }
 
+.error {
+    color: var(--error-default);
+}
+
 [tooltip] {
     position: relative;
 }

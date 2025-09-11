@@ -1,5 +1,5 @@
 export default class Input {
-    constructor(gpu, camera, gui) {
+    constructor(gpu, gui, camera) {
         this.camera = camera;
         this.gpu = gpu;
         this.gui = gui;
@@ -33,26 +33,6 @@ export default class Input {
                 event.preventDefault();
                 this.gui.auto_refresh = !this.gui.auto_refresh;
                 break;
-            // case "1":
-            //     if (this.key_states["Shift"])
-            //         this.gui.switch_tab(0); 
-            //     break;
-            // case "2":
-            //     console.log(this.key_states);
-            //     if (this.key_states["Shift"])
-            //         this.gui.switch_tab(1); 
-            //     break;
-            // case "3":
-            //     if (this.key_states["Shift"])
-            //         this.gui.switch_tab(2); 
-            //     break;
-            // case "4":
-            //     if (this.key_states["Shift"])
-            //         this.gui.switch_tab(3);  
-            //     break;
-            // case "Shift":
-            //     event.preventDefault();
-            //     break;
         }
     }
 

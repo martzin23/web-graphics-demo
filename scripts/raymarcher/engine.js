@@ -6,23 +6,26 @@ import Matrix from '../utility/matrix.js';
 
 class Engine {
     static async initialize() {
-        const gpu = await GPUManager.initialize(document.getElementById("canvas"), '../scripts/raymarcher/view/shader/compute.wgsl', '../scripts/raymarcher/view/shader/render.wgsl', '../scripts/raymarcher/view/shader/mandelbox.wgsl');
+        const gpu = await GPUManager.initialize(
+            document.getElementById("canvas"), 
+            '../scripts/raymarcher/view/shader/compute.wgsl', 
+            '../scripts/raymarcher/view/shader/render.wgsl', 
+            '../scripts/raymarcher/view/shader/mandelbox.wgsl'
+        );
         return new Engine(gpu);
     }
 
     constructor(gpu) {
-        window.addEventListener('beforeunload', this.destroy());
-
+        window.addEventListener('beforeunload', this.destroy);
+        
         this.gpu = gpu;
         this.camera = new Camera();
-        this.gui = new GUI(this.camera, this.gpu);
-        this.input = new Input(this.gpu, this.camera, this.gui);
+        this.gui = new GUI(this.gpu, this.camera);
+        this.input = new Input(this.gpu, this.gui, this.camera);
         this.local_storage_name = "renderer-raymarcher";
         this.frame = 0;
 
         this.load();
-        this.gpu.syncResolution();
-        this.gui_update = setInterval(() => { this.gui.updateValues(); }, 250);
         this.save_update = setInterval(() => { this.save(); }, 5000);
     }
 
@@ -42,7 +45,6 @@ class Engine {
     render() {
         this.gpu.writeUniforms();
         this.gpu.render();
-
         this.frame++;
         this.gpu.uniforms.temporal_counter += 1;
     }
