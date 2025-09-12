@@ -56,42 +56,22 @@ export default class GUI {
         document.querySelectorAll("menu *").forEach(element => {element.dispatchEvent(this.update_event);});
     }
     
-    switchTab(value, check = true) {
-        if (check) {
+    switchTab(value, update_buttons = true) {
+        if (update_buttons) {
             const switch_element = document.getElementById("group-tabs").firstChild;
             Widgets.switchSetIndex(switch_element, value);
         }
 
-        document.getElementById("menu").classList.remove("hidden");
-        Array.from(document.getElementById("menu").childNodes).filter((el) => (el.nodeType !== Node.TEXT_NODE)).forEach((el) => {el.classList.add("hidden");});
+        const element_menu = document.getElementById("menu");
+        element_menu.classList.remove("hidden");
         this.current_tab = value;
-        switch(value) {
-            case 0:
-                document.getElementById("group-display").classList.remove("hidden");
-                document.getElementById("group-camera").classList.remove("hidden");
-                break;
-            case 1:
-                document.getElementById("group-shading").classList.remove("hidden");
-                document.getElementById("group-lens").classList.remove("hidden");
-                document.getElementById("group-sun").classList.remove("hidden");
-                document.getElementById("group-marching").classList.remove("hidden");
-                document.getElementById("group-sdf").classList.remove("hidden");
-                document.getElementById("group-variables").classList.remove("hidden");
-                break;
-            case 2:
-                document.getElementById("group-instructions").classList.remove("hidden");
-                document.getElementById("group-code").classList.remove("hidden");
-                document.getElementById("group-error").classList.remove("hidden");
-                break;
-            case 3:
-                document.getElementById("group-controls").classList.remove("hidden");
-                break;
-            default:
-                if (this.isFullscreen())
-                    document.getElementById("menu").classList.add("hidden");
-                else
-                    document.getElementById("group-unselected").classList.remove("hidden");
-                break;
+
+        if (value === null) {
+            if (this.isFullscreen())
+                element_menu.classList.add("hidden");
+            switchAttribute(element_menu, element_menu.children.length - 1, undefined, "hidden");
+        } else {
+            switchAttribute(element_menu, value, undefined, "hidden");
         }
     }
 
@@ -129,15 +109,11 @@ export default class GUI {
         ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach((eventType) => {
             document.addEventListener(eventType, () => {
                 const menu = document.getElementById("menu");
-                const unselected = document.getElementById("group-unselected");
 
-                if (!this.isFullscreen() && menu.classList.contains("hidden")) {
+                if (!this.isFullscreen() && this.current_tab === null)
                     menu.classList.remove("hidden");
-                    unselected.classList.remove("hidden");
-                } else if (this.isFullscreen() && !unselected.classList.contains("hidden")) {
+                else if (this.isFullscreen() && this.current_tab === null)
                     menu.classList.add("hidden");
-                    unselected.classList.add("hidden");
-                }
             })
         });
 
@@ -195,13 +171,7 @@ export default class GUI {
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh");
         Widgets.createButton(document.getElementById("group-display"), () => {
             var current_date = new Date(); 
-            var date_time = "" 
-                + current_date.getFullYear()
-                + (current_date.getMonth()+1)
-                + current_date.getDate()
-                + current_date.getHours()
-                + current_date.getMinutes()
-                + current_date.getSeconds();
+            var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
             this.gpu.screenshot(date_time);
         }, '<i class="fa fa-download"></i>Screenshot');
 
@@ -231,24 +201,17 @@ export default class GUI {
             document.getElementById("group-sdf"),
             async (value) => {
                 let code;
+                const temp = document.getElementById("group-variables");
+                switchAttribute(temp, value, undefined, "hidden");
                 switch (value) {
                     default: 
                         code = await (await fetch("../scripts/raymarcher/view/shader/sphere.wgsl")).text();
-                        document.getElementById("group-sphere").classList.remove("hidden");
-                        document.getElementById("group-mandelbox").classList.add("hidden");
-                        document.getElementById("group-custom").classList.add("hidden");
                         break;
                     case 1: 
                         code = await (await fetch("../scripts/raymarcher/view/shader/mandelbox.wgsl")).text();
-                        document.getElementById("group-sphere").classList.add("hidden");
-                        document.getElementById("group-mandelbox").classList.remove("hidden");
-                        document.getElementById("group-custom").classList.add("hidden");
                         break;
                     case 2:
                         code = document.getElementById("input-code").value;
-                        document.getElementById("group-sphere").classList.add("hidden");
-                        document.getElementById("group-mandelbox").classList.add("hidden");
-                        document.getElementById("group-custom").classList.remove("hidden");
                         break;
                 }
                 this.gpu.recompileSDF(code);
@@ -260,12 +223,12 @@ export default class GUI {
         
         Widgets.createDrag(document.getElementById("group-sphere"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Radius");
 
-        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Scale");
+        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Scale").addTooltip("Keep this value near -2.0 or 2.0");
         Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_b = value;}, () => this.gpu.uniforms.custom_b, "Folding limit");
         Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_c = value;}, () => this.gpu.uniforms.custom_c, "Min radius");
         Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_d = value;}, () => this.gpu.uniforms.custom_d, "Fixed radius");
 
-        Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "uniforms.custom_a").addTooltip("Keep this value near -2.0 or 2.0");
+        Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "uniforms.custom_a");
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_b = value;}, () => this.gpu.uniforms.custom_b, "uniforms.custom_b");
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_c = value;}, () => this.gpu.uniforms.custom_c, "uniforms.custom_c");
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_d = value;}, () => this.gpu.uniforms.custom_d, "uniforms.custom_d");
@@ -279,17 +242,31 @@ export default class GUI {
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.sun_rotation.x = value;}, () => this.gpu.sun_rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.sun_rotation.y = value;}, () => this.gpu.sun_rotation.y, "Vertical rotation", -90, 90, 0.1);
 
-        document.getElementById("input-code").value = `fn SDF(p: vec3f) -> f32 {\n\tlet radius = uniforms.custom_a;\n\treturn length(p) - radius;\n}`;
+        document.getElementById("input-code").value = `fn SDF(p: vec3f) -> f32 {\n\tlet radius = uniforms.custom_b;\n\treturn length(p) - radius;\n}`;
         Widgets.createButton(document.getElementById("group-code"), async () => {
             const switch_element = document.querySelector("#group-sdf .switch");
             Widgets.switchSetIndex(switch_element, 2);
-            document.getElementById("group-sphere").classList.add("hidden");
-            document.getElementById("group-mandelbox").classList.add("hidden");
-            document.getElementById("group-custom").classList.remove("hidden");
+            switchAttribute(document.getElementById("group-variables"), 2, undefined, "hidden");
 
             const code = document.getElementById("input-code").value;
             this.gpu.recompileSDF(code);
             document.getElementById("output-error").innerText = await this.gpu.getCompilationError();
         }, "Compile");
     }
+}
+
+function switchAttribute(element_parent, index_true, attribute_true, attribute_false) {
+    Array.from(element_parent.childNodes).filter((el) => (el.nodeType !== Node.TEXT_NODE)).forEach((element, index) => {
+        if (index == index_true) {
+            if (attribute_true !== undefined)
+                element.classList.add(attribute_true);
+            if (attribute_false !== undefined)
+                element.classList.remove(attribute_false);
+        } else {
+            if (attribute_true !== undefined)
+                element.classList.remove(attribute_true);
+            if (attribute_false !== undefined)
+                element.classList.add(attribute_false);
+        }
+    });
 }

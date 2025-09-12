@@ -1,11 +1,13 @@
 <!-- 
 TODO
 add more sdfs
-submenus rewrite
 
 base error page
 camera switch h v
-css colors rework
+css rework
+	overflow
+	colors
+	layout
 
 BUGS
 color widget not working
@@ -36,140 +38,151 @@ pathtracing marching fix
 	</header>
 
 	<menu class="block" id="menu">
-		<figure id="group-display">
-			<figcaption>
-				<hr>
-				<p>Display</p>
-			</figcaption>
-		</figure>
 
-		<figure id="group-camera">
-			<figcaption>
-				<hr>
-				<p>Camera</p>
-			</figcaption>
-		</figure>
+		<div id="group-general">
+			<figure id="group-display">
+				<figcaption>
+					<hr>
+					<p>Display</p>
+				</figcaption>
+			</figure>
 
-		<figure id="group-shading">
-			<figcaption>
-				<hr>
-				<p>Shading</p>
-			</figcaption>
-		</figure>
+			<figure id="group-camera">
+				<figcaption>
+					<hr>
+					<p>Camera</p>
+				</figcaption>
+			</figure>
+		</div>
 
-		<figure id="group-marching">
-			<figcaption>
-				<hr>
-				<p>Marching</p>
-			</figcaption>
-		</figure>
+		<div id="group-raymarching">
+			<figure id="group-shading">
+				<figcaption>
+					<hr>
+					<p>Shading</p>
+				</figcaption>
+			</figure>
 
-		<figure id="group-sdf">
-			<figcaption>
-				<hr>
-				<p>Signed Distance Function</p>
-			</figcaption>
-		</figure>
-		
-		<figure id="group-variables">
-			<figcaption>
-				<hr>
-				<p>Variables</p>
-			</figcaption>
-			<div id="group-sphere"></div>
-			<div id="group-mandelbox"></div>
-			<div id="group-custom"></div>
-		</figure>
+			<figure id="group-marching">
+				<figcaption>
+					<hr>
+					<p>Marching</p>
+				</figcaption>
+			</figure>
 
-		<figure id="group-lens">
-			<figcaption>
-				<hr>
-				<p>Lens</p>
-			</figcaption>
-		</figure>
-
-		<figure id="group-sun">
-			<figcaption>
-				<hr>
-				<p>Sun Direction</p>
-			</figcaption>
-			<div class="comment">Only for pathtraced shading mode*</div>
-		</figure>
-
-		<figure id="group-instructions">
-			<figcaption>
-				<hr>
-				<p>Instructions</p>
-			</figcaption>
-			<p>Here you can write a custom signed distance function in WGSL that is then rendered.</p>
-			<p>The main function that is required here is SDF(), but you can add your own functions and use them inside SDF().</p>
-			<div class="row">
-				<div class="value">p</div>
-				<p class="comment">parameter - a position in 3D space</p>
-			</div>
-			<div class="row">
-				<div class="value">return value</div>
-				<p class="comment">distance from the body</p>
-			</div>
-			<div class="row">
-				<div class="value">uniforms.custom_a</div>
-				<p class="comment">A float variable that can be changed in real time in the Ray Marching tab. There are seven of them (a,b,c,d,e,f,g).</p>
-			</div>
+			<figure id="group-sdf">
+				<figcaption>
+					<hr>
+					<p>Signed Distance Function</p>
+				</figcaption>
+			</figure>
 			
-		</figure>
-		
-		<figure id="group-code">
-			<figcaption>
-				<hr>
-				<p>Code</p>
-			</figcaption>
-			<div lang="WGSL" class="code">
-				<textarea spellcheck="false" rows="20" class="code" id="input-code"></textarea>
-			</div>
-		</figure>
-		
-		<figure id="group-error">
-			<figcaption>
-				<hr>
-				<p>Error message</p>
-			</figcaption>
-			<div id="output-error" class="error"></div>
-		</figure>
+			<figure>
+				<figcaption>
+					<hr>
+					<p>Variables</p>
+				</figcaption>
+				<div id="group-variables">
+					<div id="group-sphere"></div>
+					<div id="group-mandelbox"></div>
+					<div id="group-custom"></div>
+				</div>
+			</figure>
 
-		<figure id="group-controls" class="hidden">
-			<figcaption>
-				<hr>
-				<p>Controls</p>
-			</figcaption>
-			<div class="row">
-				<div class="value">Click</div>
-				<p class="comment">Toggle camera control (click on the canvas)</p>
-			</div>
-			<div class="row">
-				<div class="value">WASDQE</div>
-				<p class="comment">Movement</p>
-			</div>
-			<div class="row">
-				<div class="value">Scroll (controlling)</div>
-				<p class="comment">Change camera speed</p>
-			</div>
-			<div class="row">
-				<div class="value">Scroll (not controlling)</div>
-				<p class="comment">Change menu tabs</p>
-			</div>
-			<div class="row">
-				<div class="value">F11</div>
-				<p class="comment">Toggle fullscreen</p>
-			</div>
-			<div class="row">
-				<div class="value">Up/Down arrow</div>
-				<p class="comment">Change resolution</p>
-			</div>
-			<div class="row">
-				<div class="value">Tab</div>
-				<p class="comment">Toggle auto refresh</p>
-			</div>
-		</figure>
+			<figure id="group-lens">
+				<figcaption>
+					<hr>
+					<p>Lens</p>
+				</figcaption>
+			</figure>
+
+			<figure id="group-sun">
+				<figcaption>
+					<hr>
+					<p>Sun Direction</p>
+				</figcaption>
+				<div class="comment">Only for pathtraced shading mode*</div>
+			</figure>
+		</div>
+
+		<div id="group-custom-code">
+			<figure id="group-instructions">
+				<figcaption>
+					<hr>
+					<p>Instructions</p>
+				</figcaption>
+				<p>Here you can write a custom signed distance function in WGSL that is then rendered.</p>
+				<p>The main function that is required here is SDF(), but you can add your own functions and use them inside SDF().</p>
+				<div class="row">
+					<div class="value">p</div>
+					<p class="comment">parameter - a position in 3D space</p>
+				</div>
+				<div class="row">
+					<div class="value">return value</div>
+					<p class="comment">distance from the body</p>
+				</div>
+				<div class="row">
+					<div class="value">uniforms.custom_a</div>
+					<p class="comment">A float variable that can be changed in real time in the Ray Marching tab. There are seven of them (a,b,c,d,e,f,g).</p>
+				</div>
+				
+			</figure>
+			
+			<figure id="group-code">
+				<figcaption>
+					<hr>
+					<p>Code</p>
+				</figcaption>
+				<div lang="WGSL" class="code">
+					<textarea spellcheck="false" rows="20" class="code" id="input-code"></textarea>
+				</div>
+			</figure>
+			
+			<figure id="group-error">
+				<figcaption>
+					<hr>
+					<p>Error message</p>
+				</figcaption>
+				<div id="output-error" class="error"></div>
+			</figure>
+		</div>
+
+		<div id="group-info">
+			<figure id="group-controls">
+				<figcaption>
+					<hr>
+					<p>Controls</p>
+				</figcaption>
+				<div class="row">
+					<p class="value">Click</p>
+					<p class="comment">Toggle camera control (click on the canvas)</p>
+				</div>
+				<div class="row">
+					<p class="value">WASDQE (controlling)</p>
+					<p class="comment">Movement</p>
+				</div>
+				<div class="row">
+					<p class="value">Scroll (controlling)</p>
+					<p class="comment">Change camera speed</p>
+				</div>
+				<div class="row">
+					<p class="value">Scroll (not controlling)</p>
+					<p class="comment">Change menu tabs</p>
+				</div>
+				<div class="row">
+					<p class="value">F11</p>
+					<p class="comment">Toggle fullscreen</p>
+				</div>
+				<div class="row">
+					<p class="value">Up/Down arrow</p>
+					<p class="comment">Change resolution</p>
+				</div>
+				<div class="row">
+					<p class="value">Tab</p>
+					<p class="comment">Toggle auto refresh</p>
+				</div>
+			</figure>
+		</div>
 
 		<figure id="group-unselected">
 			<figcaption>
