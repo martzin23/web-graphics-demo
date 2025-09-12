@@ -1,4 +1,4 @@
-export default class Input {
+export default class KEYManager {
     constructor(gpu, gui, camera) {
         this.camera = camera;
         this.gpu = gpu;

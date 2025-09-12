@@ -1,6 +1,6 @@
 import * as Widgets from '../../utility/widgets.js';
 
-export default class GUI {
+export default class GUIManager {
     constructor(gpu, camera) {
         this.canvas = document.getElementById("canvas");
         this.gpu = gpu;
@@ -135,7 +135,7 @@ export default class GUI {
             }
         };
 
-        this.update_handler = setInterval(() => { this.updateValues(); }, 250);
+        this.update_handler = setInterval(() => { this.updateValues(); }, 500);
 
         // https://stackoverflow.com/questions/6637341/use-tab-to-indent-in-textarea
         document.getElementById('input-code').addEventListener('keydown', function(event) {

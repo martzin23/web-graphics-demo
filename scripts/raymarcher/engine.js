@@ -1,6 +1,7 @@
 import GPUManager from './view/gpu.js';
-import Input from './control/input.js';
-import GUI from './control/gui.js';
+import KEYManager from './control/key.js';
+import GUIManager from './control/gui.js';
+import FPSCounter from '../utility/fps.js';
 import Camera from '../utility/camera.js';
 import Matrix from '../utility/matrix.js';
 
@@ -19,22 +20,26 @@ class Engine {
         window.addEventListener('beforeunload', this.destroy);
         
         this.gpu = gpu;
+        this.fps = new FPSCounter(document.getElementById("output-fps"), undefined, " fps");
         this.camera = new Camera();
-        this.gui = new GUI(this.gpu, this.camera);
-        this.input = new Input(this.gpu, this.gui, this.camera);
+        this.gui = new GUIManager(this.gpu, this.camera);
+        this.key = new KEYManager(this.gpu, this.gui, this.camera);
         this.local_storage_name = "renderer-raymarcher";
         this.frame = 0;
 
         this.load();
-        this.save_update = setInterval(() => { this.save(); }, 5000);
+        this.save_handler = setInterval(() => { this.save(); }, 5000);
+        this.fps_handler = setInterval(() => this.fps.set(), 1000);
     }
 
     update() {
         if (this.gui.isFocused())
-            this.camera.updatePosition(this.input.key_states);
+            this.camera.updatePosition(this.key.key_states);
 
-        if (this.input.keyPressed() && this.gui.auto_refresh)
+        if (this.key.keyPressed() && this.gui.auto_refresh)
             this.gpu.refreshScreen();
+        
+        this.fps.update();
         
         this.gpu.uniforms.sun_direction = Matrix.rot2dir(this.gpu.sun_rotation.x, this.gpu.sun_rotation.y);
         this.gpu.uniforms.camera_rotation = this.camera.getRotationMatrix();
