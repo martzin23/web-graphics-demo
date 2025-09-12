@@ -233,6 +233,7 @@ a:hover {
     background-color: var(--block-dark);
     border-radius: 0.5rem;
     padding: 0.5rem 1rem 0.5rem 1rem;
+    font-family: monospace;
 }
 
 .error {
@@ -426,6 +427,7 @@ textarea {
     border: none;
     padding: 0.5rem;
     width: 6rem;
+    font-family: monospace;
 }
 
 /* ----------------------------------------- */

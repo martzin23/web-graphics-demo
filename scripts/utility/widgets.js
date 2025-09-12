@@ -483,10 +483,10 @@ export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', '
     options.forEach((name, index) => {
         const element_button = createButton(element_base, function() {
             if (this.classList.contains('active') && unselectable) {
-                this.parentNode.childNodes.forEach((el) => {el.classList.remove("active")});
+                element_base.childNodes.forEach((el) => {el.classList.remove("active")});
                 set(null);
             } else {
-                this.parentNode.childNodes.forEach((el) => {el.classList.remove("active")});
+                element_base.childNodes.forEach((el) => {el.classList.remove("active")});
                 this.classList.toggle("active");
                 set(index);
             }
@@ -524,6 +524,25 @@ export function addTooltip(element, tooltip, icon) {
     }
 }
 
+export function switchGetIndex(element_switch) {
+    let active_index = null;
+    element_switch.childNodes.forEach((element, index) => {
+        if (element.classList.contains("active"))
+            active_index = index;
+    });
+    return active_index;
+}
+
+export function switchSetIndex(element_switch, active_index) {
+    element_switch.childNodes.forEach((element, index) => {
+        if (index == active_index)
+            element.classList.add("active");
+        else
+            element.classList.remove("active");
+    });
+}
+
+// DOESNT WORK
 // export function createColor(parent, set = (value) => {}, get = () => "#ffffff", name = "Name", hex = false) {
 //     const default_value = hex ? get() : rgb2hex(get());
 //     console.log(default_value);

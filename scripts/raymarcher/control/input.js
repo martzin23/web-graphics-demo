@@ -20,9 +20,11 @@ export default class Input {
         this.key_states[event.key] = true;
         switch (event.key) {
             case "ArrowUp":
+                if (this.gui.isTyping()) return;
                 this.gpu.uniforms.render_scale = Math.max(this.gpu.uniforms.render_scale - 1, 1);
                 break;
             case "ArrowDown":
+                if (this.gui.isTyping()) return;
                 this.gpu.uniforms.render_scale = Math.min(this.gpu.uniforms.render_scale + 1, 16);
                 break;
             case "F11":
@@ -31,6 +33,7 @@ export default class Input {
                 break;
             case "Tab":
                 event.preventDefault();
+                if (this.gui.isTyping()) return;
                 this.gui.auto_refresh = !this.gui.auto_refresh;
                 break;
         }

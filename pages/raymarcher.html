@@ -1,18 +1,15 @@
 <!-- 
 TODO
-custom code
-	instructions
-	tab functionality
-	linting?
-switch set index
-switch get index
+add more sdfs
+submenus rewrite
+
 base error page
 camera switch h v
 css colors rework
 
 BUGS
 color widget not working
-shader normals
+pathtracing marching fix
 -->
 
 <!DOCTYPE html>
@@ -77,8 +74,11 @@ shader normals
 		<figure id="group-variables">
 			<figcaption>
 				<hr>
-				<p>SDF Variables</p>
+				<p>Variables</p>
 			</figcaption>
+			<div id="group-sphere"></div>
+			<div id="group-mandelbox"></div>
+			<div id="group-custom"></div>
 		</figure>
 
 		<figure id="group-lens">
@@ -93,14 +93,29 @@ shader normals
 				<hr>
 				<p>Sun Direction</p>
 			</figcaption>
+			<div class="comment">Only for pathtraced shading mode*</div>
 		</figure>
 
-		<figure id="group-custom-sdf">
+		<figure id="group-instructions">
 			<figcaption>
 				<hr>
-				<p>Custom Signed Distance Function</p>
+				<p>Instructions</p>
 			</figcaption>
-			<div class="comment">Custom signed distance function in WGSL.</div>
+			<p>Here you can write a custom signed distance function in WGSL that is then rendered.</p>
+			<p>The main function that is required here is SDF(), but you can add your own functions and use them inside SDF().</p>
+			<div class="row">
+				<div class="value">p</div>
+				<p class="comment">parameter - a position in 3D space</p>
+			</div>
+			<div class="row">
+				<div class="value">return value</div>
+				<p class="comment">distance from the body</p>
+			</div>
+			<div class="row">
+				<div class="value">uniforms.custom_a</div>
+				<p class="comment">A float variable that can be changed in real time in the Ray Marching tab. There are seven of them (a,b,c,d,e,f,g).</p>
+			</div>
+			
 		</figure>
 		
 		<figure id="group-code">
@@ -128,23 +143,31 @@ shader normals
 			</figcaption>
 			<div class="row">
 				<div class="value">Click</div>
-				<p>Toggle camera control</p>
+				<p class="comment">Toggle camera control (click on the canvas)</p>
 			</div>
 			<div class="row">
 				<div class="value">WASDQE</div>
-				<p>Movement</p>
+				<p class="comment">Movement</p>
 			</div>
 			<div class="row">
-				<div class="value">Scroll</div>
-				<p>Change camera speed</p>
+				<div class="value">Scroll (controlling)</div>
+				<p class="comment">Change camera speed</p>
+			</div>
+			<div class="row">
+				<div class="value">Scroll (not controlling)</div>
+				<p class="comment">Change menu tabs</p>
 			</div>
 			<div class="row">
 				<div class="value">F11</div>
-				<p>Toggle fullscreen</p>
+				<p class="comment">Toggle fullscreen</p>
 			</div>
 			<div class="row">
 				<div class="value">Up/Down arrow</div>
-				<p>Change resolution</p>
+				<p class="comment">Change resolution</p>
+			</div>
+			<div class="row">
+				<div class="value">Tab</div>
+				<p class="comment">Toggle auto refresh</p>
 			</div>
 		</figure>
 

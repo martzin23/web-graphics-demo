@@ -17,12 +17,17 @@ struct UniformBuffer {
     max_bounces: f32,
     max_marches: f32,
     epsilon: f32,
-    detail: f32,
+    normals_precision: f32,
 
+    detail: f32,
     custom_a: f32,
     custom_b: f32,
     custom_c: f32,
-    custom_d: f32
+
+    custom_d: f32,
+    custom_e: f32,
+    custom_f: f32,
+    custom_g: f32,
 }
 struct BufferData {
     colors: array<vec4<f32>>
@@ -44,7 +49,6 @@ var<private> state: u32;
 @group(0) @binding(1) var<uniform> uniforms : UniformBuffer;
 
 @compute @workgroup_size(16,16,1)
-// @compute @workgroup_size(256,1,1)
 fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
 
     // Getting coordinates
@@ -73,7 +77,6 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
         }
         case (1) {
             let data: Data = rayMarch(camera_ray);
-            // let diffuse = dot(, normalize(uniforms.sun_direction));
             let factor = 1 - (f32(data.marches) / uniforms.max_marches);
             if (data.collided) {
                 pixel_color = vec3f(((data.normal * 2.0 + 1.0) * 0.5 + 0.5) * factor);
@@ -86,28 +89,28 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
             pixel_color = pathTrace(camera_ray);
             output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
         }
-        case (3) {
-            if (uniforms.temporal_counter != 1) {
-                camera_ray.origin = camera_ray.origin + camera_ray.direction * previous_color.w;
+        // case (3) {
+        //     if (uniforms.temporal_counter != 1) {
+        //         camera_ray.origin = camera_ray.origin + camera_ray.direction * previous_color.w;
 
-                if (SDF(camera_ray.origin) < pow(2, -uniforms.detail)) {
-                    let normal = derivateNormal(camera_ray.origin, uniforms.epsilon);
-                    let diffuse = clamp(dot(normal, uniforms.sun_direction), 0.0, 1.0);
-                    let pixel_color = vec3f(diffuse * clamp(mix(1.0, 0.0, previous_color.w / 2), 0.0, 1.0));
-                    output_color = vec4f(0.99 * previous_color.xyz + 0.01 * pixel_color, 0.0);
+        //         if (SDF(camera_ray.origin) < pow(2, -uniforms.detail)) {
+        //             let normal = derivateNormal(camera_ray.origin, uniforms.normals_precision);
+        //             let diffuse = clamp(dot(normal, uniforms.sun_direction), 0.0, 1.0);
+        //             let pixel_color = vec3f(diffuse * clamp(mix(1.0, 0.0, previous_color.w / 2), 0.0, 1.0));
+        //             output_color = vec4f(0.99 * previous_color.xyz + 0.01 * pixel_color, 0.0);
                 
-                // non generic constant
-                } else if (previous_color.w > 100) {
-                    output_color = vec4f(0.0, 0.0, 0.0, 100);
-                } else {
-                    let camera_data: Data = rayMarch(camera_ray);
-                    let dist = length(camera_data.position - uniforms.camera_position);
-                    output_color = vec4f(previous_color.xyz, dist);
-                }
-            } else {
-                output_color = vec4f(0.0);
-            }
-        }
+        //         // non generic constant
+        //         } else if (previous_color.w > 100) {
+        //             output_color = vec4f(0.0, 0.0, 0.0, 100);
+        //         } else {
+        //             let camera_data: Data = rayMarch(camera_ray);
+        //             let dist = length(camera_data.position - uniforms.camera_position);
+        //             output_color = vec4f(previous_color.xyz, dist);
+        //         }
+        //     } else {
+        //         output_color = vec4f(0.0);
+        //     }
+        // }
     }
     
     color_buffer.colors[index] = output_color;
@@ -136,7 +139,7 @@ fn pathTrace(camera_ray: Ray) -> vec3f {
         ray.origin = data.position + ray.direction * uniforms.epsilon;
         
         // let color = vec3(1.0);
-        let color = -data.normal * 0.5 + 0.5;
+        let color = -data.normal * 0.25 + 0.75;
         let emission = vec3(0.0);
         sample_color += emission * color * ray_color;
         ray_color *= color;
@@ -160,7 +163,7 @@ fn rayMarch(ray: Ray) -> Data {
         data.position += d * ray.direction;
     }
 
-    data.normal = derivateNormal(data.position, uniforms.epsilon);
+    data.normal = derivateNormal(data.position, uniforms.normals_precision);
     data.dist = length(data.position - ray.origin); 
     return data;
 }
@@ -217,39 +220,3 @@ fn randomNormal() -> f32 {
 fn randomDirection() -> vec3f {
     return normalize(vec3(randomNormal(), randomNormal(), randomNormal()));
 }
-
-// fn SDF(p : vec3f) -> f32 {
-//     return length(p) - 0.5;
-// }
-
-// fn SDF(p : vec3f) -> f32 {
-//     // const scale = custom_float2;
-//     // const folding_limit = custom_float3;
-//     // const min_radius2 = custom_float4;
-//     // const fixed_radius2 = custom_float1;
-//     let scale = uniforms.custom_a;
-//     let folding_limit = uniforms.custom_b;
-//     let min_radius2 = uniforms.custom_c;
-//     let fixed_radius2 = uniforms.custom_d;
-
-//     var z = p;
-//     var dr = 1.0;
-//     for (var n = 0; n < i32(uniforms.detail) + 2; n++) {
-//         z = clamp(z, -vec3f(folding_limit), vec3f(folding_limit)) * 2.0 - z;
-
-//         let r2 = dot(z,z);
-//         if (r2 < min_radius2) { 
-//             let temp = fixed_radius2 / min_radius2;
-//             z *= temp;
-//             dr *= temp;
-//         } else if (r2 < fixed_radius2) { 
-//             let temp = fixed_radius2 / r2;
-//             z *= temp;
-//             dr *= temp;
-//         }
-//         z = scale * z + p;  
-//         dr = dr * abs(scale) + 1.0;
-//     }
-//     let r = length(z);
-//     return r / abs(dr);
-// }

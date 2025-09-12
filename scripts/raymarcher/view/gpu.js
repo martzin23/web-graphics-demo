@@ -58,13 +58,18 @@ export default class GPUManager {
 
             max_bounces: 3,
             max_marches: 100,
-            epsilon: 0.0001,
-            detail: 10,
+            epsilon: 0.001,
+            normals_precision: 0.0001,
 
+            detail: 10,
             custom_a: -2.0,
             custom_b: 1.0,
             custom_c: 0.5,
-            custom_d: 2.0
+
+            custom_d: 2.0,
+            custom_e: 1.0,
+            custom_f: 1.0,
+            custom_g: 1.0
         };
 
         this.setupRendering(compute_shader_code, render_shader_code, sdf_code);
@@ -138,8 +143,8 @@ export default class GPUManager {
     }
 
     async recompileSDF(sdf_code) {
-        this.refreshScreen();
         this.setupRendering(this.compute_shader_code, this.render_shader_code, sdf_code);
+        this.refreshScreen();
     }
 
     async getCompilationError() {
@@ -151,7 +156,6 @@ export default class GPUManager {
                 text += type + ": " + message.message + "\n";
             }
             return text;
-            // return compilation_info.messages[0].message;
         } else {
             return "";
         }
