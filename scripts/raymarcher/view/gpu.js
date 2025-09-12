@@ -57,19 +57,19 @@ export default class GPUManager {
             shader_mode: 0,
 
             max_bounces: 3,
-            max_marches: 100,
+            max_marches: 50,
             epsilon: 0.001,
             normals_precision: 0.0001,
 
             detail: 10,
+            sun_intensity: 100.0,
+            sky_intensity: 0.5,
             custom_a: -2.0,
+
             custom_b: 1.0,
             custom_c: 0.5,
-
             custom_d: 2.0,
-            custom_e: 1.0,
-            custom_f: 1.0,
-            custom_g: 1.0
+            custom_e: 2.0
         };
 
         this.setupRendering(compute_shader_code, render_shader_code, sdf_code);

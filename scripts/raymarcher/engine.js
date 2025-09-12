@@ -67,8 +67,6 @@ class Engine {
             uniform_custom_c: this.gpu.uniforms.custom_c,
             uniform_custom_d: this.gpu.uniforms.custom_d,
             uniform_custom_e: this.gpu.uniforms.custom_e,
-            uniform_custom_f: this.gpu.uniforms.custom_f,
-            uniform_custom_g: this.gpu.uniforms.custom_g
         }
         localStorage.setItem(this.local_storage_name, JSON.stringify(data));
     }
@@ -85,8 +83,6 @@ class Engine {
             this.gpu.uniforms.custom_c = data.uniform_custom_c;
             this.gpu.uniforms.custom_d = data.uniform_custom_d;
             this.gpu.uniforms.custom_e = data.uniform_custom_e;
-            this.gpu.uniforms.custom_f = data.uniform_custom_f;
-            this.gpu.uniforms.custom_g = data.uniform_custom_g;
         }
     }
 }

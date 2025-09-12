@@ -20,14 +20,14 @@ struct UniformBuffer {
     normals_precision: f32,
 
     detail: f32,
+    sun_intensity: f32,
+    sky_intensity: f32,
     custom_a: f32,
+
     custom_b: f32,
     custom_c: f32,
-
     custom_d: f32,
     custom_e: f32,
-    custom_f: f32,
-    custom_g: f32,
 }
 struct BufferData {
     colors: array<vec4<f32>>
@@ -138,8 +138,8 @@ fn pathTrace(camera_ray: Ray) -> vec3f {
         ray.direction = normalize(randomDirection() + data.normal);
         ray.origin = data.position + ray.direction * uniforms.epsilon;
         
-        // let color = vec3(1.0);
-        let color = -data.normal * 0.25 + 0.75;
+        let color = vec3(1.0);
+        // let color = -data.normal * 0.25 + 0.75;
         let emission = vec3(0.0);
         sample_color += emission * color * ray_color;
         ray_color *= color;
@@ -186,12 +186,12 @@ fn derivateNormal(position: vec3f, epsilon: f32) -> vec3f {
 
 fn skyValue(direction: vec3f) -> vec3f {
     const sun_color = vec3f(1.0, 1.0, 0.8);
-    const sun_intensity = 100.0;
+    let sun_intensity = uniforms.sun_intensity;
 
     const horizon_color = vec3f(1.8, 1.8, 2.0);
     const zenith_color = vec3f(0.2, 0.2, 0.8);
     const ground_color = vec3f(0.1);
-    const sky_intensity = 0.5;
+    let sky_intensity = uniforms.sky_intensity;
 
     let altitude = dot(direction, vec3f(0.0, 0.0, 1.0));
     let day_factor = dot(vec3f(0.0, 0.0, 1.0), normalize(uniforms.sun_direction)) * 0.5 + 0.5;
