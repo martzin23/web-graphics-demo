@@ -69,9 +69,9 @@ export default class GUIManager {
         if (value === null) {
             if (this.isFullscreen())
                 element_menu.classList.add("hidden");
-            switchAttribute(element_menu, element_menu.children.length - 1, undefined, "hidden");
+            switchAttribute(element_menu, 0, undefined, "hidden");
         } else {
-            switchAttribute(element_menu, value, undefined, "hidden");
+            switchAttribute(element_menu, value + 1, undefined, "hidden");
         }
     }
 
@@ -168,7 +168,7 @@ export default class GUIManager {
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu.uniforms.render_scale = value;},() => this.gpu.uniforms.render_scale , "Resolution division", 1, 16);
         Widgets.createButton(document.getElementById("group-display"), () => {this.gpu.syncResolution();}, "Fix aspect ratio");
-        Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh");
+        Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh").addTooltip("Disable when rendering for a screenshot", "fa-exclamation");
         Widgets.createButton(document.getElementById("group-display"), () => {
             var current_date = new Date(); 
             var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
@@ -176,20 +176,19 @@ export default class GUIManager {
         }, '<i class="fa fa-download"></i>Screenshot');
 
         Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Position");
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.rotation.h = value;}, () => this.camera.rotation.h, "Horizontal rotation", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.rotation.v = value;}, () => this.camera.rotation.v, "Vertical rotation", -90, 90, 0.1);
+        Widgets.createButton(document.getElementById("group-camera"), () => {this.camera.position = {x: 0, y: 0, z: 0}}, "Reset position");
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.rotation.x = value;}, () => this.camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.rotation.y = value;}, () => this.camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {this.camera.speed = value;}, () => this.camera.speed, "Speed", 0, 10, true);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {this.camera.sensitivity = value;}, () => this.camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.fov = value;}, () => this.camera.fov, "Field of view", 0, Infinity, 0.005);
-        Widgets.createButton(document.getElementById("group-camera"), () => {this.camera.position = {x: 0, y: 0, z: 0}}, "Reset position");
 
         Widgets.createSwitch(
             document.getElementById("group-shading"),
             (value) => { this.gpu.uniforms.shader_mode = value; },
-            ["Marches", "Normals", "Pathtraced"],
-            "Marches",
-            "Shading mode"
-        ).addTooltip("Set 'Max marches' to 1 when using 'Detail' mode");
+            ["Marches", "Normals", "Phong", "Pathtraced"],
+            "Marches"
+        );
 
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.max_marches = value;}, () => this.gpu.uniforms.max_marches, "Max marches", 1, Infinity, 50);
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.max_bounces = value;}, () => this.gpu.uniforms.max_bounces, "Max bounces", 0, Infinity);
@@ -211,22 +210,22 @@ export default class GUIManager {
                         code = await (await fetch("../scripts/raymarcher/view/shader/mandelbox.wgsl")).text();
                         break;
                     case 2:
-                        code = document.getElementById("input-code").value;
-                        break;
-                    case 3: 
                         code = await (await fetch("../scripts/raymarcher/view/shader/mandelbulb.wgsl")).text();
                         break;
-                    case 4: 
+                    case 3: 
                         code = await (await fetch("../scripts/raymarcher/view/shader/kochcurve.wgsl")).text();
                         break;
-                    case 5: 
+                    case 4: 
                         code = await (await fetch("../scripts/raymarcher/view/shader/juliabulb.wgsl")).text();
+                        break;
+                    case 5: 
+                        code = document.getElementById("input-code").value;
                         break;
                 }
                 this.gpu.recompileSDF(code);
                 document.getElementById("output-error").innerText = await this.gpu.getCompilationError();
             },
-            ["Sphere", "Mandelbox", "Custom", "Mandelbulb", "Koch curve", "Juliabulb"],
+            ["Sphere", "Mandelbox", "Mandelbulb", "Koch curve", "Juliabulb", "Custom"],
             "Mandelbox"
         );
         
@@ -254,10 +253,10 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu.uniforms.focus_distance = value;}, () => this.gpu.uniforms.focus_distance, "Focus distance", 0.0, 20.0, true);
         Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu.uniforms.focus_strength = value;}, () => this.gpu.uniforms.focus_strength, "Focus blur", 0.0, 0.1);
         
-        Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.uniforms.sun_intensity = value;}, () => this.gpu.uniforms.sun_intensity, "Sun intensity", 0, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.uniforms.sky_intensity = value;}, () => this.gpu.uniforms.sky_intensity, "Sky intensity", 0, Infinity, 0.01);
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.sun_rotation.x = value;}, () => this.gpu.sun_rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.sun_rotation.y = value;}, () => this.gpu.sun_rotation.y, "Vertical rotation", -90, 90, 0.1);
+        Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.uniforms.sun_intensity = value;}, () => this.gpu.uniforms.sun_intensity, "Sun intensity", 0, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.uniforms.sky_intensity = value;}, () => this.gpu.uniforms.sky_intensity, "Sky intensity", 0, Infinity, 0.01);
 
         document.getElementById("input-code").value = `fn SDF(p: vec3f) -> f32 {\n\tlet radius = uniforms.custom_b;\n\treturn length(p) - radius;\n}`;
         Widgets.createButton(document.getElementById("group-code"), async () => {

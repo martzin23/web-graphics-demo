@@ -22,12 +22,10 @@ fn SDF(p : vec3f) -> f32 {
                 z.x = temp.x;
                 z.z = temp.y;
             }
-            // z.xz = (z.z > 0.0 ? rotm60deg : rot60deg) * z.xz;
         }
         let temp = z.z;
         z.z = z.y;
         z.y = temp;
-        // z.zy = z.yz;
         z.x += 1.0 * uniforms.custom_b;
     }
 
@@ -42,7 +40,6 @@ fn SDF(p : vec3f) -> f32 {
                 z.x = temp.x;
                 z.z = temp.y;
         }
-        // z.xz = (z.z > 0.0 ? rot60deg : rotm60deg) * z.xz;
     }
 
     let x2 = 1.15470053839;

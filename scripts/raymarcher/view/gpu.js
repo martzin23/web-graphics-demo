@@ -73,7 +73,7 @@ export default class GPUManager {
         };
 
         this.setupRendering(compute_shader_code, render_shader_code, sdf_code);
-        this.syncResolution();
+        setTimeout(() => {this.syncResolution(); this.refreshScreen();}, 100);
     }
     
     destroy() {

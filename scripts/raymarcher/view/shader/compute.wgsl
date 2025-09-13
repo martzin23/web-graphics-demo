@@ -51,32 +51,29 @@ var<private> state: u32;
 @compute @workgroup_size(16,16,1)
 fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
 
-    // Getting coordinates
     let index = GlobalInvocationID.x + GlobalInvocationID.y * u32(uniforms.buffer_size.x);
     let aspect_ratio = uniforms.canvas_size.y / uniforms.canvas_size.x;
     let screen_normalized = vec2f(GlobalInvocationID.xy) / uniforms.canvas_size * uniforms.render_scale;
     state = index + u32(uniforms.temporal_counter) * 69420;
 
-    // Camera ray
     var camera_ray: Ray;
     camera_ray.origin = uniforms.camera_position;
     camera_ray.direction = (uniforms.camera_rotation * vec4f(normalize(vec3f((screen_normalized.x * 2.0 - 1.0) * uniforms.fov, 1.0, -(screen_normalized.y * 2.0 - 1.0) * aspect_ratio * uniforms.fov)),1.0)).xyz;
     camera_ray.direction = normalize(camera_ray.direction + randomDirection() * 0.0005 * uniforms.fov * uniforms.render_scale);
     camera_ray = focusBlur(camera_ray, uniforms.focus_distance, uniforms.focus_strength);
 
-    // Shading
     var previous_color = color_buffer.colors[index];
     var output_color: vec4f;
     var pixel_color: vec3f;
     switch (u32(uniforms.shader_mode)) {
         default {
-            let data: Data = rayMarch(camera_ray);
+            let data = rayMarch(camera_ray);
             let factor = 1 - (f32(data.marches) / uniforms.max_marches);
             pixel_color = vec3f(mix(0.0, factor, f32(data.collided)));
             output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
         }
         case (1) {
-            let data: Data = rayMarch(camera_ray);
+            let data = rayMarch(camera_ray);
             let factor = 1 - (f32(data.marches) / uniforms.max_marches);
             if (data.collided) {
                 pixel_color = vec3f(((data.normal * 2.0 + 1.0) * 0.5 + 0.5) * factor);
@@ -86,10 +83,30 @@ fn computeMain(@builtin(global_invocation_id) GlobalInvocationID: vec3u) {
             output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
         }
         case (2) {
+            let camera_data = rayMarch(camera_ray);
+            let diffuse = clamp(dot(camera_data.normal, uniforms.sun_direction), 0.0, 1.0);
+            let specular = clamp(pow(dot(camera_data.normal, uniforms.sun_direction), 50.0), 0.0, 1.0);
+
+            var shadow_ray: Ray;
+            shadow_ray.direction = uniforms.sun_direction;
+            shadow_ray.origin = camera_data.position + camera_data.normal * uniforms.epsilon;
+
+            let shadow_data = rayMarch(shadow_ray);
+            let shadow = f32(shadow_data.dist > 100);
+
+            if (camera_data.collided) {
+                pixel_color = vec3f((diffuse + specular) * shadow);
+            } else {
+                pixel_color = vec3f(0.0);
+            }
+            output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+
+        }
+        case (3) {
             pixel_color = pathTrace(camera_ray);
             output_color = vec4f(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
         }
-        // case (3) {
+        // case (4) {
         //     if (uniforms.temporal_counter != 1) {
         //         camera_ray.origin = camera_ray.origin + camera_ray.direction * previous_color.w;
 

@@ -44,7 +44,6 @@ fn vertexMain(@builtin(vertex_index) VertexIndex: u32) -> VertexOutput {
 @fragment
     fn fragmentMain(@location(0) texture_coordinate: vec2f) -> @location(0) vec4f {
     let pixel_coordinate = vec2u(texture_coordinate * uniforms.canvas_size / uniforms.render_scale);
-    // let pixel_coordinate = vec2u(texture_coordinate * uniforms.buffer_size);
     let index = pixel_coordinate.x + pixel_coordinate.y * u32(uniforms.buffer_size.x);
     let pixel_color = color_buffer.colors[index].xyz;
     return vec4f(transformColor(pixel_color), 1.0);

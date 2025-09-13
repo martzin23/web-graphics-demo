@@ -11,7 +11,6 @@ fn SDF(p : vec3f) -> f32 {
         if (r > 2) {
             break;
         }
-
         let theta = acos(z.z / r) * power;
         let phi = atan(z.y / z.x) * power;
         let zr = pow(r, power);

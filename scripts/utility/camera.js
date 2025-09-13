@@ -4,7 +4,7 @@ import Matrix from './matrix.js';
 export default class Camera {
     constructor(
         position = Vector.vec(4.0), 
-        rotation = {h : -135.0, v : 35.0}, 
+        rotation = Vector.vec(-135.0, 35.0), 
         fov = 0.5, 
         speed = 0.05, 
         sensitivity = 0.1
@@ -17,8 +17,8 @@ export default class Camera {
     }
 
     getRotationMatrix() {
-        let result = Matrix.rotationMatrix(Vector.vec(0.0, 0.0, 1.0), Matrix.deg2rad(this.rotation.h));
-        result = Matrix.rotate(result, Matrix.deg2rad(this.rotation.v), Vector.vec(1.0, 0.0, 0.0));
+        let result = Matrix.rotationMatrix(Vector.vec(0.0, 0.0, 1.0), Matrix.deg2rad(this.rotation.x));
+        result = Matrix.rotate(result, Matrix.deg2rad(this.rotation.y), Vector.vec(1.0, 0.0, 0.0));
         return result;
     }
 
@@ -46,17 +46,17 @@ export default class Camera {
     }
 
     updateRotation(dh, dv) {
-        this.rotation.h += dh * this.sensitivity;
-        this.rotation.v += dv * this.sensitivity;
-        this.rotation.h = this.rotation.h % 360.0;
-        if (this.rotation.v > 90)
-            this.rotation.v = 90;
-        if (this.rotation.v < -90)
-            this.rotation.v = -90;
+        this.rotation.x += dh * this.sensitivity;
+        this.rotation.y += dv * this.sensitivity;
+        this.rotation.x = this.rotation.x % 360.0;
+        if (this.rotation.y > 90)
+            this.rotation.y = 90;
+        if (this.rotation.y < -90)
+            this.rotation.y = -90;
     }
 
     move(local_direction) {
-        const temp = Matrix.rotate(Matrix.mat(1.0), Matrix.deg2rad(this.rotation.h), Vector.vec(0.0, 0.0, -1.0));
+        const temp = Matrix.rotate(Matrix.mat(1.0), Matrix.deg2rad(this.rotation.x), Vector.vec(0.0, 0.0, -1.0));
         const forward = Vector.xyz(Matrix.mul(temp, Vector.vec(0.0, 1.0, 0.0, 0.0)));
         const up = Vector.vec(0.0, 0.0, 1.0);
         const right = Vector.cross(forward, up);
