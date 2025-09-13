@@ -261,8 +261,8 @@ export default class GUIManager {
         document.getElementById("input-code").value = `fn SDF(p: vec3f) -> f32 {\n\tlet radius = uniforms.custom_b;\n\treturn length(p) - radius;\n}`;
         Widgets.createButton(document.getElementById("group-code"), async () => {
             const switch_element = document.querySelector("#group-sdf .switch");
-            Widgets.switchSetIndex(switch_element, 2);
-            switchAttribute(document.getElementById("group-variables"), 2, undefined, "hidden");
+            Widgets.switchSetIndex(switch_element, 5);
+            switchAttribute(document.getElementById("group-variables"), 5, undefined, "hidden");
 
             const code = document.getElementById("input-code").value;
             this.gpu.recompileSDF(code);

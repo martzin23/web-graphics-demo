@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="module" defer src="temp.js"></script>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div>
+        <p id="1"></p>
+        <p id="2"></p>
+        <p id="3"></p>
+    </div>
+    <script>
+        if (navigator.gpu)
+            document.getElementById("1").innerText = "WebGPU supported";
+        else
+            document.getElementById("1").innerText = "WebGPU not supported";
+
+        if (document.getElementById("canvas").getContext('webgl2'))
+            document.getElementById("2").innerText = "webgl2 supported";
+        else
+            document.getElementById("3").innerText = "webgl2 not supported";
+
+        if (document.getElementById("canvas").getContext('webgl'))
+            document.getElementById("3").innerText = "webgl supported";
+        else
+            document.getElementById("3").innerText = "webgl not supported";
+    </script>
+</body>
+</html>
