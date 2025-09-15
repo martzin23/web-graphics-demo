@@ -12,8 +12,8 @@ export default class KEYManager {
         document.addEventListener('mouseup', (event) => this.mouseRelease(event));
         document.addEventListener('mousemove', (event) => this.mouseMove(event));
         document.addEventListener('wheel', (event) => this.mouseScroll(event));
-        document.addEventListener('mouseup', () => {if(this.gui.auto_refresh) this.gpu.refreshScreen();});
-        document.addEventListener('mousemove', () => {if((this.mousePressed() || this.gui.isFocused()) && this.gui.auto_refresh) this.gpu.refreshScreen();});
+        document.addEventListener('mouseup', () => {if(this.gui.auto_refresh) this.gpu.refresh();});
+        document.addEventListener('mousemove', () => {if((this.mousePressed() || this.gui.isFocused()) && this.gui.auto_refresh) this.gpu.refresh();});
     }
 
     keyboardPress(event) {

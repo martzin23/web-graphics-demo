@@ -96,11 +96,6 @@ export default class GUIManager {
                 this.toggleFocus();
         });
 
-        window.addEventListener('resize', () => {
-            this.gpu.refreshScreen();
-            this.gpu.syncResolution();
-        });
-
         this.update_event = new CustomEvent('updategui', {
             bubbles: true,
             cancelable: true
@@ -222,8 +217,8 @@ export default class GUIManager {
                         code = document.getElementById("input-code").value;
                         break;
                 }
-                this.gpu.recompileSDF(code);
-                document.getElementById("output-error").innerText = await this.gpu.getCompilationError();
+                const message = await this.gpu.recompile(code);
+                document.getElementById("output-error").innerText = message;
             },
             ["Sphere", "Mandelbox", "Mandelbulb", "Koch curve", "Juliabulb", "Custom"],
             "Mandelbox"
@@ -265,8 +260,8 @@ export default class GUIManager {
             switchAttribute(document.getElementById("group-variables"), 5, undefined, "hidden");
 
             const code = document.getElementById("input-code").value;
-            this.gpu.recompileSDF(code);
-            document.getElementById("output-error").innerText = await this.gpu.getCompilationError();
+            const message = await this.gpu.recompile(code);
+            document.getElementById("output-error").innerText = message;
         }, "Compile");
     }
 }

@@ -17,8 +17,6 @@ class Engine {
     }
 
     constructor(gpu) {
-        window.addEventListener('beforeunload', this.destroy);
-        
         this.gpu = gpu;
         this.fps = new FPSCounter(document.getElementById("output-fps"), undefined, " fps");
         this.camera = new Camera();
@@ -37,7 +35,7 @@ class Engine {
             this.camera.updatePosition(this.key.key_states);
 
         if (this.key.keyPressed() && this.gui.auto_refresh)
-            this.gpu.refreshScreen();
+            this.gpu.refresh();
         
         this.fps.update();
         
@@ -48,17 +46,9 @@ class Engine {
     }
 
     render() {
-        this.gpu.writeUniforms();
         this.gpu.render();
         this.frame++;
         this.gpu.uniforms.temporal_counter += 1;
-    }
-
-    destroy() {
-        if (this.gpu) {
-            this.gpu.destroy();
-            this.gpu = null;
-        }
     }
 
     save() {

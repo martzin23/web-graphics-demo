@@ -72,96 +72,16 @@ export default class GPUManager {
             custom_e: 2.0
         };
 
-        this.setupRendering(compute_shader_code, render_shader_code, sdf_code);
-        setTimeout(() => {this.syncResolution(); this.refreshScreen();}, 100);
-    }
-    
-    destroy() {
-        if (this.color_buffer) {
-            this.color_buffer.destroy();
-            this.color_buffer = null;
-        }
-        if (this.uniform_buffer) {
-            this.uniform_buffer.destroy();
-            this.uniform_buffer = null;
-        }
-        if (this.device) {
-            this.device.destroy();
-            this.device = null;
-        }
-    }
+        this.setup(compute_shader_code, render_shader_code, sdf_code);
+        setTimeout(() => {this.synchronize(); this.refresh();}, 100);
 
-    render() {
-        const command_encoder = this.device.createCommandEncoder();
-			
-        const compute_pass = command_encoder.beginComputePass();
-        compute_pass.setPipeline(this.compute_pipeline);
-        compute_pass.setBindGroup(0, this.compute_bind_group);
-        compute_pass.dispatchWorkgroups(
-            Math.ceil(
-                this.uniforms.canvas_size.x / this.uniforms.render_scale / this.workgroup_size.x
-            ), 
-            Math.ceil(
-                this.uniforms.canvas_size.y / this.uniforms.render_scale / this.workgroup_size.y
-            )
-        );
-        compute_pass.end();
-
-        const render_pass = command_encoder.beginRenderPass({
-            colorAttachments: [{
-                view: this.context.getCurrentTexture().createView(),
-                loadOp: "clear",
-                clearValue: { r: 1.0, g: 0, b: 1.0, a: 1.0 },
-                storeOp: "store",
-            }]
+        window.addEventListener('resize', () => {
+            this.refresh();
+            this.synchronize();
         });
-        render_pass.setPipeline(this.render_pipeline);
-        render_pass.setBindGroup(0, this.render_bind_group);
-        render_pass.draw(6, 1, 0, 0);
-        render_pass.end();
-			
-        this.device.queue.submit([command_encoder.finish()]);
     }
 
-    writeUniforms() {
-        const uniform_array = new Float32Array(packUniforms(this.uniforms));
-        this.device.queue.writeBuffer(this.uniform_buffer, 0, uniform_array);
-    }
-
-    syncResolution() {
-        let canvas_dimensions = this.canvas.getBoundingClientRect();
-        canvas_dimensions.width = Math.min(canvas_dimensions.width, this.base_render_size.x);
-        canvas_dimensions.height = Math.min(canvas_dimensions.height, this.base_render_size.y);
-        
-        this.uniforms.canvas_size = Vector.vec(canvas_dimensions.width, canvas_dimensions.height);
-        this.canvas.height = canvas_dimensions.height;
-        this.canvas.width = canvas_dimensions.width;
-    }
-
-    refreshScreen() {
-        this.uniforms.temporal_counter = 1;
-    }
-
-    async recompileSDF(sdf_code) {
-        this.setupRendering(this.compute_shader_code, this.render_shader_code, sdf_code);
-        this.refreshScreen();
-    }
-
-    async getCompilationError() {
-        const compilation_info = await this.compute_module.getCompilationInfo();
-        if (compilation_info.messages.length > 0) {
-            let text = "";
-            for (const message of compilation_info.messages) {
-                const type = (message.type === 'error') ? 'ERROR' : 'WARNING';
-                text += type + ": " + message.message + "\n";
-            }
-            return text;
-        } else {
-            return "";
-        }
-    }
-
-    setupRendering(compute_shader_code, render_shader_code, sdf_code) {
+    setup(compute_shader_code, render_shader_code, sdf_code) {
 
         const canvas_format = navigator.gpu.getPreferredCanvasFormat();
         this.context = this.canvas.getContext("webgpu");
@@ -304,6 +224,77 @@ export default class GPUManager {
                 topology: "triangle-list"
             }
         });
+    }
+
+    render() {
+        const uniform_array = new Float32Array(packUniforms(this.uniforms));
+        this.device.queue.writeBuffer(this.uniform_buffer, 0, uniform_array);
+
+        const command_encoder = this.device.createCommandEncoder();
+			
+        const compute_pass = command_encoder.beginComputePass();
+        compute_pass.setPipeline(this.compute_pipeline);
+        compute_pass.setBindGroup(0, this.compute_bind_group);
+        compute_pass.dispatchWorkgroups(
+            Math.ceil(
+                this.uniforms.canvas_size.x / this.uniforms.render_scale / this.workgroup_size.x
+            ), 
+            Math.ceil(
+                this.uniforms.canvas_size.y / this.uniforms.render_scale / this.workgroup_size.y
+            )
+        );
+        compute_pass.end();
+
+        const render_pass = command_encoder.beginRenderPass({
+            colorAttachments: [{
+                view: this.context.getCurrentTexture().createView(),
+                loadOp: "clear",
+                clearValue: { r: 1.0, g: 0, b: 1.0, a: 1.0 },
+                storeOp: "store",
+            }]
+        });
+        render_pass.setPipeline(this.render_pipeline);
+        render_pass.setBindGroup(0, this.render_bind_group);
+        render_pass.draw(6, 1, 0, 0);
+        render_pass.end();
+			
+        this.device.queue.submit([command_encoder.finish()]);
+    }
+
+    synchronize() {
+        // let canvas_dimensions = this.canvas.getBoundingClientRect();
+        // canvas_dimensions.width = Math.min(canvas_dimensions.width, this.base_render_size.x);
+        // canvas_dimensions.height = Math.min(canvas_dimensions.height, this.base_render_size.y);
+        // this.uniforms.canvas_size = Vector.vec(canvas_dimensions.width, canvas_dimensions.height);
+        // this.canvas.height = canvas_dimensions.height;
+        // this.canvas.width = canvas_dimensions.width;
+
+        const width = Math.min(this.canvas.clientWidth, this.base_render_size.x);
+        const height = Math.min(this.canvas.clientHeight, this.base_render_size.y);
+        this.uniforms.canvas_size = Vector.vec(width, height);
+        this.canvas.width = width;
+        this.canvas.height = height;
+    }
+
+    refresh() {
+        this.uniforms.temporal_counter = 1;
+    }
+
+    async recompile(sdf_code) {
+        this.setup(this.compute_shader_code, this.render_shader_code, sdf_code);
+        this.refresh();
+
+        const compilation_info = await this.compute_module.getCompilationInfo();
+        if (compilation_info.messages.length > 0) {
+            let text = "";
+            for (const message of compilation_info.messages) {
+                const type = (message.type === 'error') ? 'ERROR' : 'WARNING';
+                text += type + ": " + message.message + "\n";
+            }
+            return text;
+        } else {
+            return "";
+        }
     }
 
     screenshot(file_name) {
