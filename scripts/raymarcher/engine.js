@@ -1,4 +1,5 @@
-import GPUManager from './view/gpu.js';
+import WebGLManager from './view/webgl_manager.js'
+import WebGPUManager from './view/webgpu_manager.js';
 import KEYManager from './control/key.js';
 import GUIManager from './control/gui.js';
 import FPSCounter from '../utility/fps.js';
@@ -7,11 +8,11 @@ import Matrix from '../utility/matrix.js';
 
 class Engine {
     static async initialize() {
-        const gpu = await GPUManager.initialize(
+        const gpu = await WebGLManager.initialize(
             document.getElementById("canvas"), 
-            '../scripts/raymarcher/view/shader/compute.wgsl', 
-            '../scripts/raymarcher/view/shader/render.wgsl', 
-            '../scripts/raymarcher/view/shader/mandelbox.wgsl'
+            '../scripts/raymarcher/view/shader/compute.glsl', 
+            '../scripts/raymarcher/view/shader/render.glsl', 
+            '../scripts/raymarcher/view/shader/sphere.glsl'
         );
         return new Engine(gpu);
     }
@@ -62,6 +63,7 @@ class Engine {
             uniform_custom_c: this.gpu.uniforms.custom_c,
             uniform_custom_d: this.gpu.uniforms.custom_d,
             uniform_custom_e: this.gpu.uniforms.custom_e,
+            custom_code: document.getElementById("input-code").value,
         }
         localStorage.setItem(this.local_storage_name, JSON.stringify(data));
     }
@@ -78,6 +80,7 @@ class Engine {
             this.gpu.uniforms.custom_c = data.uniform_custom_c;
             this.gpu.uniforms.custom_d = data.uniform_custom_d;
             this.gpu.uniforms.custom_e = data.uniform_custom_e;
+            document.getElementById("input-code").value = data.custom_code;
         }
     }
 }

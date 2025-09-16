@@ -1,10 +1,13 @@
 <!-- 
 TODO
 webgl
-base error page
+	frame read
+	recompile error message
+	screenshot
+error popup
 save code
 delete localstorage
-camera class rewrite
+camera rewrite
 
 BUGS
 color widget not working
@@ -27,7 +30,7 @@ color widget not working
 		<div class="block">
 			<div id="group-tabs"></div>
 			<div class="row">
-				<p class="value" id="output-fps">FPS: 100</p>
+				<p class="value" id="output-fps">0 fps</p>
 				<a href="https://github.com/martzin23/WebGPU-Demo" class="button">
 					<i class="fa fa-link"></i>
 					<p>GitHub</p>
@@ -38,7 +41,7 @@ color widget not working
 
 	<menu class="block" id="menu">
 
-		<section id="group-unselected">
+		<section id="group-unselected" class="hidden">
 			<figure>
 				<figcaption>
 					<hr>
@@ -48,7 +51,7 @@ color widget not working
 			</figure>
 		</section>
 
-		<section>
+		<section class="hidden">
 			<figure id="group-display">
 				<figcaption>
 					<hr>
@@ -64,7 +67,7 @@ color widget not working
 			</figure>
 		</section>
 
-		<section>
+		<section class="hidden">
 			<figure id="group-shading">
 				<figcaption>
 					<hr>
@@ -117,7 +120,7 @@ color widget not working
 			</figure>
 		</section>
 
-		<section>
+		<section class="hidden">
 			<figure id="group-instructions">
 				<figcaption>
 					<hr>
@@ -159,7 +162,7 @@ color widget not working
 			</figure>
 		</section>
 
-		<section>
+		<section class="hidden">
 			<figure id="group-controls">
 				<figcaption>
 					<hr>

@@ -162,7 +162,7 @@ export default class GUIManager {
 
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu.uniforms.render_scale = value;},() => this.gpu.uniforms.render_scale , "Resolution division", 1, 16);
-        Widgets.createButton(document.getElementById("group-display"), () => {this.gpu.syncResolution();}, "Fix aspect ratio");
+        Widgets.createButton(document.getElementById("group-display"), () => {this.gpu.synchronize();}, "Fix aspect ratio");
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh").addTooltip("Disable when rendering for a screenshot", "fa-exclamation");
         Widgets.createButton(document.getElementById("group-display"), () => {
             var current_date = new Date(); 
@@ -199,19 +199,19 @@ export default class GUIManager {
                 switchAttribute(temp, value, undefined, "hidden");
                 switch (value) {
                     default: 
-                        code = await (await fetch("../scripts/raymarcher/view/shader/sphere.wgsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/view/shader/sphere.glsl")).text();
                         break;
                     case 1: 
-                        code = await (await fetch("../scripts/raymarcher/view/shader/mandelbox.wgsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/view/shader/mandelbox.glsl")).text();
                         break;
                     case 2:
-                        code = await (await fetch("../scripts/raymarcher/view/shader/mandelbulb.wgsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/view/shader/mandelbulb.glsl")).text();
                         break;
                     case 3: 
-                        code = await (await fetch("../scripts/raymarcher/view/shader/kochcurve.wgsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/view/shader/kochcurve.glsl")).text();
                         break;
                     case 4: 
-                        code = await (await fetch("../scripts/raymarcher/view/shader/juliabulb.wgsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/view/shader/juliabulb.glsl")).text();
                         break;
                     case 5: 
                         code = document.getElementById("input-code").value;
@@ -221,7 +221,7 @@ export default class GUIManager {
                 document.getElementById("output-error").innerText = message;
             },
             ["Sphere", "Mandelbox", "Mandelbulb", "Koch curve", "Juliabulb", "Custom"],
-            "Mandelbox"
+            "Sphere"
         );
         
         Widgets.createDrag(document.getElementById("group-sphere"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Radius");
@@ -254,6 +254,7 @@ export default class GUIManager {
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.uniforms.sky_intensity = value;}, () => this.gpu.uniforms.sky_intensity, "Sky intensity", 0, Infinity, 0.01);
 
         document.getElementById("input-code").value = `fn SDF(p: vec3f) -> f32 {\n\tlet radius = uniforms.custom_b;\n\treturn length(p) - radius;\n}`;
+        document.getElementById("input-code").value = `float SDF(vec3 p) {\n\tfloat radius = uniforms.custom_b;\n\treturn length(p) - radius;\n}`;
         Widgets.createButton(document.getElementById("group-code"), async () => {
             const switch_element = document.querySelector("#group-sdf .switch");
             Widgets.switchSetIndex(switch_element, 5);

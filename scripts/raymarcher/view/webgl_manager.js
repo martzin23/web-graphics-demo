@@ -14,7 +14,7 @@ copute translaton
 screenshot
 */
 
-class WebGLManager {
+export default class WebGLManager {
     static async initialize(canvas, compute_url, render_url, sdf_url) {
         const compute_shader_code = await (await fetch(compute_url)).text();
         const render_shader_code = await (await fetch(render_url)).text();
@@ -33,10 +33,12 @@ class WebGLManager {
         this.frame_buffer;
         this.render_vertex_location;
         this.compute_vertex_location;
+        this.compute_color_buffer_location;
         this.render_color_buffer_location;
         this.compute_program;
         this.render_program;
-
+        
+        this.sun_rotation = Vector.vec(45, 45);
         this.base_render_size = {x: 2560, y: 1440};
         this.gl = this.canvas.getContext("webgl2");
         const ext = this.gl.getExtension('EXT_color_buffer_float');
@@ -127,6 +129,7 @@ class WebGLManager {
         this.gl.bindBufferBase(this.gl.UNIFORM_BUFFER, uniform_binding_number, this.uniform_buffer);
         this.gl.bufferData(this.gl.UNIFORM_BUFFER, uniform_array.byteLength, this.gl.DYNAMIC_DRAW);
 
+        this.compute_color_buffer_location = this.gl.getUniformLocation(this.compute_program, 'color_buffer');
         this.render_color_buffer_location = this.gl.getUniformLocation(this.render_program, 'color_buffer');
         this.render_vertex_location = this.gl.getAttribLocation(this.render_program, "vertex_position");
         this.compute_vertex_location = this.gl.getAttribLocation(this.compute_program, "vertex_position");
@@ -167,6 +170,9 @@ class WebGLManager {
         this.gl.useProgram(this.compute_program);
 
         this.gl.enableVertexAttribArray(this.compute_vertex_location);
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer);
+        this.gl.uniform1i(this.compute_color_buffer_location, 0);
         
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
@@ -252,10 +258,10 @@ function packUniforms(data) {
     return array.flat();
 }
 
-const renderer = await WebGLManager.initialize(
-    document.getElementById("canvas"),
-    "../scripts/raymarcher/view/shader/compute.glsl",
-    "../scripts/raymarcher/view/shader/render.glsl",
-    "../scripts/raymarcher/view/shader/kochcurve.glsl"
-);
-renderer.render();
+// const renderer = await WebGLManager.initialize(
+//     document.getElementById("canvas"),
+//     "../scripts/raymarcher/view/shader/compute.glsl",
+//     "../scripts/raymarcher/view/shader/render.glsl",
+//     "../scripts/raymarcher/view/shader/kochcurve.glsl"
+// );
+// renderer.render();

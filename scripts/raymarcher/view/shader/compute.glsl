@@ -1,6 +1,7 @@
 #version 300 es
 precision mediump float;
 
+uniform sampler2D color_buffer;
 layout(std140) uniform UniformBlock {
     vec2 canvas_size;
     vec2 buffer_size;
@@ -57,38 +58,19 @@ vec3 randomDirection(inout uint seed);
 float SDF(vec3 p);
 
 void main() {
-    // float aspect_ratio = uniforms.buffer_size.x / uniforms.buffer_size.y;
     float aspect_ratio = uniforms.canvas_size.y / uniforms.canvas_size.x;
-    // vec2 size_ratio =  uniforms.canvas_size / (uniforms.render_scale * uniforms.buffer_size);
-
-    // vec2 centered_coordinates = texture_coordinates;
-    // vec2 centered_coordinates = (texture_coordinates) * vec2(1.0, aspect_ratio) - vec2(uniforms.canvas_size * 0.5 / uniforms.buffer_size);
     vec2 centered_coordinates = (texture_coordinates - 0.5) * 2.0 * vec2(1.0, aspect_ratio);
-    // vec2 centered_coordinates = (texture_coordinates - 0.25) * (uniforms.buffer_size / uniforms.canvas_size);
-    // vec2 centered_coordinates = (((texture_coordinates * vec2(aspect_ratio, 1.0) - 1.0 / size_ratio) * size_ratio) - 0.0) * 1.0;
-    // vec2 centered_coordinates = (texture_coordinates - size_ratio) * 2.0 * vec2(aspect_ratio, 1.0);
-    // vec2 centered_coordinates = (texture_coordinates - ((uniforms.canvas_size * 0.25 / uniforms.buffer_size))) * 5.0 * vec2(1.0, 0.8);
-    // vec2 centered_coordinates = (texture_coordinates - 0.125 * vec2(1.0, aspect_ratio)) / (size_ratio * 0.5);
-
-    // output_color = vec4(centered_coordinates, 0.0, 1.0);
-    // output_color = vec4(vec3(sin(centered_coordinates.x * 100.0) + sin(centered_coordinates.y * 100.0)), 1.0);
-    // if (length(centered_coordinates) < 0.38)
-    //     output_color = vec4(1.0, 0.0, 1.0, 1.0);
-    // const float temp = 1.0;
-    // if (abs(centered_coordinates.x) > temp || abs(centered_coordinates.y) > temp)
-    //     output_color = vec4(1.0, 0.0, 1.0, 1.0);
-        
-
     uvec2 integer_coordinates = uvec2(texture_coordinates * uniforms.canvas_size);
     uint seed = integer_coordinates.x + integer_coordinates.y * uint(uniforms.canvas_size.x) + uint(uniforms.temporal_counter) * uint(69420);
 
     Ray camera_ray;
     camera_ray.origin = uniforms.camera_position;
-    camera_ray.direction = (uniforms.camera_rotation * vec4(normalize(vec3(centered_coordinates.x * uniforms.fov, 1.0, -centered_coordinates.y * uniforms.fov)), 1.0)).xyz;
+    camera_ray.direction = (uniforms.camera_rotation * vec4(normalize(vec3(centered_coordinates.x * uniforms.fov, 1.0, centered_coordinates.y * uniforms.fov)), 1.0)).xyz;
     camera_ray.direction = normalize(camera_ray.direction + randomDirection(seed) * 0.0005 * uniforms.fov * uniforms.render_scale);
     focusBlur(camera_ray, seed, uniforms.focus_distance, uniforms.focus_strength);
 
-    vec4 previous_color = vec4(0.0);
+    // vec4 previous_color = vec4(0.0);
+    // vec4 previous_color = texture(color_buffer, texture_coordinates);
     vec3 pixel_color = vec3(0.0);
     if (uniforms.shader_mode == 1.0) {
         Data data = rayMarch(camera_ray);
@@ -98,7 +80,8 @@ void main() {
         } else {
             pixel_color = vec3(0.0);
         }
-        output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        // output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        output_color = vec4(pixel_color, 1.0);
     } else if (uniforms.shader_mode == 2.0) {
         Data camera_data = rayMarch(camera_ray);
         float diffuse = clamp(dot(camera_data.normal, uniforms.sun_direction), 0.0, 1.0);
@@ -116,15 +99,18 @@ void main() {
         } else {
             pixel_color = vec3(0.0);
         }
-        output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        // output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        output_color = vec4(pixel_color, 1.0);
     } else if (uniforms.shader_mode == 3.0) {
         pixel_color = pathTrace(camera_ray, seed);
-        output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        // output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        output_color = vec4(pixel_color, 1.0);
     } else {
         Data data = rayMarch(camera_ray);
         float factor = 1.0 - (float(data.marches) / uniforms.max_marches);
         pixel_color = vec3(mix(0.0, factor, float(data.collided)));
-        output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        // output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
+        output_color = vec4(pixel_color, 1.0);
     }
 }
 

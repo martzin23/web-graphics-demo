@@ -1,7 +1,7 @@
 import Vector from '../../utility/vector.js';
 import Matrix from '../../utility/matrix.js';
 
-export default class GPUManager {
+export default class WebGPUManager {
     static async initialize(canvas, compute_url, render_url, sdf_url) {
         if (!navigator.gpu) {
             document.getElementById("menu").innerText = "WebGPU not supported on this browser.";
@@ -19,7 +19,7 @@ export default class GPUManager {
         const render_code = await (await fetch(render_url)).text();
         const sdf_code = await (await fetch(sdf_url)).text();
 
-        return new GPUManager(canvas, device, compute_code, render_code, sdf_code);
+        return new WebGPUManager(canvas, device, compute_code, render_code, sdf_code);
     }
 
     constructor(canvas, device, compute_shader_code, render_shader_code, sdf_code) {
