@@ -1,4 +1,4 @@
-import * as Widgets from '../../utility/widgets.js';
+import * as Widgets from '../utility/widgets.js';
 
 export default class GUIManager {
     constructor(gpu, camera) {
@@ -199,19 +199,19 @@ export default class GUIManager {
                 switchAttribute(temp, value, undefined, "hidden");
                 switch (value) {
                     default: 
-                        code = await (await fetch("../scripts/raymarcher/view/shader/sphere.glsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/shader/sphere.glsl")).text();
                         break;
                     case 1: 
-                        code = await (await fetch("../scripts/raymarcher/view/shader/mandelbox.glsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/shader/mandelbox.glsl")).text();
                         break;
                     case 2:
-                        code = await (await fetch("../scripts/raymarcher/view/shader/mandelbulb.glsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/shader/mandelbulb.glsl")).text();
                         break;
                     case 3: 
-                        code = await (await fetch("../scripts/raymarcher/view/shader/kochcurve.glsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/shader/kochcurve.glsl")).text();
                         break;
                     case 4: 
-                        code = await (await fetch("../scripts/raymarcher/view/shader/juliabulb.glsl")).text();
+                        code = await (await fetch("../scripts/raymarcher/shader/juliabulb.glsl")).text();
                         break;
                     case 5: 
                         code = document.getElementById("input-code").value;

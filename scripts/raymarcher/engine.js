@@ -1,7 +1,7 @@
-import WebGLManager from './view/webgl_manager.js'
-import WebGPUManager from './view/webgpu_manager.js';
-import KEYManager from './control/key.js';
-import GUIManager from './control/gui.js';
+import WebGLManager from './webgl_manager.js'
+// import WebGPUManager from './webgpu_manager.js';
+import KEYManager from './key.js';
+import GUIManager from './gui.js';
 import FPSCounter from '../utility/fps.js';
 import Camera from '../utility/camera.js';
 import Matrix from '../utility/matrix.js';
@@ -10,9 +10,9 @@ class Engine {
     static async initialize() {
         const gpu = await WebGLManager.initialize(
             document.getElementById("canvas"), 
-            '../scripts/raymarcher/view/shader/compute.glsl', 
-            '../scripts/raymarcher/view/shader/render.glsl', 
-            '../scripts/raymarcher/view/shader/sphere.glsl'
+            '../scripts/raymarcher/shader/compute.glsl', 
+            '../scripts/raymarcher/shader/render.glsl', 
+            '../scripts/raymarcher/shader/sphere.glsl'
         );
         return new Engine(gpu);
     }

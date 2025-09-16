@@ -1,5 +1,5 @@
-import Vector from '../../utility/vector.js';
-import Matrix from '../../utility/matrix.js';
+import Vector from '../utility/vector.js';
+import Matrix from '../utility/matrix.js';
 
 export default class WebGPUManager {
     static async initialize(canvas, compute_url, render_url, sdf_url) {
@@ -262,13 +262,6 @@ export default class WebGPUManager {
     }
 
     synchronize() {
-        // let canvas_dimensions = this.canvas.getBoundingClientRect();
-        // canvas_dimensions.width = Math.min(canvas_dimensions.width, this.base_render_size.x);
-        // canvas_dimensions.height = Math.min(canvas_dimensions.height, this.base_render_size.y);
-        // this.uniforms.canvas_size = Vector.vec(canvas_dimensions.width, canvas_dimensions.height);
-        // this.canvas.height = canvas_dimensions.height;
-        // this.canvas.width = canvas_dimensions.width;
-
         const width = Math.min(this.canvas.clientWidth, this.base_render_size.x);
         const height = Math.min(this.canvas.clientHeight, this.base_render_size.y);
         this.uniforms.canvas_size = Vector.vec(width, height);

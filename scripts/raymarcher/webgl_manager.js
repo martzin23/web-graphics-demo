@@ -1,5 +1,5 @@
-import Matrix from "../../utility/matrix.js";
-import Vector from "../../utility/vector.js";
+import Matrix from "../utility/matrix.js";
+import Vector from "../utility/vector.js";
 
 /*
 TODO
