@@ -56,7 +56,7 @@ class WebGLManager {
             fov: 1.0,
 
             sun_direction: Vector.vec(1.0),
-            shader_mode: 0,
+            shader_mode: 1,
 
             max_bounces: 3,
             max_marches: 50,
@@ -147,8 +147,8 @@ class WebGLManager {
         
         // this.gl.viewport(0, 0, this.uniforms.buffer_size.x, this.uniforms.buffer_size.y);
         this.gl.viewport(0, 0, Math.ceil(this.uniforms.canvas_size.x / this.uniforms.render_scale), Math.ceil(this.uniforms.canvas_size.y / this.uniforms.render_scale));
-        console.log(this.uniforms.canvas_size);
-        console.log(this.uniforms.buffer_size);
+        // console.log(this.uniforms.canvas_size);
+        // console.log(this.uniforms.buffer_size);
         // console.log(
         //     Math.floor((this.uniforms.buffer_size.x - this.uniforms.canvas_size.x) / 2.0),
         //     Math.floor((this.uniforms.buffer_size.y - this.uniforms.canvas_size.y) / 2.0), 
@@ -256,6 +256,6 @@ const renderer = await WebGLManager.initialize(
     document.getElementById("canvas"),
     "../scripts/raymarcher/view/shader/compute.glsl",
     "../scripts/raymarcher/view/shader/render.glsl",
-    "../scripts/raymarcher/view/shader/sphere.glsl"
+    "../scripts/raymarcher/view/shader/kochcurve.glsl"
 );
 renderer.render();
