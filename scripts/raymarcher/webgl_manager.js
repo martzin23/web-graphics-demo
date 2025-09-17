@@ -1,19 +1,6 @@
 import Matrix from "../utility/matrix.js";
 import Vector from "../utility/vector.js";
 
-/*
-TODO
-color buffer
-compute shader setup
-uniform buffer
-
-fragment translation
-vertex translation
-copute translaton
-
-screenshot
-*/
-
 export default class WebGLManager {
     static async initialize(canvas, compute_url, render_url, sdf_url) {
         const compute_shader_code = await (await fetch(compute_url)).text();
@@ -257,11 +244,3 @@ function packUniforms(data) {
     }
     return array.flat();
 }
-
-// const renderer = await WebGLManager.initialize(
-//     document.getElementById("canvas"),
-//     "../scripts/raymarcher/view/shader/compute.glsl",
-//     "../scripts/raymarcher/view/shader/render.glsl",
-//     "../scripts/raymarcher/view/shader/kochcurve.glsl"
-// );
-// renderer.render();

@@ -1,10 +1,10 @@
 import WebGLManager from './webgl_manager.js'
 // import WebGPUManager from './webgpu_manager.js';
-import KEYManager from './key.js';
 import GUIManager from './gui.js';
 import FPSCounter from '../utility/fps.js';
 import Camera from '../utility/camera.js';
 import Matrix from '../utility/matrix.js';
+import Vector from '../utility/vector.js';
 
 class Engine {
     static async initialize() {
@@ -20,9 +20,8 @@ class Engine {
     constructor(gpu) {
         this.gpu = gpu;
         this.fps = new FPSCounter(document.getElementById("output-fps"), undefined, " fps");
-        this.camera = new Camera();
+        this.camera = new Camera(Vector.vec(4.0), Vector.vec(-135.0, 35.0));
         this.gui = new GUIManager(this.gpu, this.camera);
-        this.key = new KEYManager(this.gpu, this.gui, this.camera);
         this.local_storage_name = "renderer-raymarcher";
         this.frame = 0;
 
@@ -32,13 +31,10 @@ class Engine {
     }
 
     update() {
-        if (this.gui.isFocused())
-            this.camera.updatePosition(this.key.key_states);
-
-        if (this.key.keyPressed() && this.gui.auto_refresh)
-            this.gpu.refresh();
-        
+        this.camera.update();
         this.fps.update();
+        if (this.gui.keyPressed() && this.gui.auto_refresh)
+            this.gpu.refresh();
         
         this.gpu.uniforms.sun_direction = Matrix.rot2dir(this.gpu.sun_rotation.x, this.gpu.sun_rotation.y);
         this.gpu.uniforms.camera_rotation = this.camera.getRotationMatrix();

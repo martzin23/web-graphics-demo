@@ -6,24 +6,27 @@ export default class GUIManager {
         this.gpu = gpu;
         this.camera = camera;
         this.update_event;
-        this.update_handler;
         this.auto_refresh = true;
         this.current_tab = 0;
+
+        this.key_states = {};
+        this.mouse_states = [false, false, false, false, false];
         
-        this.setupCallbacks();
+        this.setupListeners();
         this.setupWidgets();
+        this.update_handler = setInterval(() => { this.updateValues(); }, 500);
     }
 
-    toggleFocus() {
-        if (this.isFocused())
-            document.exitPointerLock();
-        else
-            this.canvas.requestPointerLock({ unadjustedMovement: true }).catch(() => {});
-    }
+    // toggleFocus() {
+    //     if (this.isFocused())
+    //         document.exitPointerLock();
+    //     else
+    //         this.canvas.requestPointerLock({ unadjustedMovement: true }).catch(() => {});
+    // }
 
-    isFocused() {
-        return document.pointerLockElement !== null;
-    }
+    // isFocused() {
+    //     return document.pointerLockElement !== null;
+    // }
 
     toggleFullscreen() {
         if (this.isFullscreen()) {
@@ -90,15 +93,10 @@ export default class GUIManager {
         this.switchTab(target_tab);
     }
 
-    setupCallbacks() {
+    setupListeners() {
         this.canvas.addEventListener('click', (event) => {
             if (event.button == 0)
-                this.toggleFocus();
-        });
-
-        this.update_event = new CustomEvent('updategui', {
-            bubbles: true,
-            cancelable: true
+                this.camera.toggle(this.canvas);
         });
 
         ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach((eventType) => {
@@ -110,6 +108,69 @@ export default class GUIManager {
                 else if (this.isFullscreen() && this.current_tab === null)
                     menu.classList.add("hidden");
             })
+        });
+
+
+        // https://stackoverflow.com/questions/6637341/use-tab-to-indent-in-textarea
+        document.getElementById('input-code').addEventListener('keydown', function(event) {
+            if (event.key == 'Tab') {
+                event.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+
+                this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+            }
+        });
+        
+        document.addEventListener('keydown', (event) => {
+            this.key_states[event.key] = true;
+            switch (event.key) {
+                case "ArrowUp":
+                    if (this.gui.isTyping()) return;
+                    this.gpu.uniforms.render_scale = Math.max(this.gpu.uniforms.render_scale - 1, 1);
+                    break;
+                case "ArrowDown":
+                    if (this.gui.isTyping()) return;
+                    this.gpu.uniforms.render_scale = Math.min(this.gpu.uniforms.render_scale + 1, 16);
+                    break;
+                case "F11":
+                    event.preventDefault();
+                    this.gui.toggleFullscreen();
+                    break;
+                case "Tab":
+                    event.preventDefault();
+                    if (this.gui.isTyping()) return;
+                    this.gui.auto_refresh = !this.gui.auto_refresh;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            this.key_states[event.key] = false;
+        });
+
+        document.addEventListener('mousedown', (event) => {
+            this.mouse_states[event.button] = true;
+        });
+
+        document.addEventListener('mouseup', (event) => {
+            this.mouse_states[event.button] = false;
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if(this.auto_refresh) this.gpu.refresh();
+        });
+
+        document.addEventListener('mousemove', () => {
+            if((this.mousePressed() || this.camera.isEnabled()) && this.auto_refresh)
+                this.gpu.refresh();
+        });
+        
+        document.addEventListener('wheel', (event) => {
+            if (!this.camera.isEnabled()) {
+                this.scrollTab(event.deltaY);
+            }
         });
 
         HTMLElement.prototype.addTooltip = function(tooltip, icon) {
@@ -130,19 +191,24 @@ export default class GUIManager {
             }
         };
 
-        this.update_handler = setInterval(() => { this.updateValues(); }, 500);
-
-        // https://stackoverflow.com/questions/6637341/use-tab-to-indent-in-textarea
-        document.getElementById('input-code').addEventListener('keydown', function(event) {
-            if (event.key == 'Tab') {
-                event.preventDefault();
-                var start = this.selectionStart;
-                var end = this.selectionEnd;
-
-                this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
-                this.selectionStart = this.selectionEnd = start + 1;
-            }
+        this.update_event = new CustomEvent('updategui', {
+            bubbles: true,
+            cancelable: true
         });
+    }
+
+    keyPressed() {
+        let pressed = false;
+        for (const key in this.key_states)
+            if (this.key_states[key] === true)
+                pressed = true;
+        return pressed;
+    }
+
+    mousePressed() {
+        let pressed = false;
+        this.mouse_states.forEach(button => {if (button) pressed = true;});
+        return pressed;
     }
 
     setupWidgets() {

@@ -10,10 +10,10 @@ export default class KEYManager {
         document.addEventListener('keyup', (event) => this.keyboardRelease(event));
         document.addEventListener('mousedown', (event) => this.mousePress(event));
         document.addEventListener('mouseup', (event) => this.mouseRelease(event));
-        document.addEventListener('mousemove', (event) => this.mouseMove(event));
-        document.addEventListener('wheel', (event) => this.mouseScroll(event));
+        // document.addEventListener('mousemove', (event) => this.mouseMove(event));
+        // document.addEventListener('wheel', (event) => this.mouseScroll(event));
         document.addEventListener('mouseup', () => {if(this.gui.auto_refresh) this.gpu.refresh();});
-        document.addEventListener('mousemove', () => {if((this.mousePressed() || this.gui.isFocused()) && this.gui.auto_refresh) this.gpu.refresh();});
+        document.addEventListener('mousemove', () => {if((this.mousePressed() || this.camera.isEnabled()) && this.gui.auto_refresh) this.gpu.refresh();});
     }
 
     keyboardPress(event) {
@@ -51,21 +51,21 @@ export default class KEYManager {
         this.mouse_states[event.button] = false;
     }
 
-    mouseMove(event) {
-        if (this.gui.isFocused())
-            this.camera.updateRotation(event.movementX, event.movementY);
-    }
+    // mouseMove(event) {
+    //     if (this.gui.isFocused())
+    //         this.camera.updateRotation(event.movementX, event.movementY);
+    // }
 
-    mouseScroll(event) {
-        if (this.gui.isFocused()) {
-            if(event.deltaY < 0)
-                this.camera.speed *= 1.25;
-            else
-                this.camera.speed /= 1.25;
-        } else {
-            this.gui.scrollTab(event.deltaY);
-        }
-    }
+    // mouseScroll(event) {
+    //     if (this.gui.isFocused()) {
+    //         if(event.deltaY < 0)
+    //             this.camera.speed *= 1.25;
+    //         else
+    //             this.camera.speed /= 1.25;
+    //     } else {
+    //         this.gui.scrollTab(event.deltaY);
+    //     }
+    // }
 
     keyPressed() {
         let pressed = false;
@@ -79,6 +79,5 @@ export default class KEYManager {
         let pressed = false;
         this.mouse_states.forEach(button => {if (button) pressed = true;});
         return pressed;
-
     }
 }
