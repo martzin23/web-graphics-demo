@@ -49,7 +49,7 @@ out vec4 output_color;
 
 vec3 pathTrace(Ray camera_ray, inout uint seed);
 Data rayMarch(Ray ray);
-void focusBlur(Ray ray, inout uint seed, const float dist, const float strength);
+void focusBlur(inout Ray ray, inout uint seed, const float dist, const float strength);
 vec3 derivateNormal(vec3 position, float epsilon);
 vec3 skyValue(vec3 direction);
 float randomUniform(inout uint seed);
@@ -60,7 +60,7 @@ float SDF(vec3 p);
 void main() {
     float aspect_ratio = uniforms.canvas_size.y / uniforms.canvas_size.x;
     vec2 centered_coordinates = (texture_coordinates - 0.5) * 2.0 * vec2(1.0, aspect_ratio);
-    uvec2 integer_coordinates = uvec2(texture_coordinates * uniforms.canvas_size);
+    uvec2 integer_coordinates = uvec2(texture_coordinates * uniforms.canvas_size / uniforms.render_scale);
     uint seed = integer_coordinates.x + integer_coordinates.y * uint(uniforms.canvas_size.x) + uint(uniforms.temporal_counter) * uint(69420);
 
     Ray camera_ray;
@@ -69,8 +69,7 @@ void main() {
     camera_ray.direction = normalize(camera_ray.direction + randomDirection(seed) * 0.0005 * uniforms.fov * uniforms.render_scale);
     focusBlur(camera_ray, seed, uniforms.focus_distance, uniforms.focus_strength);
 
-    // vec4 previous_color = vec4(0.0);
-    // vec4 previous_color = texture(color_buffer, texture_coordinates);
+    vec4 previous_color = texelFetch(color_buffer, ivec2(gl_FragCoord.xy), 0);
     vec3 pixel_color = vec3(0.0);
     if (uniforms.shader_mode == 1.0) {
         Data data = rayMarch(camera_ray);
@@ -80,8 +79,7 @@ void main() {
         } else {
             pixel_color = vec3(0.0);
         }
-        // output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
-        output_color = vec4(pixel_color, 1.0);
+        output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
     } else if (uniforms.shader_mode == 2.0) {
         Data camera_data = rayMarch(camera_ray);
         float diffuse = clamp(dot(camera_data.normal, uniforms.sun_direction), 0.0, 1.0);
@@ -99,18 +97,15 @@ void main() {
         } else {
             pixel_color = vec3(0.0);
         }
-        // output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
-        output_color = vec4(pixel_color, 1.0);
+        output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
     } else if (uniforms.shader_mode == 3.0) {
         pixel_color = pathTrace(camera_ray, seed);
-        // output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
-        output_color = vec4(pixel_color, 1.0);
+        output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
     } else {
         Data data = rayMarch(camera_ray);
         float factor = 1.0 - (float(data.marches) / uniforms.max_marches);
         pixel_color = vec3(mix(0.0, factor, float(data.collided)));
-        // output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
-        output_color = vec4(pixel_color, 1.0);
+        output_color = vec4(previous_color.xyz * ((uniforms.temporal_counter - 1.0) / uniforms.temporal_counter) + pixel_color * (1.0 / uniforms.temporal_counter), 1.0);
     }
 }
 
@@ -191,7 +186,7 @@ vec3 randomDirection(inout uint seed) {
     return normalize(vec3(randomNormal(seed), randomNormal(seed), randomNormal(seed)));
 }
 
-void focusBlur(Ray ray, inout uint seed, const float range, const float strength) {
+void focusBlur(inout Ray ray, inout uint seed, const float range, const float strength) {
     vec3 focus_point = ray.origin + ray.direction * range;
     ray.origin += randomDirection(seed) * strength;
     ray.direction = normalize(focus_point - ray.origin);

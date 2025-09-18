@@ -1,14 +1,15 @@
 import * as Widgets from '../utility/widgets.js';
 
 export default class GUIManager {
-    constructor(gpu, camera) {
+    constructor(gpu, camera, storage) {
         this.canvas = document.getElementById("canvas");
         this.gpu = gpu;
         this.camera = camera;
+        this.storage = storage;
         this.update_event;
+
         this.auto_refresh = true;
         this.current_tab = 0;
-
         this.key_states = {};
         this.mouse_states = [false, false, false, false, false];
         
@@ -16,17 +17,6 @@ export default class GUIManager {
         this.setupWidgets();
         this.update_handler = setInterval(() => { this.updateValues(); }, 500);
     }
-
-    // toggleFocus() {
-    //     if (this.isFocused())
-    //         document.exitPointerLock();
-    //     else
-    //         this.canvas.requestPointerLock({ unadjustedMovement: true }).catch(() => {});
-    // }
-
-    // isFocused() {
-    //     return document.pointerLockElement !== null;
-    // }
 
     toggleFullscreen() {
         if (this.isFullscreen()) {
@@ -53,6 +43,22 @@ export default class GUIManager {
 
     isTyping() {
         return (document.activeElement.type === 'text') || (document.activeElement.nodeName === 'TEXTAREA');
+    }
+
+    isKeyPressed() {
+        let pressed = false;
+        for (const key in this.key_states)
+            if (this.key_states[key] === true)
+                pressed = true;
+        return pressed;
+    }
+
+    isMousePressed() {
+        let pressed = false;
+        this.mouse_states.forEach(button => {
+            if (button) pressed = true;
+        });
+        return pressed;
     }
 
     updateValues() {
@@ -127,11 +133,11 @@ export default class GUIManager {
             this.key_states[event.key] = true;
             switch (event.key) {
                 case "ArrowUp":
-                    if (this.gui.isTyping()) return;
+                    if (this.isTyping()) return;
                     this.gpu.uniforms.render_scale = Math.max(this.gpu.uniforms.render_scale - 1, 1);
                     break;
                 case "ArrowDown":
-                    if (this.gui.isTyping()) return;
+                    if (this.isTyping()) return;
                     this.gpu.uniforms.render_scale = Math.min(this.gpu.uniforms.render_scale + 1, 16);
                     break;
                 case "F11":
@@ -140,7 +146,7 @@ export default class GUIManager {
                     break;
                 case "Tab":
                     event.preventDefault();
-                    if (this.gui.isTyping()) return;
+                    if (this.isTyping()) return;
                     this.gui.auto_refresh = !this.gui.auto_refresh;
                     break;
             }
@@ -163,7 +169,7 @@ export default class GUIManager {
         });
 
         document.addEventListener('mousemove', () => {
-            if((this.mousePressed() || this.camera.isEnabled()) && this.auto_refresh)
+            if((this.isMousePressed() || this.camera.isEnabled()) && this.auto_refresh)
                 this.gpu.refresh();
         });
         
@@ -197,20 +203,6 @@ export default class GUIManager {
         });
     }
 
-    keyPressed() {
-        let pressed = false;
-        for (const key in this.key_states)
-            if (this.key_states[key] === true)
-                pressed = true;
-        return pressed;
-    }
-
-    mousePressed() {
-        let pressed = false;
-        this.mouse_states.forEach(button => {if (button) pressed = true;});
-        return pressed;
-    }
-
     setupWidgets() {
         Widgets.createSwitch(
             document.getElementById("group-tabs"), 
@@ -235,6 +227,11 @@ export default class GUIManager {
             var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
             this.gpu.screenshot(date_time);
         }, '<i class="fa fa-download"></i>Screenshot');
+
+        Widgets.createButton(document.getElementById("group-misc"), () => {
+            this.storage.delete();
+            location.reload();
+        }, '<i class="fa fa-refresh"></i>Reset variables');
 
         Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Position");
         Widgets.createButton(document.getElementById("group-camera"), () => {this.camera.position = {x: 0, y: 0, z: 0}}, "Reset position");

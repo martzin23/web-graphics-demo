@@ -15,9 +15,10 @@ export default class WebGLManager {
         this.render_shader_code = render_shader_code;
 
         this.vertex_buffer;
-        this.color_buffer;
         this.uniform_buffer;
-        this.frame_buffer;
+        this.color_buffers = [undefined, undefined];
+        this.frame_buffers = [undefined, undefined];
+
         this.render_vertex_location;
         this.compute_vertex_location;
         this.compute_color_buffer_location;
@@ -76,17 +77,30 @@ export default class WebGLManager {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
 
-        this.color_buffer = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer);
+        this.color_buffers[0] = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffers[0]);
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA16F, this.base_render_size.x, this.base_render_size.y, 0, this.gl.RGBA, this.gl.FLOAT, null);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
-        this.frame_buffer = this.gl.createFramebuffer();
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER,  this.frame_buffer);
-        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.color_buffer, 0);
+        this.color_buffers[1] = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffers[1]);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA16F, this.base_render_size.x, this.base_render_size.y, 0, this.gl.RGBA, this.gl.FLOAT, null);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+        this.frame_buffers[0] = this.gl.createFramebuffer();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER,  this.frame_buffers[0]);
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.color_buffers[0], 0);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+
+        this.frame_buffers[1] = this.gl.createFramebuffer();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER,  this.frame_buffers[1]);
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.color_buffers[1], 0);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
         this.setup(compute_shader_code + sdf_code, render_shader_code);
@@ -112,14 +126,17 @@ export default class WebGLManager {
         const uniform_array = new Float32Array(packUniforms(this.uniforms));
         this.gl.uniformBlockBinding(this.compute_program, this.gl.getUniformBlockIndex(this.compute_program, "UniformBlock"), uniform_binding_number);
         this.gl.uniformBlockBinding(this.render_program, this.gl.getUniformBlockIndex(this.render_program, "UniformBlock"), uniform_binding_number);
+
         this.uniform_buffer = this.gl.createBuffer();
         this.gl.bindBufferBase(this.gl.UNIFORM_BUFFER, uniform_binding_number, this.uniform_buffer);
         this.gl.bufferData(this.gl.UNIFORM_BUFFER, uniform_array.byteLength, this.gl.DYNAMIC_DRAW);
 
         this.compute_color_buffer_location = this.gl.getUniformLocation(this.compute_program, 'color_buffer');
         this.render_color_buffer_location = this.gl.getUniformLocation(this.render_program, 'color_buffer');
+
         this.render_vertex_location = this.gl.getAttribLocation(this.render_program, "vertex_position");
         this.compute_vertex_location = this.gl.getAttribLocation(this.compute_program, "vertex_position");
+
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.vertexAttribPointer(this.render_vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
         this.gl.vertexAttribPointer(this.compute_vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
@@ -133,24 +150,9 @@ export default class WebGLManager {
         this.gl.bufferData(this.gl.UNIFORM_BUFFER, uniform_array, this.gl.DYNAMIC_DRAW);
 
         // computing the image
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frame_buffer);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frame_buffers[0]);
         
-        // this.gl.viewport(0, 0, this.uniforms.buffer_size.x, this.uniforms.buffer_size.y);
         this.gl.viewport(0, 0, Math.ceil(this.uniforms.canvas_size.x / this.uniforms.render_scale), Math.ceil(this.uniforms.canvas_size.y / this.uniforms.render_scale));
-        // console.log(this.uniforms.canvas_size);
-        // console.log(this.uniforms.buffer_size);
-        // console.log(
-        //     Math.floor((this.uniforms.buffer_size.x - this.uniforms.canvas_size.x) / 2.0),
-        //     Math.floor((this.uniforms.buffer_size.y - this.uniforms.canvas_size.y) / 2.0), 
-        //     Math.floor(this.uniforms.buffer_size.x - (this.uniforms.buffer_size.x - this.uniforms.canvas_size.x) / 2.0), 
-        //     Math.floor(this.uniforms.buffer_size.y - (this.uniforms.buffer_size.y - this.uniforms.canvas_size.y) / 2.0)
-        // );
-        // this.gl.viewport(
-        //     Math.floor((this.uniforms.buffer_size.x - this.uniforms.canvas_size.x) / 2.0),
-        //     Math.floor((this.uniforms.buffer_size.y - this.uniforms.canvas_size.y) / 2.0), 
-        //     Math.floor(this.uniforms.canvas_size.x), 
-        //     Math.floor(this.uniforms.canvas_size.y)
-        // );
         this.gl.clearColor(1.0, 0.0, 0.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         
@@ -158,7 +160,7 @@ export default class WebGLManager {
 
         this.gl.enableVertexAttribArray(this.compute_vertex_location);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffers[1]);
         this.gl.uniform1i(this.compute_color_buffer_location, 0);
         
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
@@ -169,16 +171,18 @@ export default class WebGLManager {
         this.gl.clearColor(0.0, 0.0, 1.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.viewport(0, 0, this.uniforms.canvas_size.x, this.uniforms.canvas_size.y);
-        // this.gl.viewport(0, 0, this.uniforms.buffer_size.x, this.uniforms.buffer_size.y);
 
         this.gl.useProgram(this.render_program);
 
         this.gl.enableVertexAttribArray(this.render_vertex_location);
         this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffers[0]);
         this.gl.uniform1i(this.render_color_buffer_location, 0);
 
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+
+        [this.color_buffers[0], this.color_buffers[1]] = [this.color_buffers[1], this.color_buffers[0]];
+        [this.frame_buffers[0], this.frame_buffers[1]] = [this.frame_buffers[1], this.frame_buffers[0]];
     }
 
     synchronize() {
