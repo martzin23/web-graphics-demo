@@ -29,8 +29,20 @@ export default class WebGLManager {
         this.sun_rotation = Vector.vec(45, 45);
         this.base_render_size = {x: 2560, y: 1440};
         this.gl = this.canvas.getContext("webgl2");
+        if (!this.gl) {
+            const message = "This device does not support WebGL2.";
+            document.getElementById("popup-error").classList.remove("hidden");
+            document.getElementById("output-fail").innerText = message;
+        }
         const ext = this.gl.getExtension('EXT_color_buffer_float');
-        if (!ext) console.error("Failed to get extension");
+        if (!ext) {
+            const message = "Failed to get WebGL extention, try reloading.";
+            document.getElementById("popup-error").classList.remove("hidden");
+            document.getElementById("output-fail").innerText = message;
+        };
+
+        window.addEventListener("resize", () => {this.synchronize(); this.refresh();});
+        this.canvas.addEventListener("resize", () => {this.synchronize(); this.refresh();});
 
         this.uniforms = {
             canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
@@ -198,11 +210,68 @@ export default class WebGLManager {
     }
 
     async recompile(sdf_code) {
-        this.setup(this.compute_shader_code + "\n" + sdf_code, this.render_shader_code);
+        let message = "";
+        try {
+            this.setup(this.compute_shader_code + "\n" + sdf_code, this.render_shader_code);
+        } catch (error) {
+            message = error;
+        }
+        return message;
     }
 
-    screenshot() {
-        console.log("screenshot");
+    async screenshot(file_name) {
+        const buffer_width = Math.floor(this.uniforms.buffer_size.x);
+        const buffer_height = Math.floor(this.uniforms.buffer_size.y);
+        const render_width = Math.floor(this.uniforms.canvas_size.x);
+        const render_height = Math.floor(this.uniforms.canvas_size.y);
+
+        const color_buffer = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, color_buffer);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA8, buffer_width, buffer_height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+        
+        const frame_buffer = this.gl.createFramebuffer();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER,  frame_buffer);
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, color_buffer, 0);
+        
+        this.gl.clearColor(0.0, 0.0, 1.0, 1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        this.gl.viewport(0, 0, render_width, render_height);
+
+        this.gl.useProgram(this.render_program);
+
+        this.gl.enableVertexAttribArray(this.render_vertex_location);
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffers[0]);
+        this.gl.uniform1i(this.render_color_buffer_location, 0);
+
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+
+        const data = new Uint8ClampedArray(render_width * render_height * 4);
+        this.gl.readPixels(0, 0, render_width, render_height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+
+        const image_data = new ImageData(data, render_width, render_height);
+        const image_bitmap = await createImageBitmap(image_data);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = render_width;
+        canvas.height = render_height;
+        const context = canvas.getContext('2d');
+        context.scale(1, -1);
+        context.drawImage(image_bitmap, 0, -render_height);
+        
+        canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file_name;
+            a.click();
+            URL.revokeObjectURL(url);
+        }, 'image/png');
     }
 }
 

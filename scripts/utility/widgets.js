@@ -240,15 +240,17 @@ export function createDrag(parent, set = (value) => {}, get = () => 0.0, name = 
             const value = resizeNumber(Math.max(Math.min(parseFloat(element_text.value) + event.movementX * sen, max), min));
             element_text.value = value;
             set(parseFloat(value));
-
-            const mouseup_listener = () => {
-                document.removeEventListener("mousemove", mousemove_listener);
-                document.removeEventListener("mouseup", mouseup_listener);
-            }
-            document.addEventListener("mouseup", mouseup_listener);
         }
-
+        const mouseup_listener = () => {
+            document.removeEventListener("mousemove", mousemove_listener);
+            document.removeEventListener("mouseup", mouseup_listener);
+        }
+        document.addEventListener("mouseup", mouseup_listener);
         document.addEventListener("mousemove", mousemove_listener);
+    });
+
+    element_button.addEventListener("touchstart", (event) = {
+
     });
     
     parent.appendChild(element_base);

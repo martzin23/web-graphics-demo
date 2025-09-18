@@ -173,11 +173,11 @@ export default class GUIManager {
                 this.gpu.refresh();
         });
         
-        document.addEventListener('wheel', (event) => {
-            if (!this.camera.isEnabled()) {
-                this.scrollTab(event.deltaY);
-            }
-        });
+        // document.addEventListener('wheel', (event) => {
+        //     if (!this.camera.isEnabled()) {
+        //         this.scrollTab(event.deltaY);
+        //     }
+        // });
 
         HTMLElement.prototype.addTooltip = function(tooltip, icon) {
             if (icon) {

@@ -1,15 +1,12 @@
 <!-- 
 TODO
-webgl
-	ping pong buffer
-	recompile error message
-	screenshot
-error popup
-	catching errors
-	clean page
-menu overdraw
-	remove menu scroll
-	remove comments
+remove tooltips
+mobile controls
+	camera rotate
+	camera move
+	menu fit / fullscreen
+	drag
+	refresh
 generalized local storage
 
 BUGS
@@ -61,7 +58,7 @@ color widget not working
 					<p>Display</p>
 				</figcaption>
 			</figure>
-			
+
 			<figure id="group-misc">
 				<figcaption>
 					<hr>
@@ -211,5 +208,19 @@ color widget not working
 	</menu>
 
 	<canvas id="canvas" class="block"></canvas>
+
+	<div class="popup hidden" onclick="this.classList.add('hidden')" id="popup-error">
+		<div>
+			<div class="row">
+				<i class="fa fa-times"></i>		
+				<p>Error</p>
+			</div>
+			<p id="output-fail">This device does not support WebGL!</p>
+			<div class="button" onclick="location.reload();">
+				<i class="fa fa-refresh"></i>
+				<p>Restart</p>
+			</div>
+		</div>
+	</div>
 </body>
 </html>

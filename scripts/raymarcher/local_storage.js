@@ -41,4 +41,8 @@ export default class LocalStorage {
     delete() {
         localStorage.removeItem(this.local_storage_name);
     }
+
+    markGroup(element_parent) {
+        
+    }
 }

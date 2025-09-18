@@ -300,6 +300,75 @@ textarea {
     padding: 0.5rem;
     width: 6rem;
     font-family: monospace;
+    font-size: 0.8rem;
+    resize: none;
+}
+
+.popup {
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--transluscent);
+    backdrop-filter: blur(2px);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+.popup>div {
+    border-radius: var(--roundness);
+    background: linear-gradient(0deg, var(--error-dark) 0%, var(--background-light) 100%);
+    box-shadow: 0.25rem 0.25rem 0rem var(--shadow);
+
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 1rem;
+}
+
+.popup .row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.popup .row i {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+
+    background-color: var(--error-default);
+    box-shadow: 0.25rem 0.25rem 0rem var(--error-dark);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup .row p {
+    color: var(--error-default);
+}
+
+.popup>div>p {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.popup .button {
+    align-self: flex-end;
 }
 
 /* LAYOUT----------------------------------- */
@@ -348,6 +417,7 @@ body {
 
 :root:fullscreen menu {
     background: linear-gradient(0deg, var(--background-dark) 0%, var(--background-light) 100%);
+    height: fit-content;
     /* background-color: var(--background-light); */
     /* backdrop-filter: blur(4px); */
     /* backdrop-filter: invert() blur(1rem); */
@@ -397,8 +467,9 @@ header>div {
 
 menu {
     padding: 0rem;
-    /* overflow-y: auto;
-    /* scrollbar-color: var(--block-default) #00000000; */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-color: var(--block-default) #00000000;
 }
 
 section {
