@@ -1,18 +1,18 @@
 import * as Widgets from '../utility/widgets.js';
 
 export default class GUIManager {
-    constructor(gpu, camera, storage) {
-        this.canvas = document.getElementById("canvas");
+    constructor(canvas, gpu, camera, storage) {
+        this.canvas = canvas;
         this.gpu = gpu;
         this.camera = camera;
         this.storage = storage;
-        this.update_event;
 
         this.auto_refresh = true;
         this.current_tab = 0;
         this.key_states = {};
         this.mouse_states = [false, false, false, false, false];
-        
+        this.update_event = new CustomEvent('updategui', {bubbles: true, cancelable: true });
+
         this.setupListeners();
         this.setupWidgets();
         this.update_handler = setInterval(() => { this.updateValues(); }, 500);
@@ -84,20 +84,20 @@ export default class GUIManager {
         }
     }
 
-    scrollTab(delta) {
-        delta = delta > 0 ? -1 : 1;
-        const tabs_count = document.getElementById("group-tabs").firstChild.childNodes.length;
-        let target_tab;
-        if (this.current_tab === null && delta < 0)
-            target_tab = tabs_count - 1;
-        else if (this.current_tab === null && delta > 0)
-            target_tab = 0;
-        else if (!(this.current_tab == 0 && delta < 0) && !(this.current_tab == tabs_count - 1 && delta > 0))
-            target_tab = (this.current_tab + delta) % tabs_count;
-        else
-            target_tab = null;
-        this.switchTab(target_tab);
-    }
+    // scrollTab(delta) {
+    //     delta = delta > 0 ? -1 : 1;
+    //     const tabs_count = document.getElementById("group-tabs").firstChild.childNodes.length;
+    //     let target_tab;
+    //     if (this.current_tab === null && delta < 0)
+    //         target_tab = tabs_count - 1;
+    //     else if (this.current_tab === null && delta > 0)
+    //         target_tab = 0;
+    //     else if (!(this.current_tab == 0 && delta < 0) && !(this.current_tab == tabs_count - 1 && delta > 0))
+    //         target_tab = (this.current_tab + delta) % tabs_count;
+    //     else
+    //         target_tab = null;
+    //     this.switchTab(target_tab);
+    // }
 
     setupListeners() {
         this.canvas.addEventListener('click', (event) => {
@@ -134,11 +134,11 @@ export default class GUIManager {
             switch (event.key) {
                 case "ArrowUp":
                     if (this.isTyping()) return;
-                    this.gpu.uniforms.render_scale = Math.max(this.gpu.uniforms.render_scale - 1, 1);
+                        this.gpu.uniforms.render_scale = Math.max(this.gpu.uniforms.render_scale - 1, 1);
                     break;
                 case "ArrowDown":
                     if (this.isTyping()) return;
-                    this.gpu.uniforms.render_scale = Math.min(this.gpu.uniforms.render_scale + 1, 16);
+                        this.gpu.uniforms.render_scale = Math.min(this.gpu.uniforms.render_scale + 1, 16);
                     break;
                 case "F11":
                     event.preventDefault();
@@ -147,7 +147,7 @@ export default class GUIManager {
                 case "Tab":
                     event.preventDefault();
                     if (this.isTyping()) return;
-                    this.gui.auto_refresh = !this.gui.auto_refresh;
+                        this.auto_refresh = !this.auto_refresh;
                     break;
             }
         });
@@ -165,12 +165,16 @@ export default class GUIManager {
         });
         
         document.addEventListener('mouseup', () => {
-            if(this.auto_refresh) this.gpu.refresh();
+            if (this.auto_refresh) this.gpu.refresh();
         });
 
         document.addEventListener('mousemove', () => {
-            if((this.isMousePressed() || this.camera.isEnabled()) && this.auto_refresh)
+            if ((this.isMousePressed() || this.camera.isEnabled()) && this.auto_refresh)
                 this.gpu.refresh();
+        });
+
+        document.addEventListener("touchmove", (event) => {
+            if (this.auto_refresh) this.gpu.refresh();
         });
         
         // document.addEventListener('wheel', (event) => {
@@ -179,28 +183,24 @@ export default class GUIManager {
         //     }
         // });
 
-        HTMLElement.prototype.addTooltip = function(tooltip, icon) {
-            if (icon) {
-                const i = document.createElement("i");
-                i.classList.add("fa");
-                i.classList.add(icon);
+        // HTMLElement.prototype.addTooltip = function(tooltip, icon) {
+        //     if (icon) {
+        //         const i = document.createElement("i");
+        //         i.classList.add("fa");
+        //         i.classList.add(icon);
 
-                const p = document.createElement("p");
-                p.classList.add("button");
-                p.classList.add("round");
-                p.setAttribute("tooltip", tooltip);
-                p.appendChild(i);
+        //         const p = document.createElement("p");
+        //         p.classList.add("button");
+        //         p.classList.add("round");
+        //         p.setAttribute("tooltip", tooltip);
+        //         p.appendChild(i);
 
-                this.appendChild(p);
-            } else {
-                this.setAttribute("tooltip", tooltip);
-            }
-        };
+        //         this.appendChild(p);
+        //     } else {
+        //         this.setAttribute("tooltip", tooltip);
+        //     }
+        // };
 
-        this.update_event = new CustomEvent('updategui', {
-            bubbles: true,
-            cancelable: true
-        });
     }
 
     setupWidgets() {
@@ -221,7 +221,7 @@ export default class GUIManager {
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {this.gpu.uniforms.render_scale = value;},() => this.gpu.uniforms.render_scale , "Resolution division", 1, 16);
         Widgets.createButton(document.getElementById("group-display"), () => {this.gpu.synchronize();}, "Fix aspect ratio");
-        Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh").addTooltip("Disable when rendering for a screenshot", "fa-exclamation");
+        Widgets.createToggle(document.getElementById("group-display"), (value) => { this.auto_refresh = value }, () => this.auto_refresh, "Auto refresh");
         Widgets.createButton(document.getElementById("group-display"), () => {
             var current_date = new Date(); 
             var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
@@ -233,7 +233,9 @@ export default class GUIManager {
             location.reload();
         }, '<i class="fa fa-refresh"></i>Reset variables');
 
-        Widgets.createVector(document.getElementById("group-camera"), (value) => {this.camera.position = value}, () => this.camera.position, "Position");
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.position.x = value;}, () => this.camera.position.x, "X", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.position.y = value;}, () => this.camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.position.z = value;}, () => this.camera.position.z, "Z", -Infinity, Infinity, 0.1);
         Widgets.createButton(document.getElementById("group-camera"), () => {this.camera.position = {x: 0, y: 0, z: 0}}, "Reset position");
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.rotation.x = value;}, () => this.camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.rotation.y = value;}, () => this.camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
@@ -248,12 +250,13 @@ export default class GUIManager {
             "Marches"
         );
 
-        Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.max_marches = value;}, () => this.gpu.uniforms.max_marches, "Max marches", 1, Infinity, 50);
+        Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.max_marches = value;}, () => this.gpu.uniforms.max_marches, "Max marches", 1, Infinity, 25);
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.max_bounces = value;}, () => this.gpu.uniforms.max_bounces, "Max bounces", 0, Infinity);
         Widgets.createSlider(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.epsilon = value;}, () => this.gpu.uniforms.epsilon, "Epsilon", 0.0, 0.1, true);
         Widgets.createSlider(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.normals_precision = value;}, () => this.gpu.uniforms.normals_precision, "Normals precision", 0.0, 0.1, true);
         Widgets.createIncrement(document.getElementById("group-marching"), (value) => {this.gpu.uniforms.detail = value;}, () => this.gpu.uniforms.detail, "Detail", 0, Infinity);
 
+        document.getElementById("input-code").value = `float SDF(vec3 p) {\n\tfloat radius = uniforms.custom_b;\n\treturn length(p) - radius;\n}`;
         Widgets.createSwitch(
             document.getElementById("group-sdf"),
             async (value) => {
@@ -262,7 +265,7 @@ export default class GUIManager {
                 switchAttribute(temp, value, undefined, "hidden");
                 switch (value) {
                     default: 
-                        code = await (await fetch("../scripts/raymarcher/shader/sphere.glsl")).text();
+                        code = document.getElementById("input-code").value;
                         break;
                     case 1: 
                         code = await (await fetch("../scripts/raymarcher/shader/mandelbox.glsl")).text();
@@ -276,20 +279,15 @@ export default class GUIManager {
                     case 4: 
                         code = await (await fetch("../scripts/raymarcher/shader/juliabulb.glsl")).text();
                         break;
-                    case 5: 
-                        code = document.getElementById("input-code").value;
-                        break;
                 }
                 const message = await this.gpu.recompile(code);
                 document.getElementById("output-error").innerText = message;
             },
-            ["Sphere", "Mandelbox", "Mandelbulb", "Koch curve", "Juliabulb", "Custom"],
-            "Sphere"
+            ["Custom", "Mandelbox", "Mandelbulb", "Koch curve", "Juliabulb"],
+            "Custom"
         );
         
-        Widgets.createDrag(document.getElementById("group-sphere"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Radius");
-
-        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Scale").addTooltip("Keep this value near -2.0 or 2.0", "fa-question");
+        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Scale");
         Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_b = value;}, () => this.gpu.uniforms.custom_b, "Folding limit");
         Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_c = value;}, () => this.gpu.uniforms.custom_c, "Min radius");
         Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_d = value;}, () => this.gpu.uniforms.custom_d, "Fixed radius");
@@ -310,21 +308,20 @@ export default class GUIManager {
 
         Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu.uniforms.focus_distance = value;}, () => this.gpu.uniforms.focus_distance, "Focus distance", 0.0, 20.0, true);
         Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu.uniforms.focus_strength = value;}, () => this.gpu.uniforms.focus_strength, "Focus blur", 0.0, 0.1);
+        Widgets.createSlider(document.getElementById("group-lens"), (value) => {this.gpu.uniforms.antialiasing_strength = value;}, () => this.gpu.uniforms.antialiasing_strength, "Antialiasing strength", 0.0, 0.001);
         
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.sun_rotation.x = value;}, () => this.gpu.sun_rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.sun_rotation.y = value;}, () => this.gpu.sun_rotation.y, "Vertical rotation", -90, 90, 0.1);
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.uniforms.sun_intensity = value;}, () => this.gpu.uniforms.sun_intensity, "Sun intensity", 0, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-sun"), (value) => {this.gpu.uniforms.sky_intensity = value;}, () => this.gpu.uniforms.sky_intensity, "Sky intensity", 0, Infinity, 0.01);
 
-        document.getElementById("input-code").value = `fn SDF(p: vec3f) -> f32 {\n\tlet radius = uniforms.custom_b;\n\treturn length(p) - radius;\n}`;
-        document.getElementById("input-code").value = `float SDF(vec3 p) {\n\tfloat radius = uniforms.custom_b;\n\treturn length(p) - radius;\n}`;
         Widgets.createButton(document.getElementById("group-code"), async () => {
             const switch_element = document.querySelector("#group-sdf .switch");
             Widgets.switchSetIndex(switch_element, 5);
             switchAttribute(document.getElementById("group-variables"), 5, undefined, "hidden");
 
             const code = document.getElementById("input-code").value;
-            const message = await this.gpu.recompile(code);
+            const message = this.gpu.recompile(code);
             document.getElementById("output-error").innerText = message;
         }, "Compile");
     }

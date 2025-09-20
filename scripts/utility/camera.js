@@ -1,8 +1,10 @@
 import Vector from './vector.js';
 import Matrix from './matrix.js';
+import * as TouchListener from './touch_listener.js';
 
 export default class Camera {
     constructor(
+        canvas,
         position = Vector.vec(0.0), 
         rotation = Vector.vec(0.0, 0.0), 
         fov = 0.5, 
@@ -35,6 +37,22 @@ export default class Camera {
                     this.rotation.y = -90;
             }
         });
+        TouchListener.addTouchListener(canvas, (event) => {
+            this.rotation.x -= event.deltaX * this.sensitivity;
+            this.rotation.y -= event.deltaY * this.sensitivity;
+            this.rotation.x = this.rotation.x % 360.0;
+            if (this.rotation.y > 90)
+                this.rotation.y = 90;
+            if (this.rotation.y < -90)
+                this.rotation.y = -90;
+
+            if (event.deltaZ != 0) {
+                this.position = Vector.add(
+                    this.position, 
+                    Vector.mul(Matrix.rot2dir(this.rotation.x, -this.rotation.y), this.speed * event.deltaZ)
+                );
+            }
+        });
         document.addEventListener('wheel', (event) => {
             if (this.isEnabled()) {
                 if(event.deltaY < 0)
@@ -46,13 +64,9 @@ export default class Camera {
     }
 
     getRotationMatrix() {
-        let result = Matrix.rotationMatrix(Vector.vec(0.0, 0.0, 1.0), Matrix.deg2rad(this.rotation.x));
-        result = Matrix.rotate(result, Matrix.deg2rad(this.rotation.y), Vector.vec(1.0, 0.0, 0.0));
-        return result;
-    }
-
-    getDirection() {
-        return Matrix.xyz(Matrix.mul(this.getRotationMatrix(), Vector.vec(1.0, 0.0, 0.0, 0.0)));
+        let temp = Matrix.rotationMatrix(Vector.vec(0.0, 0.0, 1.0), Matrix.deg2rad(this.rotation.x));
+        temp = Matrix.rotate(temp, Matrix.deg2rad(this.rotation.y), Vector.vec(1.0, 0.0, 0.0));
+        return temp;
     }
 
     update() {
@@ -77,7 +91,7 @@ export default class Camera {
 
         if (Vector.len(local_direction) == 0)
             return;
-        
+
         const temp = Matrix.rotate(Matrix.mat(1.0), Matrix.deg2rad(this.rotation.x), Vector.vec(0.0, 0.0, -1.0));
         const forward = Vector.xyz(Matrix.mul(temp, Vector.vec(0.0, 1.0, 0.0, 0.0)));
         const up = Vector.vec(0.0, 0.0, 1.0);

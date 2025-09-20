@@ -1,5 +1,5 @@
 #version 300 es
-precision mediump float;
+precision highp float;
 
 uniform sampler2D color_buffer;
 layout(std140) uniform UniformBlock {
@@ -32,6 +32,8 @@ layout(std140) uniform UniformBlock {
     float custom_c;
     float custom_d;
     float custom_e;
+
+    float antialiasing_strength;
 } uniforms;
 struct Ray {
     vec3 origin;
@@ -66,7 +68,7 @@ void main() {
     Ray camera_ray;
     camera_ray.origin = uniforms.camera_position;
     camera_ray.direction = (uniforms.camera_rotation * vec4(normalize(vec3(centered_coordinates.x * uniforms.fov, 1.0, centered_coordinates.y * uniforms.fov)), 1.0)).xyz;
-    camera_ray.direction = normalize(camera_ray.direction + randomDirection(seed) * 0.0005 * uniforms.fov * uniforms.render_scale);
+    camera_ray.direction = normalize(camera_ray.direction + randomDirection(seed) * uniforms.antialiasing_strength * uniforms.fov * uniforms.render_scale);
     focusBlur(camera_ray, seed, uniforms.focus_distance, uniforms.focus_strength);
 
     vec4 previous_color = texelFetch(color_buffer, ivec2(gl_FragCoord.xy), 0);

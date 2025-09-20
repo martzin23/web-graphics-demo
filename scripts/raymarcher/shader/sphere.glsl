@@ -1,3 +1,4 @@
 float SDF(vec3 p) {
-    return length(p) - 1.0;
+	float radius = uniforms.custom_b;
+	return length(p) - radius;
 }

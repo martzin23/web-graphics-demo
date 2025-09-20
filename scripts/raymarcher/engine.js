@@ -5,25 +5,20 @@ import FPSCounter from '../utility/fps.js';
 import Camera from '../utility/camera.js';
 import Matrix from '../utility/matrix.js';
 import Vector from '../utility/vector.js';
-import LocalStorage from './local_storage.js';
+import LocalStorage from '../utility/storage.js';
 
 class Engine {
     static async initialize() {
-        const gpu = await WebGLManager.initialize(
-            document.getElementById("canvas"), 
-            '../scripts/raymarcher/shader/compute.glsl', 
-            '../scripts/raymarcher/shader/render.glsl', 
-            '../scripts/raymarcher/shader/sphere.glsl'
-        );
+        const gpu = await WebGLManager.initialize(document.getElementById("canvas"));
         return new Engine(gpu);
     }
 
     constructor(gpu) {
         this.gpu = gpu;
         this.fps = new FPSCounter(document.getElementById("output-fps"), undefined, " fps");
-        this.camera = new Camera(Vector.vec(4.0), Vector.vec(-135.0, 35.0));
+        this.camera = new Camera(document.getElementById("canvas"), Vector.vec(4.0), Vector.vec(-135.0, 35.0));
         this.storage = new LocalStorage("renderer-raymarcher");
-        this.gui = new GUIManager(this.gpu, this.camera, this.storage);
+        this.gui = new GUIManager(document.getElementById("canvas"), this.gpu, this.camera, this.storage);
 
         this.storage.load(this.gpu, this.camera, document.getElementById("input-code"));
         this.save_handler = setInterval(() => { this.storage.save(this.gpu, this.camera, document.getElementById("input-code")); }, 5000);

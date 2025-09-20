@@ -1,3 +1,4 @@
+import * as TouchListener from './touch_listener.js';
 
 export function createButton(parent, set = () => {}, name = "Button") {
     const element_base = document.createElement("div");
@@ -235,7 +236,8 @@ export function createDrag(parent, set = (value) => {}, get = () => 0.0, name = 
         this.value = resizeNumber(get());
     });
 
-    element_button.addEventListener("mousedown", function() {
+    element_button.addEventListener("mousedown", function(event) {
+        if (event.button != 0) return;
         const mousemove_listener = (event) => {
             const value = resizeNumber(Math.max(Math.min(parseFloat(element_text.value) + event.movementX * sen, max), min));
             element_text.value = value;
@@ -249,10 +251,12 @@ export function createDrag(parent, set = (value) => {}, get = () => 0.0, name = 
         document.addEventListener("mousemove", mousemove_listener);
     });
 
-    element_button.addEventListener("touchstart", (event) = {
-
+    TouchListener.addTouchListener(element_button, function(event) {
+        const value = resizeNumber(Math.max(Math.min(parseFloat(element_text.value) + event.deltaX * sen, max), min));
+        element_text.value = value;
+        set(parseFloat(value));
     });
-    
+
     parent.appendChild(element_base);
     return element_base;
 }
@@ -381,6 +385,16 @@ export function createVector(parent, set = (value) => {}, get = () => {return {x
         document.addEventListener("mousemove", mousemove_listener);
     });
 
+    TouchListener.addTouchListener(element_button_x, function(event) {
+        const value = resizeNumber(parseFloat(element_text_x.value) + event.deltaX * sen);
+        element_text_x.value = value;
+        set({
+            x: parseFloat(value),
+            y: parseFloat(element_text_y.value),
+            z: parseFloat(element_text_z.value)
+        });
+    });
+
 
 
     element_text_y.addEventListener("focusout", function() {
@@ -420,6 +434,16 @@ export function createVector(parent, set = (value) => {}, get = () => {return {x
         document.addEventListener("mousemove", mousemove_listener);
     });
 
+    TouchListener.addTouchListener(element_button_y, function(event) {
+        const value = resizeNumber(parseFloat(element_text_y.value) + event.deltaX * sen);
+        element_text_y.value = value;
+        set({
+            x: parseFloat(element_text_x.value),
+            y: parseFloat(value),
+            z: parseFloat(element_text_z.value)
+        });
+    });
+
 
 
     element_text_z.addEventListener("focusout", function() {
@@ -457,6 +481,16 @@ export function createVector(parent, set = (value) => {}, get = () => {return {x
             document.addEventListener("mouseup", mouseup_listener);
         }
         document.addEventListener("mousemove", mousemove_listener);
+    });
+
+    TouchListener.addTouchListener(element_button_z, function(event) {
+        const value = resizeNumber(parseFloat(element_text_z.value) + event.deltaX * sen);
+        element_text_z.value = value;
+        set({
+            x: parseFloat(element_text_x.value),
+            y: parseFloat(element_text_y.value),
+            z: parseFloat(value)
+        });
     });
 
 
@@ -508,23 +542,23 @@ export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', '
     return element_base;
 }
 
-export function addTooltip(element, tooltip, icon) {
-    if (icon) {
-        const i = document.createElement("i");
-        i.classList.add("fa");
-        i.classList.add(icon);
+// export function addTooltip(element, tooltip, icon) {
+//     if (icon) {
+//         const i = document.createElement("i");
+//         i.classList.add("fa");
+//         i.classList.add(icon);
 
-        const p = document.createElement("p");
-        p.classList.add("button");
-        p.classList.add("round");
-        p.setAttribute("tooltip", tooltip);
-        p.appendChild(i);
+//         const p = document.createElement("p");
+//         p.classList.add("button");
+//         p.classList.add("round");
+//         p.setAttribute("tooltip", tooltip);
+//         p.appendChild(i);
 
-        element.appendChild(p);
-    } else {
-        element.setAttribute("tooltip", tooltip);
-    }
-}
+//         element.appendChild(p);
+//     } else {
+//         element.setAttribute("tooltip", tooltip);
+//     }
+// }
 
 export function switchGetIndex(element_switch) {
     let active_index = null;
@@ -607,3 +641,4 @@ function resizeNumber(number, size = 7) {
 //         digits.indexOf(Math.floor(rgb.z * 256 % 16))
 //     ;
 // }
+

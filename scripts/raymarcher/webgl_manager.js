@@ -2,10 +2,10 @@ import Matrix from "../utility/matrix.js";
 import Vector from "../utility/vector.js";
 
 export default class WebGLManager {
-    static async initialize(canvas, compute_url, render_url, sdf_url) {
-        const compute_shader_code = await (await fetch(compute_url)).text();
-        const render_shader_code = await (await fetch(render_url)).text();
-        const sdf_code = await (await fetch(sdf_url)).text();
+    static async initialize(canvas) {
+        const compute_shader_code = await (await fetch('../scripts/raymarcher/shader/compute.glsl')).text();
+        const render_shader_code = await (await fetch('../scripts/raymarcher/shader/render.glsl')).text();
+        const sdf_code = await (await fetch('../scripts/raymarcher/shader/sphere.glsl')).text();
         return new WebGLManager(canvas, compute_shader_code, render_shader_code, sdf_code);
     }
 
@@ -73,7 +73,12 @@ export default class WebGLManager {
             custom_b: 1.0,
             custom_c: 0.5,
             custom_d: 2.0,
-            custom_e: 2.0
+            custom_e: 2.0,
+
+            antialiasing_strength: 0.0005,
+            padding_a: 0.0,
+            padding_b: 0.0,
+            padding_c: 0.0,
         };
 
         const vertices = new Float32Array([
@@ -115,7 +120,7 @@ export default class WebGLManager {
         this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.color_buffers[1], 0);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
-        this.setup(compute_shader_code + sdf_code, render_shader_code);
+        this.setup(compute_shader_code + "\n" + sdf_code, render_shader_code);
         this.synchronize();
     }
 
@@ -165,7 +170,7 @@ export default class WebGLManager {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frame_buffers[0]);
         
         this.gl.viewport(0, 0, Math.ceil(this.uniforms.canvas_size.x / this.uniforms.render_scale), Math.ceil(this.uniforms.canvas_size.y / this.uniforms.render_scale));
-        this.gl.clearColor(1.0, 0.0, 0.0, 1.0);
+        this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         
         this.gl.useProgram(this.compute_program);
@@ -180,7 +185,7 @@ export default class WebGLManager {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
         // rendering to canvas
-        this.gl.clearColor(0.0, 0.0, 1.0, 1.0);
+        this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.viewport(0, 0, this.uniforms.canvas_size.x, this.uniforms.canvas_size.y);
 
@@ -209,7 +214,7 @@ export default class WebGLManager {
         this.uniforms.temporal_counter = 1.0;
     }
 
-    async recompile(sdf_code) {
+    recompile(sdf_code) {
         let message = "";
         try {
             this.setup(this.compute_shader_code + "\n" + sdf_code, this.render_shader_code);
@@ -237,7 +242,7 @@ export default class WebGLManager {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER,  frame_buffer);
         this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, color_buffer, 0);
         
-        this.gl.clearColor(0.0, 0.0, 1.0, 1.0);
+        this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.viewport(0, 0, render_width, render_height);
 

@@ -1,25 +1,29 @@
 <!-- 
 TODO
-remove tooltips
-mobile controls
-	camera rotate
-	camera move
-	menu fit / fullscreen
-	drag
-	refresh
 generalized local storage
+	storage tag
+	code
+	event triggering
+index.html
+rename repository
+launch
 
 BUGS
 color widget not working
+devtools small errors
+path tracing bug
 -->
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Raymarcher</title>
-	<link rel="stylesheet" href="../styles/style.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Fractal Ray Marcher</title>
+	<link rel="stylesheet" href="../styles/variables.css">
+	<link rel="stylesheet" href="../styles/keyframes.css">
+	<link rel="stylesheet" href="../styles/widgets.css">
+	<link rel="stylesheet" href="../styles/layout.css">
 	<script type="module" defer src="../scripts/raymarcher/engine.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
@@ -102,12 +106,11 @@ color widget not working
 					<p>Variables</p>
 				</figcaption>
 				<div id="group-variables">
-					<div id="group-sphere" class="column"></div>
+					<div id="group-custom" class="column"></div>
 					<div id="group-mandelbox" class="column"></div>
 					<div id="group-mandelbulb" class="column"></div>
 					<div id="group-kochcurve" class="column"></div>
 					<div id="group-juliabulb" class="column"></div>
-					<div id="group-custom" class="column"></div>
 				</div>
 			</figure>
 
@@ -170,10 +173,10 @@ color widget not working
 		</section>
 
 		<section class="hidden">
-			<figure id="group-controls">
+			<figure>
 				<figcaption>
 					<hr>
-					<p>Controls</p>
+					<p>Controls (PC)</p>
 				</figcaption>
 				<div class="row">
 					<p class="value">Click</p>
@@ -188,10 +191,6 @@ color widget not working
 					<p class="comment">Change camera speed</p>
 				</div>
 				<div class="row">
-					<p class="value">Scroll (not controlling)</p>
-					<p class="comment">Change menu tabs</p>
-				</div>
-				<div class="row">
 					<p class="value">F11</p>
 					<p class="comment">Toggle fullscreen</p>
 				</div>
@@ -202,6 +201,20 @@ color widget not working
 				<div class="row">
 					<p class="value">Tab</p>
 					<p class="comment">Toggle auto refresh</p>
+				</div>
+			</figure>
+			<figure>
+				<figcaption>
+					<hr>
+					<p>Controls (Mobile)</p>
+				</figcaption>
+				<div class="row">
+					<p class="value">Drag</p>
+					<p class="comment">Rotate camera</p>
+				</div>
+				<div class="row">
+					<p class="value">Zoom</p>
+					<p class="comment">Move foward/backward</p>
 				</div>
 			</figure>
 		</section>

@@ -97,7 +97,7 @@ export default class Matrix {
 
     static rot2dir(horizontal, vertical) {
         let temp = Matrix.rotationMatrix(Vector.vec(1.0, 0.0, 0.0), Matrix.deg2rad(vertical));
-        temp = Matrix.rotate(temp, Matrix.deg2rad(horizontal), Vector.vec(0.0, 0.0, 1.0));
+        temp = Matrix.rotate(temp, Matrix.deg2rad(-horizontal), Vector.vec(0.0, 0.0, 1.0));
         return Vector.xyz(Matrix.mul(temp, Vector.vec(0.0, 1.0, 0.0, 0.0)));
     }
 }
