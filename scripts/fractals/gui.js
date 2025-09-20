@@ -269,16 +269,16 @@ export default class GUIManager {
                         code = document.getElementById("input-code").value;
                         break;
                     case 1: 
-                        code = await (await fetch("../scripts/raymarcher/shader/mandelbox.glsl")).text();
+                        code = await (await fetch("../scripts/fractals/shader/mandelbox.glsl")).text();
                         break;
                     case 2:
-                        code = await (await fetch("../scripts/raymarcher/shader/mandelbulb.glsl")).text();
+                        code = await (await fetch("../scripts/fractals/shader/mandelbulb.glsl")).text();
                         break;
                     case 3: 
-                        code = await (await fetch("../scripts/raymarcher/shader/kochcurve.glsl")).text();
+                        code = await (await fetch("../scripts/fractals/shader/kochcurve.glsl")).text();
                         break;
                     case 4: 
-                        code = await (await fetch("../scripts/raymarcher/shader/juliabulb.glsl")).text();
+                        code = await (await fetch("../scripts/fractals/shader/juliabulb.glsl")).text();
                         break;
                 }
                 const message = await this.gpu.recompile(code);
@@ -319,8 +319,8 @@ export default class GUIManager {
 
         Widgets.createButton(document.getElementById("group-code"), async () => {
             const switch_element = document.querySelector("#group-sdf .switch");
-            Widgets.switchSetIndex(switch_element, 5);
-            switchAttribute(document.getElementById("group-variables"), 5, undefined, "hidden");
+            Widgets.switchSetIndex(switch_element, 0);
+            switchAttribute(document.getElementById("group-variables"), 0, undefined, "hidden");
 
             const code = document.getElementById("input-code").value;
             const message = this.gpu.recompile(code);

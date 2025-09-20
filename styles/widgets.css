@@ -23,8 +23,17 @@ a:hover {
     color: var(--text-default);
 }
 
+a:empty {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0%;
+    left: 0%;
+    z-index: 10;
+}
+
 hr {
-    border: 0.25rem solid var(--block-default);
+    border: calc(var(--thickness) / 2) solid var(--general-default);
     border-radius: var(--roundness);
 }
 
@@ -33,7 +42,7 @@ input {
 }
 
 input[type="text"] {
-    background-color: var(--block-dark);
+    background-color: var(--general-dark);
     border-radius: var(--roundness);
     border: none;
     padding: 0.5rem;
@@ -42,6 +51,7 @@ input[type="text"] {
 
 input[type="text"]:invalid {
     background-color: var(--error-dark);
+    color: var(--error-default);
 }
 
 input[type="color"] {
@@ -71,7 +81,7 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 
 input[type="range"] {
     -webkit-appearance: none;
-    background: var(--block-dark);
+    background: var(--general-dark);
     height: 0.5rem;
     border-radius: var(--roundness);
 }
@@ -80,7 +90,7 @@ input[type="range"]::-webkit-slider-thumb {
     transition: 0.25s;
     -webkit-appearance: none;
     cursor: pointer;
-    background: var(--block-default);
+    background: var(--general-default);
     border-radius: var(--roundness);
     aspect-ratio: 1;
     height: 2rem;
@@ -88,7 +98,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 input[type="range"]::-webkit-slider-thumb:hover {
     transition: 0.25s;
-    background-color: var(--block-highlight);
+    background-color: var(--general-highlight);
 }
 
 /* ----------------------------------------- */
@@ -120,7 +130,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .comment {
     transition: 0.25s;
     padding: 0.5rem;
-    color: var(--block-highlight);
+    color: var(--general-highlight);
 }
 
 .comment:hover {
@@ -129,21 +139,23 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .value {
-    background-color: var(--block-dark);
+    background-color: var(--general-dark);
     border-radius: var(--roundness);
     padding: 0.5rem 1rem 0.5rem 1rem;
     font-family: monospace;
 }
 
 .error {
+    width: 100%;
     color: var(--error-default);
+    padding: 1rem;
 }
 
 /* ----------------------------------------- */
 
 .button {
     transition: 0.25s;
-    background-color: var(--block-default);
+    background-color: var(--general-default);
     border-radius: var(--roundness);
     border: none;
     
@@ -156,7 +168,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .button:hover {
     transition: 0.25s;
-    background-color: var(--block-highlight);
+    background-color: var(--general-highlight);
 }
 
 .button.active {
@@ -186,7 +198,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .boolean {
     transition: 0.25s;
     border-radius: var(--roundness);
-    background-color: var(--block-dark);
+    background-color: var(--general-dark);
     width: 4rem;
     height: 2rem;
 
@@ -205,11 +217,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
     height: 100%;
     aspect-ratio: 1;
     border-radius: var(--roundness);
-    background-color: var(--block-default);
+    background-color: var(--general-default);
 }
 
 .boolean:hover>* {
-    background-color: var(--block-highlight);
+    background-color: var(--general-highlight);
 }
 
 .boolean:hover {
@@ -241,7 +253,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .code::after {
     content: attr(lang);
     font-family: monospace;
-    background-color: var(--block-default);
+    background-color: var(--general-default);
     border-radius: var(--roundness);
     padding: 0.25rem 0.5rem 0.25rem 0.5rem;
 
@@ -251,7 +263,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 textarea {
-    background-color: var(--block-dark);
+    background-color: var(--general-dark);
     border-radius: var(--roundness);
     border: none;
     padding: 0.5rem;

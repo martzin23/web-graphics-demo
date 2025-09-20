@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="../styles/variables.css">
+	<link rel="stylesheet" href="../styles/style_neutral.css">
 	<link rel="stylesheet" href="../styles/keyframes.css">
 	<link rel="stylesheet" href="../styles/widgets.css">
+	<link rel="stylesheet" href="../styles/index.css">
     <title>Web Graphics Demo</title>
 </head>
 <body>
@@ -14,21 +15,24 @@
         <hr>
     </header>
     <main>
-        <figure>
+        <figure id="a">
+            <div></div>
             <figcaption>Fractal Ray Marcher</figcaption>
-            <img src="" alt="">
-            <a href="./pages/raymarcher.html"></a>
+            <a href="./pages/fractals.html"></a>
         </figure>
-        <figure>
+        <!-- <figure id="x">
+            <div></div>
             <figcaption>Temp</figcaption>
-            <img src="" alt="">
             <a href=""></a>
-        </figure>
-        <figure>
-            <figcaption>Temp</figcaption>
-            <img src="" alt="">
-            <a href=""></a>
-        </figure>
+        </figure> -->
     </main>
+    <script>
+        Array.from(document.querySelector("main").children).forEach((element, index) => {
+            element.style["animation-name"] = "appear-upward";
+            element.style["animation-fill-mode"] = "forwards";
+            element.style["animation-duration"] = "0.5s";
+            element.style["animation-delay"] = "" + (1.0 + 0.2 * index) + "s";
+        });
+    </script>
 </body>
 </html>

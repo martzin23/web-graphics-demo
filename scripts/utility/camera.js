@@ -1,6 +1,6 @@
 import Vector from './vector.js';
 import Matrix from './matrix.js';
-import * as TouchListener from './touch_listener.js';
+import * as TouchListener from './touch.js';
 
 export default class Camera {
     constructor(

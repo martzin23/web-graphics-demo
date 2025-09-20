@@ -1,0 +1,119 @@
+
+body {
+    height: 100vh;
+    width: 100vw;
+    /* background: linear-gradient(0deg, var(--background-dark) 0%, var(--background-light) 100%); */
+    background: linear-gradient(0deg, var(--background-dark) 0%, var(--background-light) 100%);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6rem;
+}
+
+/* ----------------------------------------------------------------------------- */
+
+header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4rem;
+}
+
+header p {
+    opacity: 0%;
+    animation-name: appear-downward;
+    animation-fill-mode: forwards;
+    animation-duration: 1s;
+    animation-delay: 0.5s;
+}
+
+header hr {
+    animation-name: widen;
+    animation-fill-mode: forwards;
+    animation-duration: 0.5s;
+    animation-timing-function: ease;
+}
+
+/* ----------------------------------------------------------------------------- */
+
+figure {
+    opacity: 0%;
+    transition: 0.5s;
+    position: relative;
+
+    border-radius: var(--roundness);
+    border-bottom: var(--thickness) solid var(--general-highlight);
+    background: linear-gradient(180deg, var(--background-dark) 50%, var(--background-light) 100%);
+    box-shadow: var(--thickness) var(--thickness) 0rem var(--transluscent);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+figure:hover {
+    transition: 0.2s;
+    transform: translate(0rem, -2rem);
+    border-color: var(--active-default);
+}
+
+figcaption {
+    transition: 0.5s;
+    text-align: center;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    
+    border-radius: var(--roundness);
+    background-color: var(--general-default);
+}
+
+figure:hover>figcaption {
+    transition: 0.2s;
+    border-width: 0rem;
+    background-color: var(--general-highlight);
+    box-shadow: var(--thickness) var(--thickness) 0rem var(--general-dark);
+}
+
+figure>div {
+    transition: 0.25s ease;
+    width: 25rem;
+    aspect-ratio: 1;
+
+    border-radius: var(--roundness);
+    background-image: url(../assets/textures/icons/placeholder.png);
+    background-size: 100%;
+    background-position: center;
+}
+
+figure:hover>div {
+    transition: 0.25s ease;
+    background-size: 200%;
+}
+
+/* ----------------------------------------------------------------------------- */
+
+#a {
+    background: linear-gradient(180deg, #321e16 50%, var(--background-light) 100%);
+}
+#a:hover {
+    border-color: #c9411f;
+}
+#a>div {
+    background-image: url(../assets/textures/icons/2025912181237.png);
+}
+
+/* ----------------------------------------------------------------------------- */
+

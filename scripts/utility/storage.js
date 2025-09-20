@@ -30,7 +30,6 @@ export default class LocalStorage {
         const selector = `#${id_parent} *[type="text"], #${id_parent} textarea`;
         document.querySelectorAll(selector).forEach(function(element) {
             element.classList.add("storage");
-            console.log(element);
         });
     }
 

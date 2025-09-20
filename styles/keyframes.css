@@ -1,5 +1,5 @@
 
-@keyframes tooltip-appear {
+@keyframes hide-delayed {
     0% {
         opacity: 0%;
     }
@@ -11,7 +11,7 @@
     }
 }
 
-@keyframes tabs-appear {
+@keyframes appear-downward {
     0% {
         opacity: 0%;
         transform: translateY(-10rem);
@@ -22,7 +22,18 @@
     }
 }
 
-@keyframes tabs-hide {
+@keyframes appear-upward {
+    0% {
+        opacity: 0%;
+        transform: translateY(10rem);
+    }
+    100% {
+        opacity: 100%;
+        transform: translateY(0rem);
+    }
+}
+
+@keyframes hide-upward {
     0% {
         opacity: 100%;
         transform: translateY(0rem);
@@ -30,5 +41,25 @@
     100% {
         opacity: 0%;
         transform: translateY(-10rem);
+    }
+}
+
+@keyframes hide-downward {
+    0% {
+        opacity: 100%;
+        transform: translateY(0rem);
+    }
+    100% {
+        opacity: 0%;
+        transform: translateY(10rem);
+    }
+}
+
+@keyframes widen {
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
     }
 }

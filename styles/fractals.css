@@ -27,7 +27,7 @@ figure>figcaption>hr {
 
 figure:hover>figcaption>hr {
     transition: 0.25s;
-    border-color: var(--block-highlight);
+    border-color: var(--general-highlight);
 }
 
 figure>figcaption>p {
@@ -69,7 +69,7 @@ canvas {
     overflow-y: hidden;
 }
 
-header>div {
+header>nav {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -78,11 +78,16 @@ header>div {
     padding: 1rem;
 }
 
+header>nav>.row {
+    flex-wrap: wrap-reverse;
+    justify-content: flex-end;
+}
+
 menu {
     padding: 0rem;
     overflow-y: auto;
     overflow-x: hidden;
-    scrollbar-color: var(--block-default) #00000000;
+    scrollbar-color: var(--general-default) #00000000;
 }
 
 section {
@@ -115,7 +120,7 @@ section {
     padding-top: 2rem;
 }
 
-:root:fullscreen header>div {
+:root:fullscreen header>nav {
     background-color: var(--background-light);
 }
 
@@ -126,14 +131,14 @@ section {
     margin-top: 2rem;
 }
 
-:root:fullscreen header>div {
-    animation-name: tabs-hide;
+:root:fullscreen header>nav {
+    animation-name: hide-upward;
     animation-duration: 0.25s;
     animation-fill-mode: forwards;
 }
 
-:root:fullscreen header:hover>div {
-    animation-name: tabs-appear;
+:root:fullscreen header:hover>nav {
+    animation-name: appear-downward;
     animation-duration: 0.25s;
     animation-fill-mode: forwards;
 }
