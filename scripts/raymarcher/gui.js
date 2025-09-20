@@ -242,6 +242,7 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {this.camera.speed = value;}, () => this.camera.speed, "Speed", 0, 10, true);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {this.camera.sensitivity = value;}, () => this.camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {this.camera.fov = value;}, () => this.camera.fov, "Field of view", 0, Infinity, 0.005);
+        this.storage.markGroup("group-camera");
 
         Widgets.createSwitch(
             document.getElementById("group-shading"),
@@ -286,18 +287,19 @@ export default class GUIManager {
             ["Custom", "Mandelbox", "Mandelbulb", "Koch curve", "Juliabulb"],
             "Custom"
         );
-        
-        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Scale");
-        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_b = value;}, () => this.gpu.uniforms.custom_b, "Folding limit");
-        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_c = value;}, () => this.gpu.uniforms.custom_c, "Min radius");
-        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_d = value;}, () => this.gpu.uniforms.custom_d, "Fixed radius");
-        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_e = value;}, () => this.gpu.uniforms.custom_e, "Folding value");
 
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "uniforms.custom_a");
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_b = value;}, () => this.gpu.uniforms.custom_b, "uniforms.custom_b");
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_c = value;}, () => this.gpu.uniforms.custom_c, "uniforms.custom_c");
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_d = value;}, () => this.gpu.uniforms.custom_d, "uniforms.custom_d");
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {this.gpu.uniforms.custom_e = value;}, () => this.gpu.uniforms.custom_e, "uniforms.custom_e");
+        this.storage.markGroup("group-custom");
+        
+        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Scale");
+        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_b = value;}, () => this.gpu.uniforms.custom_b, "Folding limit");
+        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_c = value;}, () => this.gpu.uniforms.custom_c, "Min radius");
+        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_d = value;}, () => this.gpu.uniforms.custom_d, "Fixed radius");
+        Widgets.createDrag(document.getElementById("group-mandelbox"), (value) => {this.gpu.uniforms.custom_e = value;}, () => this.gpu.uniforms.custom_e, "Folding value");
 
         Widgets.createDrag(document.getElementById("group-mandelbulb"), (value) => {this.gpu.uniforms.custom_a = value;}, () => this.gpu.uniforms.custom_a, "Power");
 
@@ -324,6 +326,7 @@ export default class GUIManager {
             const message = this.gpu.recompile(code);
             document.getElementById("output-error").innerText = message;
         }, "Compile");
+        this.storage.markGroup("group-code");
     }
 }
 

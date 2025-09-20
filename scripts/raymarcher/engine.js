@@ -20,8 +20,8 @@ class Engine {
         this.storage = new LocalStorage("renderer-raymarcher");
         this.gui = new GUIManager(document.getElementById("canvas"), this.gpu, this.camera, this.storage);
 
-        this.storage.load(this.gpu, this.camera, document.getElementById("input-code"));
-        this.save_handler = setInterval(() => { this.storage.save(this.gpu, this.camera, document.getElementById("input-code")); }, 5000);
+        this.storage.load();
+        this.save_handler = setInterval(() => { this.storage.save(); }, 5000);
         this.fps_handler = setInterval(() => this.fps.set(), 1000);
     }
 
