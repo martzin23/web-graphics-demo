@@ -9,41 +9,55 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 6rem;
+    gap: 2rem;
+    padding: 2rem;
 }
 
 /* ----------------------------------------------------------------------------- */
 
 header {
+    border-radius: var(--roundness);
+    background-color: var(--background-dark);
+    box-shadow: var(--thickness) var(--thickness) 0rem var(--shadow);
+
+    width: 50%;
+    padding: 2rem;
+    font-size: 2rem;
+    font-weight: bold;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-
-    font-size: 3rem;
-    font-weight: bold;
 }
 
 main {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 4rem;
+    gap: 2rem;
+}
+
+header {
+    opacity: 0%;
+    animation-name: appear-downward;
+    animation-fill-mode: forwards;
+    animation-duration: 0.5s;
 }
 
 header p {
     opacity: 0%;
-    animation-name: appear-downward;
+    animation-name: appear;
     animation-fill-mode: forwards;
-    animation-duration: 1s;
-    animation-delay: 0.5s;
+    animation-delay: 0.25s;
+    animation-duration: 0.5s;
 }
 
 header hr {
     animation-name: widen;
     animation-fill-mode: forwards;
-    animation-duration: 0.5s;
-    animation-timing-function: ease;
+    animation-delay: 0.5s;
+    animation-duration: 1s;
 }
 
 /* ----------------------------------------------------------------------------- */
@@ -89,7 +103,7 @@ figure:hover>figcaption {
 
 figure>div {
     transition: 0.25s ease;
-    width: 25rem;
+    width: 20rem;
     aspect-ratio: 1;
 
     border-radius: var(--roundness);
