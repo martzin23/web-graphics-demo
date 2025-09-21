@@ -1,6 +1,13 @@
 <!-- 
 TODO
-path tracing bug fix
+sphere reference
+center screen
+test menu
+sky texture
+simulation
+menu settings
+css variables
+add to index
 -->
 
 <!DOCTYPE html>
@@ -8,12 +15,12 @@ path tracing bug fix
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-	<title>Fractal Ray Marcher</title>
-	<link rel="stylesheet" href="../styles/style_orange.css">
+	<title>Gravitational Lensing</title>
+	<link rel="stylesheet" href="../styles/style_purple.css">
 	<link rel="stylesheet" href="../styles/keyframes.css">
 	<link rel="stylesheet" href="../styles/widgets.css">
 	<link rel="stylesheet" href="../styles/layout.css">
-	<script type="module" defer src="../scripts/fractals/engine.js"></script>
+	<script type="module" defer src="../scripts/lensing/engine.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
@@ -84,84 +91,6 @@ path tracing bug fix
 					<hr>
 					<p>Marching</p>
 				</figcaption>
-			</figure>
-
-			<figure id="group-sdf">
-				<figcaption>
-					<hr>
-					<p>Signed Distance Function</p>
-				</figcaption>
-			</figure>
-			
-			<figure>
-				<figcaption>
-					<hr>
-					<p>Variables</p>
-				</figcaption>
-				<div id="group-variables">
-					<div id="group-custom" class="column"></div>
-					<div id="group-mandelbox" class="column"></div>
-					<div id="group-mandelbulb" class="column"></div>
-					<div id="group-kochcurve" class="column"></div>
-					<div id="group-juliabulb" class="column"></div>
-				</div>
-			</figure>
-
-			<figure id="group-lens">
-				<figcaption>
-					<hr>
-					<p>Lens</p>
-				</figcaption>
-			</figure>
-
-			<figure id="group-sun">
-				<figcaption>
-					<hr>
-					<p>Sun</p>
-				</figcaption>
-				<div class="comment">Only for some shading modes*</div>
-			</figure>
-		</section>
-
-		<section class="hidden">
-			<figure id="group-instructions">
-				<figcaption>
-					<hr>
-					<p>Instructions</p>
-				</figcaption>
-				<p>Here you can write a custom signed distance function in GLSL that is then rendered.</p>
-				<p>The main function that is required here is SDF(), but you can add your own functions and use them inside SDF().</p>
-				<div class="row">
-					<div class="value">p</div>
-					<p class="comment">parameter - a position in 3D space</p>
-				</div>
-				<div class="row">
-					<div class="value">return value</div>
-					<p class="comment">distance from the body</p>
-				</div>
-				<div class="row">
-					<div class="value">uniforms.custom_a</div>
-					<p class="comment">A float variable that can be changed in real time in the Ray Marching tab. There are five of them (a,b,c,d,e).</p>
-				</div>
-				
-			</figure>
-			
-			<figure id="group-code">
-				<figcaption>
-					<hr>
-					<p>Code</p>
-				</figcaption>
-				<div language="GLSL" class="code">
-					<textarea spellcheck="false" rows="20" class="code" id="input-code"></textarea>
-				</div>
-			</figure>
-			
-			<figure id="group-error">
-				<figcaption>
-					<hr>
-					<p>Error message</p>
-				</figcaption>
-				<div id="output-error" class="error"></div>
 			</figure>
 		</section>
 

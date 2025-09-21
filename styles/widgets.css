@@ -251,7 +251,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .code::after {
-    content: attr(lang);
+    content: attr(language);
     font-family: monospace;
     background-color: var(--general-default);
     border-radius: var(--roundness);
@@ -298,6 +298,7 @@ textarea {
     background: linear-gradient(0deg, var(--error-dark) 0%, var(--background-light) 100%);
     box-shadow: 0.25rem 0.25rem 0rem var(--shadow);
 
+    max-width: calc(100vw - 4rem);
     display: flex;
     flex-direction: column;
     padding: 2rem;

@@ -29,17 +29,11 @@ export default class WebGLManager {
         this.sun_rotation = Vector.vec(45, 45);
         this.base_render_size = {x: 2560, y: 1440};
         this.gl = this.canvas.getContext("webgl2");
-        if (!this.gl) {
-            const message = "This device does not support WebGL2.";
-            document.getElementById("popup-error").classList.remove("hidden");
-            document.getElementById("output-fail").innerText = message;
-        }
+        if (!this.gl)
+            throw new ReferenceError("This device or browser does not support WebGL2.");
         const ext = this.gl.getExtension('EXT_color_buffer_float');
-        if (!ext) {
-            const message = "Failed to get WebGL extention, try reloading.";
-            document.getElementById("popup-error").classList.remove("hidden");
-            document.getElementById("output-fail").innerText = message;
-        };
+        if (!ext)
+            throw new ReferenceError("Failed to get WebGL extention, try reloading.");
 
         window.addEventListener("resize", () => {this.synchronize(); this.refresh();});
         this.canvas.addEventListener("resize", () => {this.synchronize(); this.refresh();});
@@ -218,6 +212,7 @@ export default class WebGLManager {
         let message = "";
         try {
             this.setup(this.compute_shader_code + "\n" + sdf_code, this.render_shader_code);
+            this.refresh();
         } catch (error) {
             message = error;
         }

@@ -1,0 +1,203 @@
+import Matrix from "../utility/matrix.js";
+import Vector from "../utility/vector.js";
+
+export default class WebGLManager {
+    static async initialize(canvas) {
+        const fragment_shader_code = await (await fetch('../scripts/lensing/shader/fragment.glsl')).text();
+        return new WebGLManager(canvas, fragment_shader_code);
+    }
+
+    constructor(canvas, fragment_shader_code) {
+        this.canvas = canvas;
+
+        this.vertex_buffer;
+        this.vertex_location;
+        this.uniform_buffer;
+        // this.uniform_location;
+        this.program;
+        
+        this.base_render_size = {x: 2560, y: 1440};
+        this.gl = this.canvas.getContext("webgl2");
+        if (!this.gl)
+            throw new ReferenceError("This device or browser does not support WebGL2.");
+        const ext = this.gl.getExtension('EXT_color_buffer_float');
+        if (!ext)
+            throw new ReferenceError("Failed to get WebGL extention, try reloading.");
+
+        window.addEventListener("resize", () => {this.synchronize();});
+        this.canvas.addEventListener("resize", () => {this.synchronize();});
+
+        this.uniforms = {
+            canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
+            buffer_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
+
+            render_scale: 1.0,
+            temporal_counter: 1.0,
+            shader_mode: 1,
+            max_marches: 50,
+
+            camera_rotation: Matrix.mat(1.0),
+            camera_position: Vector.vec(0.0, -3.0, 0.0),
+            fov: 1.0,
+        };
+
+        const vertices = new Float32Array([
+            1.0, 1.0,
+            1.0, -1.0,
+            -1.0, -1.0,
+            1.0, 1.0,
+            -1.0, -1.0,
+            -1.0, 1.0
+        ]);
+
+        this.vertex_buffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
+
+        this.setup(fragment_shader_code);
+        this.synchronize();
+    }
+
+    setup(fragment_shader_code) {
+        const vertex_shader_code = `#version 300 es
+            precision mediump float;
+            in vec2 vertex_position;
+            out vec2 texture_coordinates;
+
+            void main() {
+                texture_coordinates = vertex_position * 0.5 + 0.5;
+                gl_Position = vec4(vertex_position, 0.0, 1.0);
+            }
+        `;
+
+        this.program = makeProgram(this.gl, vertex_shader_code, fragment_shader_code);
+
+        const uniform_binding_number = 1;
+        const uniform_array = new Float32Array(packUniforms(this.uniforms));
+        this.gl.uniformBlockBinding(this.program, this.gl.getUniformBlockIndex(this.program, "UniformBlock"), uniform_binding_number);
+
+        this.uniform_buffer = this.gl.createBuffer();
+        this.gl.bindBufferBase(this.gl.UNIFORM_BUFFER, uniform_binding_number, this.uniform_buffer);
+        this.gl.bufferData(this.gl.UNIFORM_BUFFER, uniform_array.byteLength, this.gl.DYNAMIC_DRAW);
+
+        this.vertex_location = this.gl.getAttribLocation(this.program, "vertex_position");
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
+        this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
+    }
+
+    render() {
+        this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        this.gl.viewport(0, 0, this.uniforms.canvas_size.x, this.uniforms.canvas_size.y);
+
+        this.gl.useProgram(this.program);
+        this.gl.enableVertexAttribArray(this.vertex_location);
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+    }
+
+    synchronize() {
+        const width = Math.min(this.canvas.clientWidth, this.base_render_size.x);
+        const height = Math.min(this.canvas.clientHeight, this.base_render_size.y);
+        this.uniforms.canvas_size = Vector.vec(width, height);
+        this.canvas.width = width;
+        this.canvas.height = height;
+    }
+
+    async screenshot(file_name) {
+        const buffer_width = Math.floor(this.uniforms.buffer_size.x);
+        const buffer_height = Math.floor(this.uniforms.buffer_size.y);
+        const render_width = Math.floor(this.uniforms.canvas_size.x);
+        const render_height = Math.floor(this.uniforms.canvas_size.y);
+
+        const color_buffer = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, color_buffer);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA8, buffer_width, buffer_height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+        
+        const frame_buffer = this.gl.createFramebuffer();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER,  frame_buffer);
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, color_buffer, 0);
+        
+        this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        this.gl.viewport(0, 0, render_width, render_height);
+
+        this.gl.useProgram(this.render_program);
+
+        this.gl.enableVertexAttribArray(this.render_vertex_location);
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffers[0]);
+        this.gl.uniform1i(this.render_color_buffer_location, 0);
+
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+
+        const data = new Uint8ClampedArray(render_width * render_height * 4);
+        this.gl.readPixels(0, 0, render_width, render_height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+
+        const image_data = new ImageData(data, render_width, render_height);
+        const image_bitmap = await createImageBitmap(image_data);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = render_width;
+        canvas.height = render_height;
+        const context = canvas.getContext('2d');
+        context.scale(1, -1);
+        context.drawImage(image_bitmap, 0, -render_height);
+        
+        canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file_name;
+            a.click();
+            URL.revokeObjectURL(url);
+        }, 'image/png');
+    }
+}
+
+function compileShader(gl, shader_code, type) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, shader_code);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const error_message = gl.getShaderInfoLog(shader);
+        throw new SyntaxError("Error in shader compiling:\n" + error_message);
+    }
+    return shader;
+}
+
+function linkProgram(gl, vertex_shader, fragment_shader) {
+    const program = gl.createProgram();
+    gl.attachShader(program, vertex_shader);
+    gl.attachShader(program, fragment_shader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        const error_message = gl.getProgramInfoLog(program);
+        throw new SyntaxError("Error in program linking:\n" + error_message);
+    }
+    return program;
+}
+
+function makeProgram(gl, vertex_shader_code, fragment_shader_code) {
+    const vertex_shader = compileShader(gl, vertex_shader_code, gl.VERTEX_SHADER);
+    const fragment_shader = compileShader(gl, fragment_shader_code, gl.FRAGMENT_SHADER);
+    const program = linkProgram(gl, vertex_shader, fragment_shader);
+    return program;
+}
+
+function packUniforms(data) {
+    let array = [];
+    for (const el in data) {
+        if (Vector.test(data[el]))
+            array.push(Vector.array(data[el]));
+        else if (Matrix.test(data[el]))
+            array.push(Matrix.array(data[el]));
+        else
+            array.push(data[el]);
+    }
+    return array.flat();
+}
