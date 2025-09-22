@@ -107,7 +107,7 @@ figure>div {
     aspect-ratio: 1;
 
     border-radius: var(--roundness);
-    background-image: url(../assets/textures/icons/placeholder.png);
+    background-image: url(../assets/images/icons/placeholder.png);
     background-size: 100%;
     background-position: center;
 }
@@ -126,7 +126,7 @@ figure:hover>div {
     border-color: #c9411f;
 }
 #a>div {
-    background-image: url(../assets/textures/icons/2025912181237.png);
+    background-image: url(../assets/images/icons/2025912181237.png);
 }
 
 /* ----------------------------------------------------------------------------- */

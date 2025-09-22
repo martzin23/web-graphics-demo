@@ -282,7 +282,7 @@ textarea {
     width: 100vw;
     height: 100vh;
     background-color: var(--transluscent);
-    backdrop-filter: blur(2px);
+    /* backdrop-filter: blur(2px); */
 
     display: flex;
     justify-content: center;
@@ -332,6 +332,7 @@ textarea {
 
 .popup .row p {
     color: var(--error-default);
+    text-shadow: 0.25rem 0.25rem 0rem var(--error-dark);
 }
 
 .popup>div>p {
