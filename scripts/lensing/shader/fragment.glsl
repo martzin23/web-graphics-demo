@@ -76,15 +76,15 @@ Data rayMarch2(inout Ray ray) {
     data.marches = 0;
 
     for (; data.marches < int(uniforms.max_marches); data.marches++) {
-        // if (length(data.position) < uniforms.epsilon) {
-        //     data.collided = true;
-        //     break;
-        // }
-        vec3 force = uniforms.force_strength * -normalize(data.position) / (length(data.position) * length(data.position));
-        if (length(force) > uniforms.epsilon) {
+        if (length(data.position) < uniforms.epsilon) {
             data.collided = true;
             break;
         }
+        vec3 force = uniforms.force_strength * -normalize(data.position) / (length(data.position) * length(data.position));
+        // if (length(force) > uniforms.epsilon) {
+        //     data.collided = true;
+        //     break;
+        // }
         ray.direction = normalize(ray.direction + force);
         // if (dot(ray.direction, normalize(data.position)) > 1.0 - uniforms.epsilon) {
         //     data.collided = true;
@@ -127,13 +127,11 @@ vec3 mapSky(sampler2D image, vec3 direction) {
 }
 
 vec2 dir2uv(vec3 direction) {
+    const float pi = 3.14159265359;
     vec3 normalized = normalize(direction);
-    float phi = atan(normalized.z, normalized.x);  // azimuthal angle [-π, π]
-    float theta = acos(normalized.y);                 // polar angle [0, π]
-    // Convert spherical to UV coordinates
-    // phi: -π to π → u: 0 to 1
-    // theta: 0 to π → v: 0 to 1
-    float u = (phi + 3.14159265359) / (2.0 * 3.14159265359);  // Add π to shift range
-    float v = theta / 3.14159265359;                          // Normalize to [0,1]
+    float phi = atan(normalized.y, normalized.x);
+    float theta = acos(normalized.z);
+    float u = (phi + pi) / (2.0 * pi);
+    float v = theta / pi;
     return vec2(u, v);
 }

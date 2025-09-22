@@ -8,6 +8,7 @@ figure {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+    padding-top: 0.5rem;
 }
 
 figure>figcaption {
@@ -54,8 +55,8 @@ body {
     grid-template-areas: 'h h' 'm c';
     grid-template-columns: 30rem 1fr;
     grid-template-rows: 0fr 1fr;
-    padding: 2rem;
-    gap: 2rem;
+    padding: var(--spacing);
+    gap: var(--spacing);
 }
 
 header {grid-area: h;}
@@ -93,7 +94,6 @@ menu {
 section {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
     padding: 1rem;
 }
 
@@ -117,7 +117,7 @@ section {
 }
 
 :root:fullscreen header {
-    padding-top: 2rem;
+    padding-top: var(--spacing);
 }
 
 :root:fullscreen header>nav {
@@ -128,7 +128,7 @@ section {
     background: linear-gradient(0deg, var(--background-dark) 0%, var(--background-light) 100%);
     height: min-content;
     max-height: calc(100vh - 4rem);
-    margin-top: 2rem;
+    margin-top: var(--spacing);
 }
 
 :root:fullscreen header>nav {
@@ -154,25 +154,12 @@ section {
 /* ----------------------------------------- */
 
 @media screen and (max-width: 768px) {
-    :root {
-        font-size: 10px;
-    }
-
-    body {
-        padding: 1rem;
-        gap: 1rem;
-    }
-
-    :root:fullscreen header {
-        padding-top: 1rem;
-    }
-
     :root:fullscreen menu {
         max-height: calc(100vh - 2rem);
     }
 }
 
-@media screen and (max-width: 512px) {
+@media screen and (max-width: 425px) {
     body {
         display: grid;
         grid-template-areas: 'h' 'c' 'm';

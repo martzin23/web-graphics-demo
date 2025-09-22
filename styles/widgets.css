@@ -16,7 +16,7 @@
 
 a {
     color: var(--text-muted);
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 a:hover {
@@ -45,8 +45,9 @@ input[type="text"] {
     background-color: var(--general-dark);
     border-radius: var(--roundness);
     border: none;
-    padding: 0.5rem;
-    width: var(--value-width);
+    padding: 0.5rem 0.751rem 0.5rem 0.75rem;
+    width: 6rem;
+    font-family: monospace;
 }
 
 input[type="text"]:invalid {
@@ -55,7 +56,7 @@ input[type="text"]:invalid {
 }
 
 input[type="color"] {
-    width: var(--value-width);
+    width: 6rem;
 }
 
 input[type="button"] {

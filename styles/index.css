@@ -9,18 +9,25 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 2rem;
-    padding: 2rem;
+    gap: var(--spacing);
+    padding: var(--spacing);
+}
+
+@media screen and (max-width: 425px) {
+    body {
+        justify-content: start;
+    }
 }
 
 /* ----------------------------------------------------------------------------- */
 
 header {
     border-radius: var(--roundness);
-    background-color: var(--background-dark);
+    background-color: var(--transluscent);
     box-shadow: var(--thickness) var(--thickness) 0rem var(--shadow);
 
-    width: 50%;
+    min-width: 50%;
+    width: min-content;
     padding: 2rem;
     font-size: 2rem;
     font-weight: bold;
@@ -34,8 +41,10 @@ header {
 main {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
-    gap: 2rem;
+    gap: var(--spacing);
 }
 
 header {
@@ -46,6 +55,8 @@ header {
 }
 
 header p {
+    width: max-content;
+    text-align: center;
     opacity: 0%;
     animation-name: appear;
     animation-fill-mode: forwards;
@@ -70,7 +81,9 @@ figure {
     border-radius: var(--roundness);
     border-bottom: var(--thickness) solid var(--general-highlight);
     background: linear-gradient(180deg, var(--background-dark) 50%, var(--background-light) 100%);
-    box-shadow: var(--thickness) var(--thickness) 0rem var(--transluscent);
+
+    --test: (var(--thickness) var(--thickness) 0rem var(--transluscent));
+    box-shadow: var(test);
     
     display: flex;
     flex-direction: column;
@@ -128,6 +141,16 @@ figure:hover>div {
 #a>div {
     background-image: url(../assets/images/icons/2025912181237.png);
 }
+
+#b {
+    background: linear-gradient(180deg, #130620 50%, var(--background-light) 100%);
+}
+#b:hover {
+    border-color: #702b9e;
+}
+/* #b>div {
+    background-image: url(../assets/images/icons/2025912181237.png);
+} */
 
 /* ----------------------------------------------------------------------------- */
 
