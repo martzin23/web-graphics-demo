@@ -1,3 +1,4 @@
+import WebGLManager from "./gpu.js";
 
 class Engine {
     static async initialize() {
@@ -18,10 +19,11 @@ class Engine {
 }
 
 const engine = await Engine.initialize();
-let animation_id = requestAnimationFrame(animate);
+engine.render();
+// let animation_id = requestAnimationFrame(animate);
 
-async function animate() {
-    engine.update();
-    engine.render();
-    animation_id = requestAnimationFrame(animate);
-}
+// async function animate() {
+//     engine.update();
+//     engine.render();
+//     animation_id = requestAnimationFrame(animate);
+// }
