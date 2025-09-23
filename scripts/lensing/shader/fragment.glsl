@@ -60,7 +60,8 @@ void main() {
     }
 
     // pixel_color = (texture(sky_buffer, texture_coordinates)).xyz;
-    output_color = vec4(transformColor(pixel_color), 1.0);
+    // output_color = vec4(transformColor(pixel_color), 1.0);
+    output_color = vec4(pixel_color, 1.0);
 }
 
 vec3 transformColor(vec3 color) {

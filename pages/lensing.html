@@ -1,7 +1,12 @@
 <!-- 
 TODO
-polishing
-add to index
+sky texture
+simulation
+variables
+
+camera
+	orbit mode
+	forward mode
 
 BUGS
 canvas filtering is linear
@@ -12,12 +17,12 @@ canvas filtering is linear
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-	<title>Gravitational Lensing Experiment</title>
-	<link rel="stylesheet" href="../styles/general.css">
-	<link rel="stylesheet" href="../styles/style_purple.css">
+	<title>Gravitational Lensing Simulation</title>
 	<link rel="stylesheet" href="../styles/keyframes.css">
 	<link rel="stylesheet" href="../styles/widgets.css">
 	<link rel="stylesheet" href="../styles/layout.css">
+	<link rel="stylesheet" href="../styles/general.css">
+	<link rel="stylesheet" href="../styles/style_purple.css">
 	<script type="module" defer src="../scripts/lensing/engine.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
@@ -61,17 +66,17 @@ canvas filtering is linear
 				</figcaption>
 			</figure>
 
-			<figure id="group-misc">
-				<figcaption>
-					<hr>
-					<p>Misc</p>
-				</figcaption>
-			</figure>
-
 			<figure id="group-camera">
 				<figcaption>
 					<hr>
 					<p>Camera</p>
+				</figcaption>
+			</figure>
+
+			<figure id="group-marching">
+				<figcaption>
+					<hr>
+					<p>Marching</p>
 				</figcaption>
 			</figure>
 		</section>
@@ -81,13 +86,6 @@ canvas filtering is linear
 				<figcaption>
 					<hr>
 					<p>Shading</p>
-				</figcaption>
-			</figure>
-
-			<figure id="group-marching">
-				<figcaption>
-					<hr>
-					<p>Marching</p>
 				</figcaption>
 			</figure>
 		</section>

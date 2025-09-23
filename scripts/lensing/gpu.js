@@ -1,32 +1,22 @@
 import Matrix from "../utility/matrix.js";
 import Vector from "../utility/vector.js";
+import Texture from "../utility/texture.js";
 
 export default class WebGLManager {
     static async initialize(canvas) {
         const fragment_shader_code = await (await fetch('../scripts/lensing/shader/fragment.glsl')).text();
-        // const sky_image = new Uint8ClampedArray((await (await (await fetch("../assets/textures/sky.png")).blob()).arrayBuffer())); // blob
-        let sky_image;
-        await loadImageToUint8ClampedArray('../assets/images/textures/sky.png')
-            .then(({data, width, height}) => {
-                sky_image = data;
-                // console.log('Image loaded:', width, 'x', height);
-                // console.log('Pixel data:', data); // Uint8ClampedArray
-            })
-            .catch(error => {
-                console.error('Error loading image:', error);
-            });
-        return new WebGLManager(canvas, fragment_shader_code, sky_image);
+        const sky_texture = await Texture.load('../assets/images/textures/sky.jpg');
+        return new WebGLManager(canvas, fragment_shader_code, sky_texture);
     }
 
-    constructor(canvas, fragment_shader_code, sky_image) {
+    constructor(canvas, fragment_shader_code, sky_texture) {
         this.canvas = canvas;
         this.vertex_buffer;
         this.vertex_location;
         this.uniform_buffer;
         this.program;
         this.base_render_size = {x: 2560, y: 1440};
-        this.sky_buffer;
-        this.sky_buffer_location;
+        this.sky_texture = sky_texture;
 
         this.gl = this.canvas.getContext("webgl2");
         if (!this.gl)
@@ -71,22 +61,6 @@ export default class WebGLManager {
         this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-        const sky_width = 1920;
-        const sky_height = 1080;
-
-        // console.log(sky_image);
-        // console.log(`Expected size: ${sky_width * sky_height * 4} bytes (${sky_width}×${sky_height}×4)`);
-        // console.log(`Actual size: ${sky_image.length} bytes`);
-
-        this.sky_buffer = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.sky_buffer);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA8, sky_width, sky_height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, sky_image);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-
         this.setup(fragment_shader_code);
         this.synchronize();
     }
@@ -117,7 +91,7 @@ export default class WebGLManager {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
-        this.sky_buffer_location = this.gl.getUniformLocation(this.program, 'sky_buffer');
+        this.sky_texture.create(this.gl, "sky_buffer", this.gl.TEXTURE0, this.program, this.gl.LINEAR, this.gl.CLAMP_TO_EDGE);
     }
 
     render() {
@@ -130,10 +104,7 @@ export default class WebGLManager {
 
         this.gl.useProgram(this.program);
         this.gl.enableVertexAttribArray(this.vertex_location);
-
-        this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.sky_buffer);
-        this.gl.uniform1i(this.sky_buffer_location, 0);
+        this.sky_texture.bind(this.gl);
 
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
     }
@@ -170,6 +141,8 @@ export default class WebGLManager {
 
         this.gl.useProgram(this.program);
         this.gl.enableVertexAttribArray(this.vertex_location);
+        this.sky_texture.bind(this.gl);
+
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
         const data = new Uint8ClampedArray(render_width * render_height * 4);
@@ -238,39 +211,4 @@ function packUniforms(data) {
             array.push(data[el]);
     }
     return array.flat();
-}
-
-function loadImageToUint8ClampedArray(imageUrl) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous'; // Enable CORS if loading from different domain
-        
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Set canvas dimensions to match image
-            canvas.width = img.width;
-            canvas.height = img.height;
-            
-            // Draw image onto canvas
-            ctx.drawImage(img, 0, 0);
-            
-            // Get image data as Uint8ClampedArray
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const uint8Array = imageData.data; // This is the Uint8ClampedArray
-            
-            resolve({
-                data: uint8Array,
-                width: img.width,
-                height: img.height
-            });
-        };
-        
-        img.onerror = function() {
-            reject(new Error('Failed to load image'));
-        };
-        
-        img.src = imageUrl;
-    });
 }

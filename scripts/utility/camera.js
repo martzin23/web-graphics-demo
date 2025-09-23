@@ -9,7 +9,7 @@ export default class Camera {
         rotation = Vector.vec(0.0, 0.0), 
         fov = 0.5, 
         speed = 0.05, 
-        sensitivity = 0.1
+        sensitivity = 0.2
     ) {
         this.position = position;
         this.rotation = rotation;
@@ -28,8 +28,8 @@ export default class Camera {
         });
         document.addEventListener('mousemove', (event) => {
             if (this.isEnabled()) {
-                this.rotation.x += event.movementX * this.sensitivity;
-                this.rotation.y += event.movementY * this.sensitivity;
+                this.rotation.x += event.movementX * this.sensitivity * Math.min(this.fov, 1.0);
+                this.rotation.y += event.movementY * this.sensitivity * Math.min(this.fov, 1.0);
                 this.rotation.x = this.rotation.x % 360.0;
                 if (this.rotation.y > 90)
                     this.rotation.y = 90;
@@ -38,8 +38,8 @@ export default class Camera {
             }
         });
         TouchListener.addTouchListener(canvas, (event) => {
-            this.rotation.x -= event.deltaX * this.sensitivity;
-            this.rotation.y -= event.deltaY * this.sensitivity;
+            this.rotation.x -= event.deltaX * this.sensitivity * Math.min(this.fov, 1.0);
+            this.rotation.y -= event.deltaY * this.sensitivity * Math.min(this.fov, 1.0);
             this.rotation.x = this.rotation.x % 360.0;
             if (this.rotation.y > 90)
                 this.rotation.y = 90;

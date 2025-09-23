@@ -166,15 +166,9 @@ export default class GUIManager {
             gpu.screenshot(date_time);
         }, '<i class="fa fa-download"></i>Screenshot');
 
-        Widgets.createButton(document.getElementById("group-misc"), () => {
-            storage.delete();
-            location.reload();
-        }, '<i class="fa fa-refresh"></i>Reset variables');
-
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 0.1);
-        Widgets.createButton(document.getElementById("group-camera"), () => {camera.position = {x: 0, y: 0, z: 0}}, "Reset position");
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.x = value;}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.y = value;}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
