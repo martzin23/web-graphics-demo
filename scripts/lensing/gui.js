@@ -149,8 +149,7 @@ export default class GUIManager {
             (value) => { this.switchTab(value, false); }, 
             [
                 '<i class="fa fa-cog"></i>General', 
-                '<i class="fa fa-location-arrow"></i>Marching', 
-                '<i class="fa fa-info"></i>Info'
+                '<i class="fa fa-info"></i>Controls'
             ], 
             '<i class="fa fa-cog"></i>General',
             undefined,
@@ -175,10 +174,10 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
 
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.epsilon = value;}, () => gpu.uniforms.epsilon, "epsilon", 0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.max_marches = value;}, () => gpu.uniforms.max_marches, "max_marches", 0, Infinity, 1);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.march_size = value;}, () => gpu.uniforms.march_size, "march_size", 0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_strenth = value;}, () => gpu.uniforms.force_strenth, "force_strenth", 0, Infinity, 0.01);
+        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.max_marches = value;}, () => gpu.uniforms.max_marches, "Max Marches", 0, Infinity, 1);
+        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.march_size = value;}, () => gpu.uniforms.march_size, "March Size", 0, Infinity);
+        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_strenth = value;}, () => gpu.uniforms.force_strenth, "Force Strength", 0, Infinity, 0.01);
+        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_threshold = value;}, () => gpu.uniforms.force_threshold, "Force Threshold", 0, Infinity);
     }
 }
 

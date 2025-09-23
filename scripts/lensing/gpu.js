@@ -32,10 +32,10 @@ export default class WebGLManager {
             canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
             buffer_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
 
-            render_scale: 2.0,
+            render_scale: 1,
             temporal_counter: 1.0,
             shader_mode: 1,
-            epsilon: 0.5, 
+            force_threshold: 0.5, 
 
             camera_rotation: Matrix.mat(1.0),
             camera_position: Vector.vec(0.0, -3.0, 0.0),
@@ -43,7 +43,7 @@ export default class WebGLManager {
 
             max_marches: 200,
             march_size: 0.5,
-            force_strenth: 0.75,
+            force_strenth: 1.0,
             padding_a: 1.0,
         };
 

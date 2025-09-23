@@ -182,7 +182,7 @@ export default class GUIManager {
                 '<i class="fa fa-cog"></i>General', 
                 '<i class="fa fa-location-arrow"></i>Ray Marching', 
                 '<i class="fa fa-code"></i>Custom Code',
-                '<i class="fa fa-info"></i>Info'
+                '<i class="fa fa-info"></i>Controls'
             ], 
             '<i class="fa fa-cog"></i>General',
             undefined,
