@@ -21,9 +21,6 @@ export default class WebGLManager {
         this.gl = this.canvas.getContext("webgl2");
         if (!this.gl)
             throw new ReferenceError("This device or browser does not support WebGL2.");
-        const ext = this.gl.getExtension('EXT_color_buffer_float');
-        if (!ext)
-            throw new ReferenceError("Failed to get WebGL extention, try reloading.");
 
         window.addEventListener("resize", () => {this.synchronize();});
         this.canvas.addEventListener("resize", () => {this.synchronize();});

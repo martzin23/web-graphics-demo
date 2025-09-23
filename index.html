@@ -1,10 +1,17 @@
 <!-- 
 TODO
+simulation
+
 migrate to main page
 add more info
 camera
-	orbit mode
-	forward mode
+    orbit mode
+    forward mode
+webgl wrapper
+    compileShader
+    linkProgram
+    makeProgram
+    
 
 BUGS
 canvas filtering is linear
@@ -39,6 +46,7 @@ canvas filtering is linear
             <a href="./pages/lensing.html"></a>
         </figure>
     </main>
+    <canvas id="canvas"></canvas>
     <script>
         Array.from(document.querySelector("main").children).forEach((element, index) => {
             element.style["animation-name"] = "appear-upward";
