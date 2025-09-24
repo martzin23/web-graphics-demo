@@ -1,5 +1,4 @@
 #version 300 es
-precision highp float;
 
 layout(std140) uniform UniformBlock {
     vec2 canvas_size;
@@ -9,8 +8,8 @@ layout(std140) uniform UniformBlock {
     float blend;
 };
 
-out vec4 output_color;
+in vec2 vertex_position;
 
 void main() {
-    output_color = vec4(1.0, 1.0, 1.0, 1.0);
+    gl_Position = vec4(vertex_position, 0.0, 1.0);
 }
