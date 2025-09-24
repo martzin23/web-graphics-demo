@@ -8,8 +8,14 @@ layout(std140) uniform UniformBlock {
     float blend;
 };
 
-in vec2 vertex_position;
+in vec3 input_position;
+in vec3 input_velocity;
+// out vec3 output_position;
+// out vec3 output_velocity;
 
 void main() {
-    gl_Position = vec4(vertex_position, 0.0, 1.0);
+    output_velocity = input_velocity;
+    output_position = output_velocity + input_position;
+
+    gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
 }

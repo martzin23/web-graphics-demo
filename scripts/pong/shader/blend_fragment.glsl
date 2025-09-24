@@ -16,5 +16,6 @@ out vec4 output_color;
 
 void main() {
     vec3 previous_color = texelFetch(color_buffer, ivec2(grid_coordinates), 0).xyz;
-    output_color = vec4(previous_color * blend, 1.0);
+    output_color = vec4(previous_color - blend, 1.0);
+    // output_color = vec4(0.0, 1.0, 0.0, 1.0);
 }

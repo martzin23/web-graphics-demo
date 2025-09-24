@@ -27,7 +27,6 @@ class ParticleSimulator {
         this.vertex_grid_location;
         this.vertex_particle_location;
         this.vertex_blend_location;
-        this.vertex_simulate_location;
 
         this.color_buffer = [];
         this.grid_color_location;
@@ -52,7 +51,8 @@ class ParticleSimulator {
             buffer_size: Vector.vec(this.max_render_size.x, this.max_render_size.y),
             grid_size: Vector.vec(this.max_grid_size.x, this.max_grid_size.y),
             gap: 0.9,
-            blend: 0.1,
+            blend: 1 / 510,
+            frame: 0,
         };
 
         this.grid_program = makeProgram(this.gl, grid_vertex_code, grid_fragment_code);
@@ -72,22 +72,15 @@ class ParticleSimulator {
         this.vertex_buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
-        this.vertex_grid_location = this.gl.getAttribLocation(this.grid_program, "vertex_position");
-        this.vertex_particle_location = this.gl.getAttribLocation(this.particle_program, "vertex_position");
-        this.vertex_blend_location = this.gl.getAttribLocation(this.blend_program, "vertex_position");
-        this.vertex_simulate_location = this.gl.getAttribLocation(this.simulate_program, "vertex_position");
-        this.gl.vertexAttribPointer(this.vertex_grid_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.vertexAttribPointer(this.vertex_particle_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.vertexAttribPointer(this.vertex_blend_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
         const uniform_binding_number = 0;
-        const uniform_array = new Float32Array(packUniforms(this.uniforms));
         this.uniform_buffer = this.gl.createBuffer();
         this.gl.bindBufferBase(this.gl.UNIFORM_BUFFER, uniform_binding_number, this.uniform_buffer);
-        this.gl.bufferData(this.gl.UNIFORM_BUFFER, uniform_array.byteLength, this.gl.STATIC_DRAW);
+        this.gl.bufferData(this.gl.UNIFORM_BUFFER, (new Float32Array(packUniforms(this.uniforms))).byteLength, this.gl.DYNAMIC_DRAW);
         this.gl.uniformBlockBinding(this.grid_program, this.gl.getUniformBlockIndex(this.grid_program, "UniformBlock"), uniform_binding_number);
         this.gl.uniformBlockBinding(this.particle_program, this.gl.getUniformBlockIndex(this.particle_program, "UniformBlock"), uniform_binding_number);
-        this.gl.uniformBlockBinding(this.particle_program, this.gl.getUniformBlockIndex(this.particle_program, "UniformBlock"), uniform_binding_number);
+        this.gl.uniformBlockBinding(this.blend_program, this.gl.getUniformBlockIndex(this.particle_program, "UniformBlock"), uniform_binding_number);
+
 
         this.color_buffer[0] = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer[0]);
@@ -96,6 +89,7 @@ class ParticleSimulator {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
         this.color_buffer[1] = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer[1]);
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA8, this.max_grid_size.x, this.max_grid_size.y, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
@@ -103,22 +97,31 @@ class ParticleSimulator {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-        this.grid_color_location = this.gl.getUniformLocation(this.grid_program, 'color_buffer');
-        this.blend_color_location = this.gl.getUniformLocation(this.particle_program, 'color_buffer');
+
 
         this.frame_buffer[0] = this.gl.createFramebuffer();
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER,  this.frame_buffer[0]);
         this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.color_buffer[0], 0);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+
         this.frame_buffer[1] = this.gl.createFramebuffer();
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER,  this.frame_buffer[1]);
         this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.color_buffer[1], 0);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+
         
+        this.vertex_grid_location = this.gl.getAttribLocation(this.grid_program, "vertex_position");
+        this.vertex_particle_location = this.gl.getAttribLocation(this.particle_program, "vertex_position");
+        this.vertex_blend_location = this.gl.getAttribLocation(this.blend_program, "vertex_position");
+
+        this.grid_color_location = this.gl.getUniformLocation(this.grid_program, 'color_buffer');
+        this.blend_color_location = this.gl.getUniformLocation(this.particle_program, 'color_buffer');
+        
+
         this.synchronize();
     }
 
-    render() {
+    draw() {
         // update uniform buffer
         this.gl.bindBuffer(this.gl.UNIFORM_BUFFER, this.uniform_buffer);
         this.gl.bufferData(this.gl.UNIFORM_BUFFER, new Float32Array(packUniforms(this.uniforms)), this.gl.DYNAMIC_DRAW);
@@ -141,12 +144,13 @@ class ParticleSimulator {
         // blend pass
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frame_buffer[0]);
 
-        this.gl.clearColor(1.0, 0.0, 0.0, 1.0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        // this.gl.clearColor(1.0, 0.0, 0.0, 1.0);
+        // this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.viewport(0, 0, this.uniforms.grid_size.x, this.uniforms.grid_size.y);
 
         this.gl.useProgram(this.blend_program);
         this.gl.enableVertexAttribArray(this.vertex_blend_location);
+        this.gl.vertexAttribPointer(this.vertex_blend_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer[1]);
         this.gl.uniform1i(this.blend_color_location, 0);
@@ -157,18 +161,20 @@ class ParticleSimulator {
         // particle pass
         this.gl.useProgram(this.particle_program);
         this.gl.enableVertexAttribArray(this.vertex_particle_location);
+        this.gl.vertexAttribPointer(this.vertex_particle_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
         this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 6, this.particle_count);
 
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
 
         // grid pass
-        this.gl.clearColor(0.0, 0.0, 0.0, 0.1);
+        this.gl.clearColor(1.0, 0.0, 0.0, 0.1);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.viewport(0, 0, this.uniforms.canvas_size.x, this.uniforms.canvas_size.y);
 
         this.gl.useProgram(this.grid_program);
         this.gl.enableVertexAttribArray(this.vertex_grid_location);
+        this.gl.vertexAttribPointer(this.vertex_grid_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer[0]);
         this.gl.uniform1i(this.grid_color_location, 0);
@@ -177,6 +183,8 @@ class ParticleSimulator {
 
         [this.color_buffer[0], this.color_buffer[1]] = [this.color_buffer[1], this.color_buffer[0]];
         [this.frame_buffer[0], this.frame_buffer[1]] = [this.frame_buffer[1], this.frame_buffer[0]];
+
+        this.uniforms.frame += 1;
     }
 
     synchronize() {
@@ -186,6 +194,8 @@ class ParticleSimulator {
         this.canvas.height = height;
         this.uniforms.canvas_size = Vector.vec(width, height);
         this.uniforms.grid_size = Vector.vec(Math.floor(width / this.square_size), Math.floor(height / this.square_size));
+
+        console.log(this.uniforms);
     }
 }
 
@@ -232,11 +242,38 @@ function packUniforms(data) {
     return array.flat();
 }
 
-const engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
-engine.render();
-// let animation_id = requestAnimationFrame(animate);
+function randomPositions(n, max = 1.0, min = 0.0) {
+    let positions = [];
+    for (let i = 0; i < n; i++) {
+        let x = Math.random() * (max - min) + min;
+        let y = Math.random() * (max - min) + min;
+        let z = Math.random() * (max - min) + min;
+        positions.push(x);
+        positions.push(y);
+        positions.push(z);
+    }
+    return positions;
+}
 
-// async function animate() {
-//     engine.render();
-//     animation_id = requestAnimationFrame(animate);
-// }
+function randomVelocities(n, multiplier = 1.0) {
+    let velocities = [];
+    for (let i = 0; i < n; i++) {
+        let x = Math.random() * 2.0 - 1.0;
+        let y = Math.random() * 2.0 - 1.0;
+        let z = Math.random() * 2.0 - 1.0;
+        let length = Math.sqrt(x*x + y*y + z*z);
+        velocities.push(x / length * multiplier);
+        velocities.push(y / length * multiplier);
+        velocities.push(z / length * multiplier);
+    }
+    return velocities;
+}
+
+const engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
+// engine.draw();
+let animation_id = requestAnimationFrame(animate);
+
+async function animate() {
+    engine.draw();
+    animation_id = requestAnimationFrame(animate);
+}

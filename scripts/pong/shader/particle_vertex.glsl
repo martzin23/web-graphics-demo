@@ -6,10 +6,12 @@ layout(std140) uniform UniformBlock {
     vec2 grid_size;
     float gap;
     float blend;
+    float frame;
 };
 
 in vec2 vertex_position;
 
 void main() {
-    gl_Position = vec4(vertex_position * 0.5, 0.0, 1.0);
+    vec2 offset = vec2(frame * 0.001 - 0.5, 0.0);
+    gl_Position = vec4(vertex_position * 0.3 + offset, 0.0, 1.0);
 }

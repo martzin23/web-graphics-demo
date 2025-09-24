@@ -7,6 +7,7 @@ layout(std140) uniform UniformBlock {
     vec2 grid_size;
     float gap;
     float blend;
+    float frame;
 };
 
 out vec4 output_color;
