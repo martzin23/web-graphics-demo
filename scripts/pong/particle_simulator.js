@@ -17,7 +17,7 @@ class ParticleSimulator {
     constructor(canvas, grid_vertex_code, grid_fragment_code, particle_vertex_code, particle_fragment_code, blend_vertex_code, blend_fragment_code, simulate_vertex_code, simulate_fragment_code) {
         this.canvas = canvas;
         this.square_size = 20;
-        this.particle_count = 1;
+        this.particle_count = 25;
 
         this.vertex_buffer;
         this.vertex_grid_location;
@@ -31,10 +31,13 @@ class ParticleSimulator {
         this.frame_buffer;
         this.uniform_buffer;
 
-        this.particle_buffer = [];
-        this.particle_location;
-        this.particle_data = new Float32Array(interleaveArrays(3, randomPositions(this.particle_count, 1.0, -1.0), randomVelocities(this.particle_count, 0.01)));
-        console.log(this.particle_data);
+        this.position_buffer = [];
+        this.position_data = new Float32Array(randomPositions(this.particle_count, 1.0, -1.0));
+        console.log(this.position_data);
+
+        this.velocity_buffer = [];
+        this.velocity_data = new Float32Array(randomVelocities(this.particle_count, 0.01));
+        console.log(this.velocity_data);
 
         this.grid_program;
         this.particle_program;
@@ -62,7 +65,7 @@ class ParticleSimulator {
         this.blend_program = makeProgram(this.gl, blend_vertex_code, blend_fragment_code);
 
         this.simulate_program = makeProgram(this.gl, simulate_vertex_code, simulate_fragment_code);
-        this.gl.transformFeedbackVaryings(this.simulate_program, ["output_position", "output_velocity"], this.gl.INTERLEAVED_ATTRIBS);
+        this.gl.transformFeedbackVaryings(this.simulate_program, ["output_position", "output_velocity"], this.gl.SEPARATE_ATTRIBS);
         this.gl.linkProgram(this.simulate_program);
         if (!this.gl.getProgramParameter(this.simulate_program, this.gl.LINK_STATUS)) {
             const error_message = this.gl.getProgramInfoLog(this.simulate_program);
@@ -83,15 +86,26 @@ class ParticleSimulator {
         this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
         
-        this.particle_buffer[0] = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[0]);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, this.particle_data.byteLength, this.gl.DYNAMIC_COPY);
-        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, this.particle_data);
+        this.position_buffer[0] = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[0]);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, this.position_data.byteLength, this.gl.DYNAMIC_COPY);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, this.position_data);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
         
-        this.particle_buffer[1] = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, this.particle_data.byteLength, this.gl.DYNAMIC_COPY);
+        this.position_buffer[1] = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[1]);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, this.position_data.byteLength, this.gl.DYNAMIC_COPY);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        
+        this.velocity_buffer[0] = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.velocity_buffer[0]);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, this.velocity_data.byteLength, this.gl.DYNAMIC_COPY);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, this.velocity_data);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        
+        this.velocity_buffer[1] = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.velocity_buffer[1]);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, this.velocity_data.byteLength, this.gl.DYNAMIC_COPY);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
         const uniform_binding_number = 0;
@@ -130,8 +144,6 @@ class ParticleSimulator {
         this.grid_color_location = this.gl.getUniformLocation(this.grid_program, 'color_buffer');
         this.blend_color_location = this.gl.getUniformLocation(this.particle_program, 'color_buffer');
 
-        this.particle_location = this.gl.getUniformLocation(this.particle_program, 'particle_buffer');
-
         this.synchronize();
     }
 
@@ -144,13 +156,16 @@ class ParticleSimulator {
         // simulation pass
         this.gl.useProgram(this.simulate_program);
 
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[0]);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[0]);
         this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.vertexAttribPointer(1, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
         this.gl.enableVertexAttribArray(0);
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.velocity_buffer[0]);
+        this.gl.vertexAttribPointer(1, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
         this.gl.enableVertexAttribArray(1);
 
-        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, this.particle_buffer[1]);
+        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, this.position_buffer[1]);
+        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 1, this.velocity_buffer[1]);
 
         this.gl.enable(this.gl.RASTERIZER_DISCARD);
         this.gl.beginTransformFeedback(this.gl.POINTS);
@@ -160,16 +175,17 @@ class ParticleSimulator {
         this.gl.disable(this.gl.RASTERIZER_DISCARD);
 
         this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-        // const view2 = new Float32Array(this.particle_data.length);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[0]);
+        // const view2 = new Float32Array(this.position_data.length);
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[0]);
         // this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view2);
         // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
         // console.log(view2);
         
-        // const view = new Float32Array(this.particle_data.length);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
+        // const view = new Float32Array(this.position_data.length);
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[1]);
         // this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view);
         // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
         // console.log(view);
@@ -204,10 +220,12 @@ class ParticleSimulator {
         // this.gl.enableVertexAttribArray(this.vertex_particle_location);
         // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[0]);
         this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.vertexAttribPointer(1, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
         this.gl.enableVertexAttribArray(0);
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.velocity_buffer[0]);
+        this.gl.vertexAttribPointer(1, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
         this.gl.enableVertexAttribArray(1);
 
         // this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 6, this.particle_count);
@@ -241,7 +259,8 @@ class ParticleSimulator {
 
         [this.color_buffer[0], this.color_buffer[1]] = [this.color_buffer[1], this.color_buffer[0]];
         [this.frame_buffer[0], this.frame_buffer[1]] = [this.frame_buffer[1], this.frame_buffer[0]];
-        [this.particle_buffer[0], this.particle_buffer[1]] = [this.particle_buffer[1], this.particle_buffer[0]];
+        [this.position_buffer[0], this.position_buffer[1]] = [this.position_buffer[1], this.position_buffer[0]];
+        [this.velocity_buffer[0], this.velocity_buffer[1]] = [this.velocity_buffer[1], this.velocity_buffer[0]];
 
         this.uniforms.frame += 1;
     }
