@@ -14,12 +14,13 @@ custom webgl wrapper
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="../styles/general.css">
+	<link rel="stylesheet" href="./styles/general.css">
 	<link rel="stylesheet" href="./styles/style_neutral.css">
 	<link rel="stylesheet" href="./styles/keyframes.css">
 	<link rel="stylesheet" href="./styles/widgets.css">
 	<link rel="stylesheet" href="./styles/index.css">
     <title>Web Graphics Demo</title>
+	<script type="module" defer src="../scripts/pong/particle_simulator.js"></script>
 </head>
 <body>
     <header>
@@ -38,6 +39,7 @@ custom webgl wrapper
             <a href="./pages/lensing.html"></a>
         </figure>
     </main>
+    <canvas id="canvas"></canvas>
     <script>
         Array.from(document.querySelector("main").children).forEach((element, index) => {
             element.style["animation-name"] = "appear-upward";

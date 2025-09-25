@@ -35,12 +35,12 @@ void main() {
     // gl_PointSize = 1.5;
     // gl_Position = vec4(input_position * aspect_ratio, 1.0);
 
-    // float speed = 0.03;
+    // float speed = 0.05;
     // float radius = 0.2 * float(gl_VertexID);
     // vec3 position = vec3(radius * cos(frame * speed), radius * sin(frame *speed), 0.0);
-    // gl_PointSize = 1.5;
+    // gl_PointSize = 1.0;
     // gl_Position = vec4(position * aspect_ratio, 1.0);
     
-    gl_PointSize = 1.5;
+    gl_PointSize = 1.0;
     gl_Position = vec4(input_position * aspect_ratio, 1.0);
 }

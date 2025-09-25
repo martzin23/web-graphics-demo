@@ -16,8 +16,8 @@ class ParticleSimulator {
 
     constructor(canvas, grid_vertex_code, grid_fragment_code, particle_vertex_code, particle_fragment_code, blend_vertex_code, blend_fragment_code, simulate_vertex_code, simulate_fragment_code) {
         this.canvas = canvas;
-        this.square_size = 10;
-        this.particle_count = 5;
+        this.square_size = 20;
+        this.particle_count = 1;
 
         this.vertex_buffer;
         this.vertex_grid_location;
@@ -33,7 +33,7 @@ class ParticleSimulator {
 
         this.particle_buffer = [];
         this.particle_location;
-        this.particle_data = new Float32Array(interleaveArrays(3, randomPositions(this.particle_count, 1.0, -1.0), randomVelocities(this.particle_count, 1.0)));
+        this.particle_data = new Float32Array(interleaveArrays(3, randomPositions(this.particle_count, 1.0, -1.0), randomVelocities(this.particle_count, 0.01)));
         console.log(this.particle_data);
 
         this.grid_program;
@@ -52,7 +52,7 @@ class ParticleSimulator {
 
         this.gl = this.canvas.getContext("webgl2");
         if (!this.gl)
-            throw new ReferenceError("This device or browser does not support WebGL2.");
+            throw new Error("This device or browser does not support WebGL2.");
 
         window.addEventListener("resize", () => {this.synchronize();});
         this.canvas.addEventListener("resize", () => {this.synchronize();});
@@ -162,17 +162,17 @@ class ParticleSimulator {
         this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-        const view2 = new Float32Array(this.particle_data.length);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[0]);
-        this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view2);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-        console.log(view2);
+        // const view2 = new Float32Array(this.particle_data.length);
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[0]);
+        // this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view2);
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        // console.log(view2);
         
-        const view = new Float32Array(this.particle_data.length);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
-        this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-        console.log(view);
+        // const view = new Float32Array(this.particle_data.length);
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
+        // this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view);
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        // console.log(view);
 
 
         // blend pass
@@ -302,12 +302,12 @@ function packUniforms(data) {
 function randomPositions(n, max = 1.0, min = 0.0) {
     let positions = [];
     for (let i = 0; i < n; i++) {
-        // let x = Math.random() * (max - min) + min;
-        // let y = Math.random() * (max - min) + min;
-        // let z = Math.random() * (max - min) + min;
-        let x = 1.0;
-        let y = 1.0;
-        let z = 1.0;
+        let x = Math.random() * (max - min) + min;
+        let y = Math.random() * (max - min) + min;
+        let z = Math.random() * (max - min) + min;
+        // let x = 1.0;
+        // let y = 1.0;
+        // let z = 1.0;
         positions.push(x);
         positions.push(y);
         // positions.push(z);
@@ -319,15 +319,15 @@ function randomPositions(n, max = 1.0, min = 0.0) {
 function randomVelocities(n, multiplier = 1.0) {
     let velocities = [];
     for (let i = 0; i < n; i++) {
-        // let x = Math.random() * 2.0 - 1.0;
-        // let y = Math.random() * 2.0 - 1.0;
-        // let z = Math.random() * 2.0 - 1.0;
-        let x = 1.0;
-        let y = 1.0;
-        let z = 1.0;
-        velocities.push(x);
-        velocities.push(y);
-        // positions.push(z);
+        let x = Math.random() * 2.0 - 1.0;
+        let y = Math.random() * 2.0 - 1.0;
+        let z = Math.random() * 2.0 - 1.0;
+        // let x = 1.0;
+        // let y = 1.0;
+        // let z = 1.0;
+        velocities.push(x * multiplier);
+        velocities.push(y * multiplier);
+        // velocities.push(z * multiplier);
         velocities.push(0);
         // let length = Math.sqrt(x*x + y*y + z*z);
         // velocities.push(x / length * multiplier);
@@ -350,18 +350,27 @@ function interleaveArrays(attribute_size, ...arrays) {
     return result;
 }
 
-const engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
-engine.draw();
-engine.draw();
-engine.draw();
 
-// let previous = performance.now();
-// async function animate() {
-//     const now = performance.now();
-//     if ((now - previous) > 10) {
-//         previous = now;
-//         engine.draw();
-//     }
-//     requestAnimationFrame(animate);
-// }
-// requestAnimationFrame(animate);
+
+let previous = performance.now();
+let engine;
+try {
+    engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
+// engine.draw();
+// engine.draw();
+// engine.draw();
+    requestAnimationFrame(animate);
+} catch (error) {
+    // console.warn("WARNING: WebGL2 not supported, hiding canvas.");
+    console.error(error);
+    canvas.style.display = "none";
+}
+
+async function animate() {
+    const now = performance.now();
+    if ((now - previous) > 10) {
+        previous = now;
+        engine.draw();
+    }
+    requestAnimationFrame(animate);
+}
