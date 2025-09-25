@@ -21,6 +21,13 @@ export default class FPSCounter {
         const fps = (1000 / (this.delta / this.frames)).toFixed(this.decimals);
         this.delta = 0;
         this.frames = 0;
-        this.element.innerText = this.prefix + fps + this.suffix;
+        if (!!this.element)
+            this.element.innerText = this.prefix + fps + this.suffix;
+    }
+
+    get() {
+        this.delta = 0;
+        this.frames = 0;
+        return (1000 / (this.delta / this.frames)).toFixed(this.decimals);
     }
 }

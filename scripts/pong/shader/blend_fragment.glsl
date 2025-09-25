@@ -2,8 +2,8 @@
 precision highp float;
 
 layout(std140) uniform UniformBlock {
-    vec2 canvas_size;
     vec2 buffer_size;
+    vec2 canvas_size;
     vec2 grid_size;
     float gap;
     float blend;
@@ -16,6 +16,5 @@ out vec4 output_color;
 
 void main() {
     vec3 previous_color = texelFetch(color_buffer, ivec2(grid_coordinates), 0).xyz;
-    output_color = vec4(previous_color - blend, 1.0);
-    // output_color = vec4(0.0, 1.0, 0.0, 1.0);
+    output_color = vec4(previous_color - 1.0 / (blend * 511.0), 1.0);
 }
