@@ -3,14 +3,14 @@ import Matrix from "../utility/matrix.js";
 
 class ParticleSimulator {
     static async initialize(canvas) {
-        const grid_vertex_code = await (await fetch('../scripts/pong/shader/grid_vertex.glsl')).text();
-        const grid_fragment_code = await (await fetch('../scripts/pong/shader/grid_fragment.glsl')).text();
-        const particle_vertex_code = await (await fetch('../scripts/pong/shader/particle_vertex.glsl')).text();
-        const particle_fragment_code = await (await fetch('../scripts/pong/shader/particle_fragment.glsl')).text();
-        const blend_vertex_code = await (await fetch('../scripts/pong/shader/blend_vertex.glsl')).text();
-        const blend_fragment_code = await (await fetch('../scripts/pong/shader/blend_fragment.glsl')).text();
-        const simulate_vertex_code = await (await fetch('../scripts/pong/shader/simulate_vertex.glsl')).text();
-        const simulate_fragment_code = await (await fetch('../scripts/pong/shader/simulate_fragment.glsl')).text();
+        const grid_vertex_code = await (await fetch('./scripts/pong/shader/grid_vertex.glsl')).text();
+        const grid_fragment_code = await (await fetch('./scripts/pong/shader/grid_fragment.glsl')).text();
+        const particle_vertex_code = await (await fetch('./scripts/pong/shader/particle_vertex.glsl')).text();
+        const particle_fragment_code = await (await fetch('./scripts/pong/shader/particle_fragment.glsl')).text();
+        const blend_vertex_code = await (await fetch('./scripts/pong/shader/blend_vertex.glsl')).text();
+        const blend_fragment_code = await (await fetch('./scripts/pong/shader/blend_fragment.glsl')).text();
+        const simulate_vertex_code = await (await fetch('./scripts/pong/shader/simulate_vertex.glsl')).text();
+        const simulate_fragment_code = await (await fetch('./scripts/pong/shader/simulate_fragment.glsl')).text();
         return new ParticleSimulator(canvas, grid_vertex_code, grid_fragment_code, particle_vertex_code, particle_fragment_code, blend_vertex_code, blend_fragment_code, simulate_vertex_code, simulate_fragment_code);
     }
 
@@ -33,11 +33,9 @@ class ParticleSimulator {
 
         this.position_buffer = [];
         this.position_data = new Float32Array(createPositions(this.particle_count, 1.0, -1.0));
-        console.log(this.position_data);
 
         this.velocity_buffer = [];
-        this.velocity_data = new Float32Array(createVelocities(this.particle_count, 0.01));
-        console.log(this.velocity_data);
+        this.velocity_data = new Float32Array(createVelocities(this.particle_count, 0.02));
 
         this.grid_program;
         this.particle_program;
@@ -362,19 +360,15 @@ let previous = performance.now();
 let engine;
 try {
     engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
-// engine.draw();
-// engine.draw();
-// engine.draw();
     requestAnimationFrame(animate);
 } catch (error) {
-    // console.warn("WARNING: WebGL2 not supported, hiding canvas.");
-    console.error(error);
+    console.warn("WARNING: WebGL2 not supported, hiding canvas.");
     canvas.style.display = "none";
 }
 
 async function animate() {
     const now = performance.now();
-    if ((now - previous) > 10) {
+    if ((now - previous) > 33) {
         previous = now;
         engine.draw();
     }
