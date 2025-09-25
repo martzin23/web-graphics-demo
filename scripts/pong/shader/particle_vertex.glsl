@@ -9,20 +9,38 @@ layout(std140) uniform UniformBlock {
     float frame;
 };
 
-struct Particle {
-    vec3 position;
-    vec3 velocity;
-};
-
-// layout(std140) buffer ParticleBlock {
-//     Particle particles[];
+// struct Particle {
+//     vec3 position;
+//     vec3 velocity;
 // };
 
-uniform sampler2D particle_buffer;
-in vec2 vertex_position;
+// layout(std140) uniform ParticleBlock {
+//     Particle particles[1];
+// };
+
+// uniform sampler2D particle_buffer;
+// in vec2 vertex_position;
+in vec3 input_position;
+in vec3 input_velocity;
 
 void main() {
-    vec3 position = vec3(frame * 0.01 - 1.0, 0.5 * sin(frame * 0.1), 0.0);
-    vec3 final_position = vec3(vertex_position / grid_size, 0.0);
-    gl_Position = vec4(final_position + position, 1.0);
+    vec3 aspect_ratio = vec3(grid_size.y / grid_size.x, 1.0, 1.0);
+    // float speed = 0.03;
+    // float radius = 0.75;
+
+    // vec3 position = vec3(radius * cos(frame * speed), radius * sin(frame *speed), 0.0) * aspect_ratio;
+    // vec3 final_position = vec3(vertex_position / grid_size, 0.0);
+    // gl_Position = vec4(final_position + position, 1.0);
+    
+    // gl_PointSize = 1.5;
+    // gl_Position = vec4(input_position * aspect_ratio, 1.0);
+
+    // float speed = 0.03;
+    // float radius = 0.2 * float(gl_VertexID);
+    // vec3 position = vec3(radius * cos(frame * speed), radius * sin(frame *speed), 0.0);
+    // gl_PointSize = 1.5;
+    // gl_Position = vec4(position * aspect_ratio, 1.0);
+    
+    gl_PointSize = 1.5;
+    gl_Position = vec4(input_position * aspect_ratio, 1.0);
 }

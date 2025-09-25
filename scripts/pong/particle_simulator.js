@@ -16,8 +16,8 @@ class ParticleSimulator {
 
     constructor(canvas, grid_vertex_code, grid_fragment_code, particle_vertex_code, particle_fragment_code, blend_vertex_code, blend_fragment_code, simulate_vertex_code, simulate_fragment_code) {
         this.canvas = canvas;
-        this.square_size = 20;
-        this.particle_count = 1;
+        this.square_size = 10;
+        this.particle_count = 5;
 
         this.vertex_buffer;
         this.vertex_grid_location;
@@ -33,8 +33,8 @@ class ParticleSimulator {
 
         this.particle_buffer = [];
         this.particle_location;
-        this.particle_data = new Float32Array(interleaveArrays(3, randomPositions(this.particle_count, 1.0, -1.0), randomVelocities(this.particle_count, 0.01)));
-        // console.log(this.particle_data);
+        this.particle_data = new Float32Array(interleaveArrays(3, randomPositions(this.particle_count, 1.0, -1.0), randomVelocities(this.particle_count, 1.0)));
+        console.log(this.particle_data);
 
         this.grid_program;
         this.particle_program;
@@ -93,10 +93,6 @@ class ParticleSimulator {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, this.particle_data.byteLength, this.gl.DYNAMIC_COPY);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-        
-        // this.particle_view_texture = this.gl.createTexture();
-        // this.gl.bindTexture(this.gl.TEXTURE_BUFFER, this.particle_view_texture);
-        // this.gl.texBuffer(this.gl.TEXTURE_BUFFER, this.gl.R32F, this.particle_buffer[0]);
 
         const uniform_binding_number = 0;
         this.uniform_buffer = this.gl.createBuffer();
@@ -158,6 +154,7 @@ class ParticleSimulator {
 
         this.gl.enable(this.gl.RASTERIZER_DISCARD);
         this.gl.beginTransformFeedback(this.gl.POINTS);
+        // this.gl.drawArrays(this.gl.TRIANGLES, 0, this.particle_count);
         this.gl.drawArrays(this.gl.POINTS, 0, this.particle_count);
         this.gl.endTransformFeedback();
         this.gl.disable(this.gl.RASTERIZER_DISCARD);
@@ -165,17 +162,17 @@ class ParticleSimulator {
         this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-        // const view2 = new Float32Array(this.particle_data.length);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[0]);
-        // this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view2);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-        // console.log(view2);
+        const view2 = new Float32Array(this.particle_data.length);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[0]);
+        this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view2);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        console.log(view2);
         
-        // const view = new Float32Array(this.particle_data.length);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
-        // this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-        // console.log(view);
+        const view = new Float32Array(this.particle_data.length);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
+        this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        console.log(view);
 
 
         // blend pass
@@ -202,25 +199,23 @@ class ParticleSimulator {
         // particle pass
         this.gl.useProgram(this.particle_program);
 
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
-        this.gl.vertexAttribPointer(this.vertex_particle_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.enableVertexAttribArray(this.vertex_particle_location);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
+        // this.gl.vertexAttribPointer(this.vertex_particle_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
+        // this.gl.enableVertexAttribArray(this.vertex_particle_location);
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-        // this.gl.bindBufferBase(this.gl.SHADER_STORAGE_BUFFER, 1, this.particle_buffer[1]);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particle_buffer[1]);
+        this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+        this.gl.vertexAttribPointer(1, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
+        this.gl.enableVertexAttribArray(0);
+        this.gl.enableVertexAttribArray(1);
 
-        // this.gl.bindTexture(this.gl.TEXTURE_BUFFER, this.particle_view_texture);
-        // this.gl.texBuffer(this.gl.TEXTURE_BUFFER, this.gl.R32F, this.particle_buffer[0]);
-        // this.gl.uniform1i(this.particle_view_location, 0);
-
-        // this.gl.activeTexture(this.gl.TEXTURE0);
-        // this.gl.bindTexture(this.gl.TEXTURE_BUFFER, this.particle_view_texture);
-        // this.gl.texBuffer(this.gl.TEXTURE_BUFFER, this.gl.R32F, this.particle_buffer[0]);
-        // this.gl.uniform1i(this.particle_view_location, 0);
-
-        this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 6, this.particle_count);
+        // this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 6, this.particle_count);
+        this.gl.drawArrays(this.gl.POINTS, 0, this.particle_count);
+        // this.gl.drawArrays(this.gl.TRIANGLES, 0, this.particle_count);
 
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
 
         // grid pass
@@ -307,12 +302,16 @@ function packUniforms(data) {
 function randomPositions(n, max = 1.0, min = 0.0) {
     let positions = [];
     for (let i = 0; i < n; i++) {
-        let x = Math.random() * (max - min) + min;
-        let y = Math.random() * (max - min) + min;
-        let z = Math.random() * (max - min) + min;
+        // let x = Math.random() * (max - min) + min;
+        // let y = Math.random() * (max - min) + min;
+        // let z = Math.random() * (max - min) + min;
+        let x = 1.0;
+        let y = 1.0;
+        let z = 1.0;
         positions.push(x);
         positions.push(y);
-        positions.push(z);
+        // positions.push(z);
+        positions.push(0);
     }
     return positions;
 }
@@ -320,13 +319,21 @@ function randomPositions(n, max = 1.0, min = 0.0) {
 function randomVelocities(n, multiplier = 1.0) {
     let velocities = [];
     for (let i = 0; i < n; i++) {
-        let x = Math.random() * 2.0 - 1.0;
-        let y = Math.random() * 2.0 - 1.0;
-        let z = Math.random() * 2.0 - 1.0;
-        let length = Math.sqrt(x*x + y*y + z*z);
-        velocities.push(x / length * multiplier);
-        velocities.push(y / length * multiplier);
-        velocities.push(z / length * multiplier);
+        // let x = Math.random() * 2.0 - 1.0;
+        // let y = Math.random() * 2.0 - 1.0;
+        // let z = Math.random() * 2.0 - 1.0;
+        let x = 1.0;
+        let y = 1.0;
+        let z = 1.0;
+        velocities.push(x);
+        velocities.push(y);
+        // positions.push(z);
+        velocities.push(0);
+        // let length = Math.sqrt(x*x + y*y + z*z);
+        // velocities.push(x / length * multiplier);
+        // velocities.push(y / length * multiplier);
+        // // velocities.push(z / length * multiplier);
+        // velocities.push(0.0);
     }
     return velocities;
 }
@@ -344,15 +351,17 @@ function interleaveArrays(attribute_size, ...arrays) {
 }
 
 const engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
-// engine.draw();
+engine.draw();
+engine.draw();
+engine.draw();
 
-let previous = performance.now();
-async function animate() {
-    const now = performance.now();
-    if ((now - previous) > 33) {
-        previous = now;
-        engine.draw();
-    }
-    requestAnimationFrame(animate);
-}
-requestAnimationFrame(animate);
+// let previous = performance.now();
+// async function animate() {
+//     const now = performance.now();
+//     if ((now - previous) > 10) {
+//         previous = now;
+//         engine.draw();
+//     }
+//     requestAnimationFrame(animate);
+// }
+// requestAnimationFrame(animate);
