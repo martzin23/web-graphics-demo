@@ -201,16 +201,12 @@ export function createDrag(parent, set = (value) => {}, get = () => 0.0, name = 
     element_text.setAttribute("required", "");
     element_text.setAttribute("value", default_value);
 
-    const element_left = document.createElement("i");
-    element_left.className = "fa fa-sort-desc fa-rotate-90";
-
-    const element_right = document.createElement("i");
-    element_right.className = "fa fa-sort-asc fa-rotate-90";
+    const element_symbol = document.createElement("i");
+    element_symbol.className = "fa fa-arrows-h";
 
     const element_button = document.createElement("div");
     element_button.className = "button";
-    element_button.appendChild(element_left);
-    element_button.appendChild(element_right);
+    element_button.appendChild(element_symbol);
 
     const element_name = document.createElement("p");
     element_name.innerText = name;
@@ -542,6 +538,15 @@ export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', '
     return element_base;
 }
 
+export function createComment(parent, comment) {
+    const element_comment = document.createElement("p");
+    element_comment.className = "comment";
+    element_comment.innerText = comment;
+
+    parent.appendChild(element_comment);
+    return element_comment;
+}
+
 // export function addTooltip(element, tooltip, icon) {
 //     if (icon) {
 //         const i = document.createElement("i");
@@ -576,6 +581,24 @@ export function switchSetIndex(element_switch, active_index) {
         else
             element.classList.remove("active");
     });
+}
+
+export function setupAddTooltip() {
+    HTMLElement.prototype.addTooltip = function(tooltip, symbol) {
+        if (symbol === undefined) {
+            this.setAttribute("tooltip", tooltip)
+        } else {
+            const element_symbol = document.createElement("i");
+            element_symbol.className = "fa " + symbol;
+
+            const element_button = document.createElement("div");
+            element_button.className = "button round";
+            element_button.appendChild(element_symbol);
+            element_button.setAttribute("tooltip", tooltip);
+
+            this.appendChild(element_button);
+        }
+    }
 }
 
 // DOESNT WORK

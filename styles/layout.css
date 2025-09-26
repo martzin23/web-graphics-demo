@@ -80,11 +80,6 @@ header>nav {
     padding: 1rem;
 }
 
-/* header>nav>.row {
-    flex-wrap: wrap-reverse;
-    justify-content: flex-end;
-} */
-
 menu {
     padding: 0rem;
     overflow-y: auto;
@@ -160,7 +155,7 @@ section {
     }
 }
 
-@media screen and (max-width: 425px) {
+@media screen and (max-width: 600px) {
     body {
         display: grid;
         grid-template-areas: 'h' 'c' 'm';

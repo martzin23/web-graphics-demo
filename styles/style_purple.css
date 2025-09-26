@@ -16,7 +16,7 @@ body {
     grid-template-rows: 0fr 1fr;
 }
 
-@media screen and (max-width: 425px) {
+@media screen and (max-width: 600px) {
     body {
         display: grid;
         grid-template-areas: 'h' 'c' 'm';

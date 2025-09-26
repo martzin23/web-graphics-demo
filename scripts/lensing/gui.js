@@ -144,6 +144,8 @@ export default class GUIManager {
     }
 
     setupWidgets(gpu, camera, storage) {
+        Widgets.setupAddTooltip();
+
         Widgets.createSwitch(
             document.getElementById("group-tabs"), 
             (value) => { this.switchTab(value, false); }, 
@@ -157,13 +159,13 @@ export default class GUIManager {
         );
 
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
-        Widgets.createIncrement(document.getElementById("group-display"), (value) => {gpu.uniforms.render_scale = value; gpu.synchronize();},() => gpu.uniforms.render_scale , "Resolution division", 1, 16);
-        Widgets.createButton(document.getElementById("group-display"), () => {gpu.synchronize();}, "Fix aspect ratio");
+        Widgets.createIncrement(document.getElementById("group-display"), (value) => {gpu.uniforms.render_scale = value; gpu.synchronize();},() => gpu.uniforms.render_scale , "Resolution division", 1, 16).addTooltip("Higher number = lower resolution, improves performance");
+        Widgets.createButton(document.getElementById("group-display"), () => {gpu.synchronize();}, "Fix aspect ratio").addTooltip("Click this if the image is stretched");
         Widgets.createButton(document.getElementById("group-display"), () => {
             var current_date = new Date(); 
             var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
             gpu.screenshot(date_time);
-        }, '<i class="fa fa-download"></i>Screenshot');
+        }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Save current rendered image and download");
 
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
@@ -173,11 +175,12 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
+        Widgets.createComment(document.getElementById("group-camera"), "The black hole won't be visible if you are too far away!")
 
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.max_marches = value;}, () => gpu.uniforms.max_marches, "Max Marches", 0, Infinity, 1);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.march_size = value;}, () => gpu.uniforms.march_size, "March Size", 0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_strenth = value;}, () => gpu.uniforms.force_strenth, "Force Strength", 0, Infinity, 0.01);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_threshold = value;}, () => gpu.uniforms.force_threshold, "Force Threshold", 0, Infinity);
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.max_marches = value;}, () => gpu.uniforms.max_marches, "Max Marches", 0, Infinity, 1);
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.march_size = value;}, () => gpu.uniforms.march_size, "March Size", 0, Infinity);
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_strenth = value;}, () => gpu.uniforms.force_strenth, "Force Strength", 0, Infinity, 0.01);
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_threshold = value;}, () => gpu.uniforms.force_threshold, "Force Threshold", 0, Infinity);
     }
 }
 
