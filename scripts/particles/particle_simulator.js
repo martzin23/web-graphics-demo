@@ -1,20 +1,17 @@
-import Vector from "../utility/vector.js";
-import Matrix from "../utility/matrix.js";
+import * as WebGL from "../utility/webgl.js";
 
 class ParticleSimulator {
     static async initialize(canvas) {
-        const grid_vertex_code = await (await fetch('./scripts/pong/shader/grid_vertex.glsl')).text();
-        const grid_fragment_code = await (await fetch('./scripts/pong/shader/grid_fragment.glsl')).text();
-        const particle_vertex_code = await (await fetch('./scripts/pong/shader/particle_vertex.glsl')).text();
-        const particle_fragment_code = await (await fetch('./scripts/pong/shader/particle_fragment.glsl')).text();
-        const blend_vertex_code = await (await fetch('./scripts/pong/shader/blend_vertex.glsl')).text();
-        const blend_fragment_code = await (await fetch('./scripts/pong/shader/blend_fragment.glsl')).text();
-        const simulate_vertex_code = await (await fetch('./scripts/pong/shader/simulate_vertex.glsl')).text();
-        const simulate_fragment_code = await (await fetch('./scripts/pong/shader/simulate_fragment.glsl')).text();
-        return new ParticleSimulator(canvas, grid_vertex_code, grid_fragment_code, particle_vertex_code, particle_fragment_code, blend_vertex_code, blend_fragment_code, simulate_vertex_code, simulate_fragment_code);
+        const grid_vertex_code = await (await fetch('./scripts/particles/shader/grid_vertex.glsl')).text();
+        const grid_fragment_code = await (await fetch('./scripts/particles/shader/grid_fragment.glsl')).text();
+        const particle_vertex_code = await (await fetch('./scripts/particles/shader/particle_vertex.glsl')).text();
+        const particle_fragment_code = await (await fetch('./scripts/particles/shader/particle_fragment.glsl')).text();
+        const blend_vertex_code = await (await fetch('./scripts/particles/shader/blend_vertex.glsl')).text();
+        const blend_fragment_code = await (await fetch('./scripts/particles/shader/blend_fragment.glsl')).text();
+        return new ParticleSimulator(canvas, grid_vertex_code, grid_fragment_code, particle_vertex_code, particle_fragment_code, blend_vertex_code, blend_fragment_code);
     }
 
-    constructor(canvas, grid_vertex_code, grid_fragment_code, particle_vertex_code, particle_fragment_code, blend_vertex_code, blend_fragment_code, simulate_vertex_code, simulate_fragment_code) {
+    constructor(canvas, grid_vertex_code, grid_fragment_code, particle_vertex_code, particle_fragment_code, blend_vertex_code, blend_fragment_code) {
         this.canvas = canvas;
         this.square_size = 20;
         this.particle_count = 100;
@@ -25,27 +22,28 @@ class ParticleSimulator {
         this.vertex_blend_location;
 
         this.color_buffer = [];
-        this.grid_color_location;
-        this.blend_color_location;
+        this.color_grid_location;
+        this.color_blend_location;
 
         this.frame_buffer;
         this.uniform_buffer;
 
         this.position_buffer = [];
-        this.position_data = new Float32Array(createPositions(this.particle_count, 1.0, -1.0));
+        this.position_location;
+        this.position_data = new Float32Array(createPositions(this.particle_count));
 
         this.velocity_buffer = [];
-        this.velocity_data = new Float32Array(createVelocities(this.particle_count, 0.02));
+        this.velocity_location;
+        this.velocity_data = new Float32Array(createVelocities(this.particle_count));
 
         this.grid_program;
         this.particle_program;
         this.blend_program;
-        this.simulate_program;
 
         this.uniforms = {
-            buffer_size: Vector.vec(2560, 1440),
-            canvas_size: Vector.vec(0.0, 0.0),
-            grid_size: Vector.vec(Math.floor(2560 / this.square_size), Math.floor(1440 / this.square_size)),
+            buffer_size: {width: 2560, height: 1440},
+            canvas_size: {width: 0.0, height: 0.0},
+            grid_size: {width: Math.floor(2560 / this.square_size), height: Math.floor(1440 / this.square_size)},
             gap: 0.75,
             blend: 0.1,
             frame: 0,
@@ -58,17 +56,11 @@ class ParticleSimulator {
         window.addEventListener("resize", () => {this.synchronize();});
         this.canvas.addEventListener("resize", () => {this.synchronize();});
 
-        this.grid_program = makeProgram(this.gl, grid_vertex_code, grid_fragment_code);
-        this.particle_program = makeProgram(this.gl, particle_vertex_code, particle_fragment_code);
-        this.blend_program = makeProgram(this.gl, blend_vertex_code, blend_fragment_code);
+        this.grid_program = WebGL.createProgram(this.gl, grid_vertex_code, grid_fragment_code);
+        this.blend_program = WebGL.createProgram(this.gl, blend_vertex_code, blend_fragment_code);
 
-        this.simulate_program = makeProgram(this.gl, simulate_vertex_code, simulate_fragment_code);
-        this.gl.transformFeedbackVaryings(this.simulate_program, ["output_position", "output_velocity"], this.gl.SEPARATE_ATTRIBS);
-        this.gl.linkProgram(this.simulate_program);
-        if (!this.gl.getProgramParameter(this.simulate_program, this.gl.LINK_STATUS)) {
-            const error_message = this.gl.getProgramInfoLog(this.simulate_program);
-            throw new SyntaxError("Error in program linking:\n" + error_message);
-        }
+        this.particle_program = WebGL.createProgram(this.gl, particle_vertex_code, particle_fragment_code);
+        WebGL.setFeedbaclVaryings(this.gl, this.particle_program, ["output_position", "output_velocity"]);
 
         const vertices = new Float32Array([
             1.0, 1.0,
@@ -117,7 +109,7 @@ class ParticleSimulator {
 
         this.color_buffer[0] = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer[0]);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA8, this.uniforms.grid_size.x, this.uniforms.grid_size.y, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA8, this.uniforms.grid_size.width, this.uniforms.grid_size.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
@@ -126,7 +118,7 @@ class ParticleSimulator {
 
         this.color_buffer[1] = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer[1]);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA8, this.uniforms.grid_size.x, this.uniforms.grid_size.y, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA8, this.uniforms.grid_size.width, this.uniforms.grid_size.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
@@ -138,9 +130,10 @@ class ParticleSimulator {
         this.vertex_grid_location = this.gl.getAttribLocation(this.grid_program, "vertex_position");
         this.vertex_particle_location = this.gl.getAttribLocation(this.particle_program, "vertex_position");
         this.vertex_blend_location = this.gl.getAttribLocation(this.blend_program, "vertex_position");
-
-        this.grid_color_location = this.gl.getUniformLocation(this.grid_program, 'color_buffer');
-        this.blend_color_location = this.gl.getUniformLocation(this.particle_program, 'color_buffer');
+        this.position_location = this.gl.getAttribLocation(this.particle_program, "input_position");
+        this.velocity_location = this.gl.getAttribLocation(this.particle_program, "input_velocity");
+        this.color_grid_location = this.gl.getUniformLocation(this.grid_program, 'color_buffer');
+        this.color_blend_location = this.gl.getUniformLocation(this.particle_program, 'color_buffer');
 
         this.synchronize();
     }
@@ -151,49 +144,11 @@ class ParticleSimulator {
         this.gl.bufferData(this.gl.UNIFORM_BUFFER, new Float32Array(packUniforms(this.uniforms)), this.gl.DYNAMIC_DRAW);
 
 
-        // simulation pass
-        this.gl.useProgram(this.simulate_program);
-
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[0]);
-        this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.enableVertexAttribArray(0);
-
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.velocity_buffer[0]);
-        this.gl.vertexAttribPointer(1, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.enableVertexAttribArray(1);
-
-        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, this.position_buffer[1]);
-        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 1, this.velocity_buffer[1]);
-
-        this.gl.enable(this.gl.RASTERIZER_DISCARD);
-        this.gl.beginTransformFeedback(this.gl.POINTS);
-        // this.gl.drawArrays(this.gl.TRIANGLES, 0, this.particle_count);
-        this.gl.drawArrays(this.gl.POINTS, 0, this.particle_count);
-        this.gl.endTransformFeedback();
-        this.gl.disable(this.gl.RASTERIZER_DISCARD);
-
-        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
-        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-
-        // const view2 = new Float32Array(this.position_data.length);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[0]);
-        // this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view2);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-        // console.log(view2);
-        
-        // const view = new Float32Array(this.position_data.length);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[1]);
-        // this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, view);
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-        // console.log(view);
-
-
         // blend pass
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frame_buffer);
         this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.color_buffer[0], 0);
 
-        this.gl.viewport(0, 0, this.uniforms.grid_size.x, this.uniforms.grid_size.y);
+        this.gl.viewport(0, 0, this.uniforms.grid_size.width, this.uniforms.grid_size.height);
         this.gl.useProgram(this.blend_program);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
@@ -203,7 +158,7 @@ class ParticleSimulator {
         
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer[1]);
-        this.gl.uniform1i(this.blend_color_location, 0);
+        this.gl.uniform1i(this.color_blend_location, 0);
 
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
@@ -214,23 +169,31 @@ class ParticleSimulator {
         this.gl.useProgram(this.particle_program);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.position_buffer[0]);
-        this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.enableVertexAttribArray(0);
+        this.gl.vertexAttribPointer(this.position_location, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+        this.gl.enableVertexAttribArray(this.position_location);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.velocity_buffer[0]);
-        this.gl.vertexAttribPointer(1, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
-        this.gl.enableVertexAttribArray(1);
-
-        this.gl.drawArrays(this.gl.POINTS, 0, this.particle_count);
-
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+        this.gl.vertexAttribPointer(this.velocity_location, 3, this.gl.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0);
+        this.gl.enableVertexAttribArray(this.velocity_location);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+
+        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, this.position_buffer[1]);
+        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 1, this.velocity_buffer[1]);
+
+        this.gl.beginTransformFeedback(this.gl.POINTS);
+        this.gl.drawArrays(this.gl.POINTS, 0, this.particle_count);
+        this.gl.endTransformFeedback();
+
+        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+        this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
 
         // grid pass
         this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-        this.gl.viewport(0, 0, this.uniforms.canvas_size.x, this.uniforms.canvas_size.y);
+        this.gl.viewport(0, 0, this.uniforms.canvas_size.width, this.uniforms.canvas_size.height);
 
         this.gl.useProgram(this.grid_program);
 
@@ -241,9 +204,9 @@ class ParticleSimulator {
 
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffer[0]);
-        this.gl.uniform1i(this.grid_color_location, 0);
+        this.gl.uniform1i(this.color_grid_location, 0);
         
-        this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 6, this.uniforms.grid_size.x * this.uniforms.grid_size.y);
+        this.gl.drawArraysInstanced(this.gl.TRIANGLES, 0, 6, this.uniforms.grid_size.width * this.uniforms.grid_size.height);
 
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 
@@ -257,68 +220,39 @@ class ParticleSimulator {
     }
 
     synchronize() {
-        const width = Math.min(this.canvas.clientWidth, this.uniforms.buffer_size.x);
-        const height = Math.min(this.canvas.clientHeight, this.uniforms.buffer_size.y);
+        const width = Math.min(this.canvas.clientWidth, this.uniforms.buffer_size.width);
+        const height = Math.min(this.canvas.clientHeight, this.uniforms.buffer_size.height);
         this.canvas.width = width;
         this.canvas.height = height;
-        this.uniforms.canvas_size = Vector.vec(width, height);
-        this.uniforms.grid_size = Vector.vec(Math.floor(width / this.square_size), Math.floor(height / this.square_size));
+        this.uniforms.canvas_size.width = width;
+        this.uniforms.canvas_size.height = height;
+        this.uniforms.grid_size.width = Math.floor(width / this.square_size);
+        this.uniforms.grid_size.height = Math.floor(height / this.square_size);
     }
-}
-
-function compileShader(gl, shader_code, type) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, shader_code);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        const error_message = gl.getShaderInfoLog(shader);
-        throw new SyntaxError("Error in shader compiling:\n" + error_message);
-    }
-    return shader;
-}
-
-function linkProgram(gl, vertex_shader, fragment_shader) {
-    const program = gl.createProgram();
-    gl.attachShader(program, vertex_shader);
-    gl.attachShader(program, fragment_shader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        const error_message = gl.getProgramInfoLog(program);
-        throw new SyntaxError("Error in program linking:\n" + error_message);
-    }
-    return program;
-}
-
-function makeProgram(gl, vertex_shader_code, fragment_shader_code) {
-    const vertex_shader = compileShader(gl, vertex_shader_code, gl.VERTEX_SHADER);
-    const fragment_shader = compileShader(gl, fragment_shader_code, gl.FRAGMENT_SHADER);
-    const program = linkProgram(gl, vertex_shader, fragment_shader);
-    return program;
 }
 
 function packUniforms(data) {
     let array = [];
     for (const el in data) {
-        if (Vector.test(data[el]))
-            array.push(Vector.array(data[el]));
-        else if (Matrix.test(data[el]))
-            array.push(Matrix.array(data[el]));
-        else
+        if (typeof data[el] === "number")
             array.push(data[el]);
+        else
+            array.push(Object.values(data[el]));
     }
     return array.flat();
 }
 
-function createPositions(n, max = 1.0, min = 0.0) {
+function createPositions(n) {
+    const max = 1.0;
+    const min = -1.0;
     let positions = [];
+
     for (let i = 0; i < n; i++) {
         let x = Math.random() * (max - min) + min;
         let y = Math.random() * (max - min) + min;
         let z = Math.random() * (max - min) + min;
-        // x = 0;
-        // y *= 0.03;
         y = 0;
-        // z = 0;
+        z = 0;
         positions.push(x);
         positions.push(y);
         positions.push(z);
@@ -326,15 +260,17 @@ function createPositions(n, max = 1.0, min = 0.0) {
     return positions;
 }
 
-function createVelocities(n, multiplier = 1.0) {
+function createVelocities(n) {
+    const multiplier = 0.02;
     let velocities = [];
+
     for (let i = 0; i < n; i++) {
-        let x = Math.random() * 2.0 - 1.0;
-        let y = Math.random() * 2.0 - 1.0;
-        let z = Math.random() * 2.0 - 1.0;
-        x = 0;
-        y = 1;
-        z = 0;
+        // let x = Math.random() * 2.0 - 1.0;
+        // let y = Math.random() * 2.0 - 1.0;
+        // let z = Math.random() * 2.0 - 1.0;
+        let x = 0;
+        let y = 1;
+        let z = 0;
         velocities.push(x * multiplier);
         velocities.push(y * multiplier);
         velocities.push(z * multiplier);
@@ -342,33 +278,21 @@ function createVelocities(n, multiplier = 1.0) {
     return velocities;
 }
 
-function interleaveArrays(attribute_size, ...arrays) {
-    let result = [];
-    for (let index = 0; index < arrays[0].length; index += attribute_size) {
-        for (let array of arrays) {
-            for (let attribute = 0; attribute < attribute_size; attribute++) {
-                result.push(array[index + attribute]);   
-            }
-        }
-    }
-    return result;
-}
-
-
-
 let previous = performance.now();
+const target_fps = 30;
 let engine;
 try {
     engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
     requestAnimationFrame(animate);
 } catch (error) {
+    console.error(error);
     console.warn("WARNING: WebGL2 not supported, hiding canvas.");
     canvas.style.display = "none";
 }
 
 async function animate() {
     const now = performance.now();
-    if ((now - previous) > 33) {
+    if ((now - previous) > (1000 / target_fps)) {
         previous = now;
         engine.draw();
     }

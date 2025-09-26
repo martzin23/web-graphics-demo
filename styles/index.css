@@ -131,7 +131,7 @@ figure:hover>figcaption {
 
 figure>div {
     transition: 0.25s ease;
-    width: 20rem;
+    width: 18.5rem;
     aspect-ratio: 1;
 
     border-radius: var(--roundness);

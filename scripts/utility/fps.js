@@ -26,8 +26,9 @@ export default class FPSCounter {
     }
 
     get() {
+        const fps = (1000 / (this.delta / this.frames)).toFixed(this.decimals);
         this.delta = 0;
         this.frames = 0;
-        return (1000 / (this.delta / this.frames)).toFixed(this.decimals);
+        return fps;
     }
 }
