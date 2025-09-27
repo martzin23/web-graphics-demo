@@ -23,11 +23,13 @@ body {
 
 header {
     border-radius: var(--roundness);
-    background-color: var(--transluscent);
+    /* background-color: var(--transluscent); */
+    /* background-color: var(--background-light); */
+    background: linear-gradient(0deg, var(--background-dark) -100%, var(--background-light) 100%);
     box-shadow: var(--thickness) var(--thickness) 0rem var(--shadow);
 
-    min-width: 50%;
-    width: min-content;
+    /* min-width: 50%; */
+    /* width: min-content; */
     padding: 2rem;
     font-size: 2rem;
     font-weight: bold;
@@ -55,7 +57,7 @@ header {
 }
 
 header p {
-    width: max-content;
+    /* width: max-content; */
     text-align: center;
     opacity: 0%;
     animation-name: appear;
@@ -97,8 +99,7 @@ figure {
     border-bottom: var(--thickness) solid var(--general-highlight);
     background: linear-gradient(180deg, var(--background-dark) 50%, var(--background-light) 100%);
 
-    --test: (var(--thickness) var(--thickness) 0rem var(--transluscent));
-    box-shadow: var(test);
+    box-shadow: var(--thickness) var(--thickness) 0rem var(--shadow);
     
     display: flex;
     flex-direction: column;

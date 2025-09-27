@@ -162,6 +162,12 @@ export default class GUIManager {
             if (this.auto_refresh)
                 gpu.refresh();
         });
+        
+        document.addEventListener('wheel', (event) => {
+            if (camera.isOrbiting()) {
+                gpu.refresh();
+            }
+        });
 
         document.addEventListener('mousemove', () => {
             if ((this.isMousePressed() || camera.isEnabled()) && this.auto_refresh)
@@ -284,8 +290,6 @@ export default class GUIManager {
             ["Custom", "Mandelbox", "Mandelbulb", "Koch curve", "Juliabulb"],
             "Custom"
         ).addTooltip("The type of body that is being rendered");
-
-        Widgets.createComment(document.getElementById("group-variables"), "Try changing some values to see how they impact the shape of the body");
 
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {gpu.uniforms.custom_a = value;}, () => gpu.uniforms.custom_a, "uniforms.custom_a");
         Widgets.createDrag(document.getElementById("group-custom"), (value) => {gpu.uniforms.custom_b = value;}, () => gpu.uniforms.custom_b, "uniforms.custom_b");

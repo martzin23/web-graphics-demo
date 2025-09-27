@@ -9,13 +9,20 @@ export default class Camera {
         rotation = Vector.vec(0.0, 0.0), 
         fov = 0.5, 
         speed = 0.05, 
-        sensitivity = 0.2
+        sensitivity = 0.2,
+        free_mode = false,
+        orbit_mode = false,
+        orbit_anchor = Vector.vec(0.0, 0.0, 0.0)
     ) {
         this.position = position;
         this.rotation = rotation;
         this.fov = fov;
         this.speed = speed;
         this.sensitivity = sensitivity;
+
+        this.free_mode = free_mode;
+        this.orbit_mode = orbit_mode;
+        this.orbit_anchor = orbit_anchor;
         this.key_states = {};
         
         document.addEventListener('keydown', (event) => {
@@ -28,37 +35,36 @@ export default class Camera {
         });
         document.addEventListener('mousemove', (event) => {
             if (this.isEnabled()) {
-                this.rotation.x += event.movementX * this.sensitivity * Math.min(this.fov, 1.0);
-                this.rotation.y += event.movementY * this.sensitivity * Math.min(this.fov, 1.0);
-                this.rotation.x = this.rotation.x % 360.0;
-                if (this.rotation.y > 90)
-                    this.rotation.y = 90;
-                if (this.rotation.y < -90)
-                    this.rotation.y = -90;
+                if (this.orbit_mode)
+                    this.updateOrbit(event.movementX, event.movementY);
+                else
+                    this.updateRotation(event.movementX, event.movementY);
             }
         });
         TouchListener.addTouchListener(canvas, (event) => {
-            this.rotation.x -= event.deltaX * this.sensitivity * Math.min(this.fov, 1.0);
-            this.rotation.y -= event.deltaY * this.sensitivity * Math.min(this.fov, 1.0);
-            this.rotation.x = this.rotation.x % 360.0;
-            if (this.rotation.y > 90)
-                this.rotation.y = 90;
-            if (this.rotation.y < -90)
-                this.rotation.y = -90;
+            if (this.isOrbiting()) 
+                this.updateOrbit(event.deltaX, event.deltaY);
+            else
+                this.updateRotation(-event.deltaX, -event.deltaY);
 
-            if (event.deltaZ != 0) {
-                this.position = Vector.add(
-                    this.position, 
-                    Vector.mul(Matrix.rot2dir(this.rotation.x, -this.rotation.y), this.speed * event.deltaZ)
-                );
-            }
+            if (event.deltaZ != 0)
+                this.position = Vector.add(this.position, Vector.mul(Matrix.rot2dir(this.rotation.x, -this.rotation.y), this.speed * event.deltaZ));
         });
         document.addEventListener('wheel', (event) => {
             if (this.isEnabled()) {
-                if(event.deltaY < 0)
-                    this.speed *= 1.25;
-                else
-                    this.speed /= 1.25;
+                if (this.isOrbiting()) {
+                    let delta;
+                    if(event.deltaY < 0)
+                        delta = 1.0 / 1.1;
+                    else
+                        delta = 1.1;
+                    this.updateOrbit(0.0, 0.0, delta);
+                } else {
+                    if(event.deltaY < 0)
+                        this.speed *= 1.25;
+                    else
+                        this.speed /= 1.25;
+                }
             }
         });
     }
@@ -92,17 +98,44 @@ export default class Camera {
         if (Vector.len(local_direction) == 0)
             return;
 
-        const temp = Matrix.rotate(Matrix.mat(1.0), Matrix.deg2rad(this.rotation.x), Vector.vec(0.0, 0.0, -1.0));
-        const forward = Vector.xyz(Matrix.mul(temp, Vector.vec(0.0, 1.0, 0.0, 0.0)));
-        const up = Vector.vec(0.0, 0.0, 1.0);
-        const right = Vector.cross(forward, up);
 
-        this.position = Vector.add(
-            this.position, 
-            Vector.mul(forward, local_direction.y * this.speed), 
-            Vector.mul(right, local_direction.x * this.speed), 
-            Vector.mul(up, local_direction.z * this.speed)
-        );
+        if (!this.isOrbiting()) {
+            let forward, up, right;
+
+            if (!this.free_mode) {
+                const temp = Matrix.rotate(Matrix.mat(1.0), Matrix.deg2rad(this.rotation.x), Vector.vec(0.0, 0.0, -1.0));
+                forward = Vector.xyz(Matrix.mul(temp, Vector.vec(0.0, 1.0, 0.0, 0.0)));
+                up = Vector.vec(0.0, 0.0, 1.0);
+                right = Vector.cross(forward, up);
+            } else {
+                forward = Matrix.rot2dir(this.rotation.x, -this.rotation.y);
+                up = Matrix.rot2dir(this.rotation.x, -this.rotation.y + 90);
+                right = Vector.cross(forward, up);
+            }
+
+            this.position = Vector.add(
+                this.position, 
+                Vector.mul(forward, local_direction.y * this.speed), 
+                Vector.mul(right, local_direction.x * this.speed), 
+                Vector.mul(up, local_direction.z * this.speed)
+            );
+        } else {
+            this.updateOrbit(-local_direction.x / this.sensitivity * this.speed, local_direction.z / this.sensitivity * this.speed, 1.0 + -0.003 / this.sensitivity * this.speed * local_direction.y);
+        }
+
+    }
+
+    updateRotation(dh, dv) {
+        this.rotation.x += dh * this.sensitivity * Math.min(this.fov, 1.0);
+        this.rotation.y += dv * this.sensitivity * Math.min(this.fov, 1.0);
+        this.rotation.x = this.rotation.x % 360.0;
+        this.rotation.y = Math.max(Math.min(this.rotation.y, 90), -90);
+    }
+
+    updateOrbit(dh = 0.0, dv = 0.0, dz = 1.0) {
+        const radius = Vector.len(Vector.sub(this.position, this.orbit_anchor)) * dz;
+        this.updateRotation(dh, dv);
+        this.position = Vector.add(Vector.mul(Matrix.rot2dir(this.rotation.x, -this.rotation.y), -radius), this.orbit_anchor);
     }
 
     toggle(canvas) {
@@ -122,5 +155,9 @@ export default class Camera {
 
     isEnabled() {
         return document.pointerLockElement !== null;
+    }
+
+    isOrbiting() {
+        return this.orbit_mode;
     }
 }
