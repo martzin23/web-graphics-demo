@@ -1,6 +1,7 @@
-import Matrix from "../utility/matrix.js";
-import Vector from "../utility/vector.js";
+import * as Matrix from "../utility/matrix.js";
+import * as Vector from "../utility/vector.js";
 import Texture from "../utility/texture.js";
+import * as WebGL from "../utility/webgl.js";
 
 export default class WebGLManager {
     static async initialize(canvas) {
@@ -58,11 +59,6 @@ export default class WebGLManager {
         this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-        this.setup(fragment_shader_code);
-        this.synchronize();
-    }
-
-    setup(fragment_shader_code) {
         const vertex_shader_code = `#version 300 es
             precision mediump float;
             in vec2 vertex_position;
@@ -74,7 +70,7 @@ export default class WebGLManager {
             }
         `;
 
-        this.program = makeProgram(this.gl, vertex_shader_code, fragment_shader_code);
+        this.program = WebGL.createProgram(this.gl, vertex_shader_code, fragment_shader_code);
 
         const uniform_binding_number = 1;
         const uniform_array = new Float32Array(packUniforms(this.uniforms));
@@ -89,6 +85,8 @@ export default class WebGLManager {
         this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
         this.sky_texture.create(this.gl, "sky_buffer", this.gl.TEXTURE0, this.program, this.gl.LINEAR, this.gl.CLAMP_TO_EDGE);
+
+        this.synchronize();
     }
 
     render() {
@@ -165,36 +163,6 @@ export default class WebGLManager {
             URL.revokeObjectURL(url);
         }, 'image/png');
     }
-}
-
-function compileShader(gl, shader_code, type) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, shader_code);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        const error_message = gl.getShaderInfoLog(shader);
-        throw new SyntaxError("Error in shader compiling:\n" + error_message);
-    }
-    return shader;
-}
-
-function linkProgram(gl, vertex_shader, fragment_shader) {
-    const program = gl.createProgram();
-    gl.attachShader(program, vertex_shader);
-    gl.attachShader(program, fragment_shader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        const error_message = gl.getProgramInfoLog(program);
-        throw new SyntaxError("Error in program linking:\n" + error_message);
-    }
-    return program;
-}
-
-function makeProgram(gl, vertex_shader_code, fragment_shader_code) {
-    const vertex_shader = compileShader(gl, vertex_shader_code, gl.VERTEX_SHADER);
-    const fragment_shader = compileShader(gl, fragment_shader_code, gl.FRAGMENT_SHADER);
-    const program = linkProgram(gl, vertex_shader, fragment_shader);
-    return program;
 }
 
 function packUniforms(data) {

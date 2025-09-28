@@ -1,41 +1,9 @@
+import * as Loader from './loader.js';
 
 export default class Texture {
     static async load(url) {
-        const promise = new Promise((resolve, reject) => {
-            const image = new Image();
-            image.crossOrigin = 'Anonymous';
-
-            image.onload = function() {
-                const canvas = document.createElement('canvas');
-                canvas.width = image.width;
-                canvas.height = image.height;
-
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(image, 0, 0);
-                
-                const image_data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const uint8Array = image_data.data;
-                
-                resolve({
-                    data: uint8Array,
-                    width: image.width,
-                    height: image.height
-                });
-            };
-            
-            image.onerror = function() {
-                reject();
-            };
-            
-            image.src = url;
-        });
-
-        const [data, width, height] = await promise
-            .then(({data, width, height}) => [data, width, height])
-            .catch(() => {
-                throw new Error("'Failed to load image'");
-            });
-        return new Texture(data, width, height);
+        const image = await Loader.loadImage(url);
+        return new Texture(image.data, image.width, image.height);
     }
 
     constructor(data, width, height) {

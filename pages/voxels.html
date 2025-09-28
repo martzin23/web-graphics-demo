@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Ray Voxel Traversal</title>
+	<link rel="stylesheet" href="../styles/keyframes.css">
+	<link rel="stylesheet" href="../styles/widgets.css">
+	<link rel="stylesheet" href="../styles/layout.css">
+	<link rel="stylesheet" href="../styles/general.css">
+	<link rel="stylesheet" href="../styles/style_green.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+
+	<header>
+		<nav class="block">
+			<div id="group-tabs"></div>
+			<div class="row">
+				<p class="value" id="output-fps">0 fps</p>
+				<a href="https://github.com/martzin23/web-graphics-demo" class="button">
+					<i class="fa fa-link"></i>
+					<p>GitHub</p>
+				</a>
+				<a href="../index.html" class="button">
+					<p>Back</p>
+					<i class="fa fa-sign-out"></i>
+				</a>
+			</div>
+		</nav>
+	</header>
+
+	<menu class="block" id="menu">
+
+		<section id="group-unselected" class="hidden">
+			<figure>
+				<figcaption>
+					<hr>
+					<p>Unselected</p>
+				</figcaption>
+				<p class="comment">No settings tab selected.</p>
+			</figure>
+		</section>
+
+		<section class="hidden">
+			<figure id="group-display">
+				<figcaption>
+					<hr>
+					<p>Display</p>
+				</figcaption>
+			</figure>
+
+			<figure id="group-camera">
+				<figcaption>
+					<hr>
+					<p>Camera</p>
+				</figcaption>
+			</figure>
+		</section>
+
+		<section class="hidden">
+			<figure>
+				<figcaption>
+					<hr>
+					<p>Controls (PC)</p>
+				</figcaption>
+				<div class="row">
+					<p class="value">Click</p>
+					<p class="comment">Toggle camera control (click on the canvas)</p>
+				</div>
+				<div class="row">
+					<p class="value">WASDQE (controlling)</p>
+					<p class="comment">Movement</p>
+				</div>
+				<div class="row">
+					<p class="value">Scroll (controlling)</p>
+					<p class="comment">Change camera speed</p>
+				</div>
+				<div class="row">
+					<p class="value">F11</p>
+					<p class="comment">Toggle fullscreen</p>
+				</div>
+				<div class="row">
+					<p class="value">Up/Down arrow</p>
+					<p class="comment">Change resolution</p>
+				</div>
+				<div class="row">
+					<p class="value">Tab</p>
+					<p class="comment">Toggle auto refresh</p>
+				</div>
+			</figure>
+			<figure>
+				<figcaption>
+					<hr>
+					<p>Controls (Mobile)</p>
+				</figcaption>
+				<div class="row">
+					<p class="value">Drag</p>
+					<p class="comment">Rotate camera</p>
+				</div>
+				<div class="row">
+					<p class="value">Zoom</p>
+					<p class="comment">Move foward/backward</p>
+				</div>
+			</figure>
+		</section>
+	</menu>
+
+	<canvas id="canvas" class="block"></canvas>
+
+	<div class="popup hidden" onclick="this.classList.add('hidden')" id="popup-error">
+		<div>
+			<div class="row">
+				<i class="fa fa-times"></i>		
+				<p>Error</p>
+			</div>
+			<p id="output-fail">This device does not support WebGL!</p>
+			<div class="button" onclick="location.reload();">
+				<i class="fa fa-refresh"></i>
+				<p>Restart</p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

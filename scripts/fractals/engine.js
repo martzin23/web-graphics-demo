@@ -2,8 +2,8 @@ import WebGLManager from './gpu.js'
 import GUIManager from './gui.js';
 import FPSCounter from '../utility/fps.js';
 import Camera from '../utility/camera.js';
-import Matrix from '../utility/matrix.js';
-import Vector from '../utility/vector.js';
+import * as Matrix from '../utility/matrix.js';
+import * as Vector from '../utility/vector.js';
 import LocalStorage from '../utility/storage.js';
 
 class Engine {

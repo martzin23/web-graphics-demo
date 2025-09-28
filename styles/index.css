@@ -168,5 +168,15 @@ figure:hover>div {
     background-image: url(../assets/images/icons/lensing.jpg);
 }
 
+#c {
+    background: linear-gradient(180deg, #142620 50%, var(--background-light) 100%);
+}
+#c:hover {
+    border-color: #41c498;
+}
+/* #c>div {
+    background-image: url(../assets/images/icons/lensing.jpg);
+} */
+
 /* ----------------------------------------------------------------------------- */
 

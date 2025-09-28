@@ -1,5 +1,5 @@
-import Matrix from "../utility/matrix.js";
-import Vector from "../utility/vector.js";
+import * as Matrix from "../utility/matrix.js";
+import * as Vector from "../utility/vector.js";
 
 export default class WebGLManager {
     static async initialize(canvas) {
