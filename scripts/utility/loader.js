@@ -34,12 +34,12 @@ export async function saveImage(file_name, image) {
     const image_bitmap = await createImageBitmap(image);
     
     const canvas = document.createElement('canvas');
-    canvas.width = render_width;
-    canvas.height = render_height;
+    canvas.width = image.width;
+    canvas.height = image.height;
 
     const context = canvas.getContext('2d');
     context.scale(1, -1);
-    context.drawImage(image_bitmap, 0, -render_height);
+    context.drawImage(image_bitmap, 0, -image.height);
     
     canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);

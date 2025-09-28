@@ -1,7 +1,8 @@
 import * as Matrix from "../utility/matrix.js";
 import * as Vector from "../utility/vector.js";
-import Texture from "../utility/texture.js";
 import * as WebGL from "../utility/webgl.js";
+import * as Loader from "../utility/loader.js";
+import Texture from "../utility/texture.js";
 
 export default class WebGLManager {
     static async initialize(canvas) {
@@ -140,28 +141,13 @@ export default class WebGLManager {
 
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
-        const data = new Uint8ClampedArray(render_width * render_height * 4);
-        this.gl.readPixels(0, 0, render_width, render_height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+        // const data = new Uint8ClampedArray(render_width * render_height * 4);
+        // this.gl.readPixels(0, 0, render_width, render_height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+        const image = WebGL.textureToImage(this.gl, color_buffer, render_width, render_height);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
-        const image_data = new ImageData(data, render_width, render_height);
-        const image_bitmap = await createImageBitmap(image_data);
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = render_width;
-        canvas.height = render_height;
-        const context = canvas.getContext('2d');
-        context.scale(1, -1);
-        context.drawImage(image_bitmap, 0, -render_height);
-        
-        canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file_name;
-            a.click();
-            URL.revokeObjectURL(url);
-        }, 'image/png');
+        // const image_data = new ImageData(data, render_width, render_height);
+        Loader.saveImage(file_name, image);
     }
 }
 

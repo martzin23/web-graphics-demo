@@ -106,10 +106,10 @@ export function createTexture(gl, width, height, format = "RGBA8", filter = "LIN
 }
 
 export function textureToImage(gl, texture, width, height) {
-    const data = new uint8Array(width * height * 4);
-    gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    const data = new Uint8ClampedArray(width * height * 4);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, data);
-    gl.bindTexture(this.gl.TEXTURE_2D, null);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 
     return new ImageData(data, width, height);
 }

@@ -187,6 +187,7 @@ class ParticleSimulator {
 
         this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
         this.gl.bindBufferBase(this.gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
+
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
 
@@ -278,23 +279,26 @@ function createVelocities(n) {
     return velocities;
 }
 
-let previous = performance.now();
-const target_fps = 30;
-let engine;
-try {
-    engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
-    requestAnimationFrame(animate);
-} catch (error) {
-    console.error(error);
-    console.warn("WARNING: WebGL2 not supported, hiding canvas.");
-    canvas.style.display = "none";
+async function run() {
+    let previous = performance.now();
+    const target_fps = 30;
+    let engine;
+    try {
+        engine = await ParticleSimulator.initialize(document.getElementById("canvas"));
+        requestAnimationFrame(animate);
+    } catch (error) {
+        console.warn("WebGL2 or some of its aspects couldn't initalize, hiding canvas.");
+        canvas.style.display = "none";
+    }
+    
+    async function animate() {
+        const now = performance.now();
+        if ((now - previous) > (1000 / target_fps)) {
+            previous = now;
+            engine.draw();
+        }
+        requestAnimationFrame(animate);
+    }
 }
 
-async function animate() {
-    const now = performance.now();
-    if ((now - previous) > (1000 / target_fps)) {
-        previous = now;
-        engine.draw();
-    }
-    requestAnimationFrame(animate);
-}
+run();
