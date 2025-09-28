@@ -90,16 +90,16 @@ export default class WebGLManager {
 
         this.color_buffers[0] = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffers[0]);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA16F, this.base_render_size.x, this.base_render_size.y, 0, this.gl.RGBA, this.gl.FLOAT, null);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, this.base_render_size.x, this.base_render_size.y, 0, this.gl.RGBA, this.gl.FLOAT, null);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST );
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
         this.color_buffers[1] = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.color_buffers[1]);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA16F, this.base_render_size.x, this.base_render_size.y, 0, this.gl.RGBA, this.gl.FLOAT, null);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, this.base_render_size.x, this.base_render_size.y, 0, this.gl.RGBA, this.gl.FLOAT, null);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST );
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
