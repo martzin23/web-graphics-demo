@@ -43,12 +43,12 @@ export default class Camera {
         });
         TouchListener.addTouchListener(canvas, (event) => {
             if (this.isOrbiting()) 
-                this.updateOrbit(event.deltaX, event.deltaY);
+                this.updateOrbit(event.drag_x, event.drag_y);
             else
-                this.updateRotation(-event.deltaX, -event.deltaY);
+                this.updateRotation(-event.drag_x, -event.drag_y);
 
-            if (event.deltaZ != 0)
-                this.position = Vector.add(this.position, Vector.mul(Matrix.rot2dir(this.rotation.x, -this.rotation.y), this.speed * event.deltaZ));
+            if (event.zoom != 0)
+                this.position = Vector.add(this.position, Vector.mul(Matrix.rot2dir(this.rotation.x, -this.rotation.y), this.speed * event.zoom));
         });
         document.addEventListener('wheel', (event) => {
             if (this.isEnabled()) {

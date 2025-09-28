@@ -2,7 +2,6 @@ import WebGLManager from './gpu.js'
 import GUIManager from './gui.js';
 import FPSCounter from '../utility/fps.js';
 import Camera from '../utility/camera.js';
-import Matrix from '../utility/matrix.js';
 import Vector from '../utility/vector.js';
 
 class Engine {

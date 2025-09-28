@@ -11,7 +11,7 @@
     -webkit-user-select: none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    touch-action: pan-y;
 }
 
 a {
@@ -149,8 +149,26 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .error {
     width: 100%;
-    color: var(--error-default);
     padding: 1rem;
+    color: var(--error-default);
+    background-color: var(--error-dark);
+    border-radius: var(--roundness);
+}
+
+.error:empty {
+    display: none;
+}
+
+.warning {
+    width: 100%;
+    padding: 1rem;
+    color: var(--warning-default);
+    background-color: var(--warning-dark);
+    border-radius: var(--roundness);
+}
+
+.warning:empty {
+    display: none;
 }
 
 /* ----------------------------------------- */
@@ -175,8 +193,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .button.active {
     transition: 0.25s;
-    background-color: var(--active-default);
-    box-shadow: 0.25rem 0.25rem 0rem var(--active-dark);
+    background-color: var(--accent-default);
+    box-shadow: 0.25rem 0.25rem 0rem var(--accent-dark);
 }
 
 .button.round {
@@ -242,6 +260,10 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .switch {
     flex-wrap: wrap;
+}
+
+.drag .button, .drag .button * {
+    cursor: ew-resize;
 }
 
 /* ----------------------------------------- */
@@ -364,7 +386,7 @@ textarea {
     border-radius: var(--roundness);
     background-color: var(--background-light);
     box-shadow: 0.25rem 0.25rem 0rem var(--shadow);
-    border: 1px solid var(--active-default);
+    border: 1px solid var(--accent-default);
 
     opacity: 0%;
     animation-name: appear-delayed;

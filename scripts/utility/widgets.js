@@ -248,7 +248,7 @@ export function createDrag(parent, set = (value) => {}, get = () => 0.0, name = 
     });
 
     TouchListener.addTouchListener(element_button, function(event) {
-        const value = resizeNumber(Math.max(Math.min(parseFloat(element_text.value) + event.deltaX * sen, max), min));
+        const value = resizeNumber(Math.max(Math.min(parseFloat(element_text.value) + event.drag_x * sen, max), min));
         element_text.value = value;
         set(parseFloat(value));
     });
@@ -382,7 +382,7 @@ export function createVector(parent, set = (value) => {}, get = () => {return {x
     });
 
     TouchListener.addTouchListener(element_button_x, function(event) {
-        const value = resizeNumber(parseFloat(element_text_x.value) + event.deltaX * sen);
+        const value = resizeNumber(parseFloat(element_text_x.value) + event.drag_x * sen);
         element_text_x.value = value;
         set({
             x: parseFloat(value),
@@ -431,7 +431,7 @@ export function createVector(parent, set = (value) => {}, get = () => {return {x
     });
 
     TouchListener.addTouchListener(element_button_y, function(event) {
-        const value = resizeNumber(parseFloat(element_text_y.value) + event.deltaX * sen);
+        const value = resizeNumber(parseFloat(element_text_y.value) + event.drag_x * sen);
         element_text_y.value = value;
         set({
             x: parseFloat(element_text_x.value),
@@ -480,7 +480,7 @@ export function createVector(parent, set = (value) => {}, get = () => {return {x
     });
 
     TouchListener.addTouchListener(element_button_z, function(event) {
-        const value = resizeNumber(parseFloat(element_text_z.value) + event.deltaX * sen);
+        const value = resizeNumber(parseFloat(element_text_z.value) + event.drag_x * sen);
         element_text_z.value = value;
         set({
             x: parseFloat(element_text_x.value),
@@ -547,24 +547,6 @@ export function createComment(parent, comment) {
     return element_comment;
 }
 
-// export function addTooltip(element, tooltip, icon) {
-//     if (icon) {
-//         const i = document.createElement("i");
-//         i.classList.add("fa");
-//         i.classList.add(icon);
-
-//         const p = document.createElement("p");
-//         p.classList.add("button");
-//         p.classList.add("round");
-//         p.setAttribute("tooltip", tooltip);
-//         p.appendChild(i);
-
-//         element.appendChild(p);
-//     } else {
-//         element.setAttribute("tooltip", tooltip);
-//     }
-// }
-
 export function switchGetIndex(element_switch) {
     let active_index = null;
     element_switch.childNodes.forEach((element, index) => {
@@ -601,6 +583,13 @@ export function setupAddTooltip() {
     }
 }
 
+function resizeNumber(number, size = 7) {
+    const digits = number.toString().replace(".","").length;
+    const decimals = number.toString().split(".")[1] ? number.toString().split(".")[1].length : 0;
+    const delta = digits > size ? decimals - (digits - size) : decimals;
+    return number.toFixed(delta); 
+}
+
 // DOESNT WORK
 // export function createColor(parent, set = (value) => {}, get = () => "#ffffff", name = "Name", hex = false) {
 //     const default_value = hex ? get() : rgb2hex(get());
@@ -632,13 +621,6 @@ export function setupAddTooltip() {
 //     parent.appendChild(element_base);
 //     return element_base;
 // }
-
-function resizeNumber(number, size = 7) {
-    const digits = number.toString().replace(".","").length;
-    const decimals = number.toString().split(".")[1] ? number.toString().split(".")[1].length : 0;
-    const delta = digits > size ? decimals - (digits - size) : decimals;
-    return number.toFixed(delta); 
-}
 
 // function hex2rgb(hex) {
 //     const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];

@@ -14,11 +14,14 @@
     /* --background-dark: #171c2b; */
     --background-dark: #0d0e14;
 
-    --active-default: #41c498;
-    --active-dark: #173f31;
+    --accent-default: #41c498;
+    --accent-dark: #173f31;
 
     --error-default: #cf3173;
     --error-dark: #3b1826;
+
+    --warning-default: #d8973c;
+    --warning-dark: #56331f;
 }
 
 :root {

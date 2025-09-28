@@ -2,6 +2,6 @@
 :root {
     --background-dark: #321e16;
 
-    --active-default: #c9411f;
-    --active-dark: #981f0f;
+    --accent-default: #c9411f;
+    --accent-dark: #981f0f;
 }
