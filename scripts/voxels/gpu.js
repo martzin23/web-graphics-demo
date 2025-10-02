@@ -37,6 +37,11 @@ export default class WebGLManager {
             camera_rotation: Matrix.mat(1.0),
             camera_position: Vector.vec(0.0, -3.0, 0.0),
             fov: 1.0,
+
+            fade: 1.0,
+            shading: 0.0,
+            padding_a: 0.0,
+            padding_b: 0.0,
         };
 
         const vertices = new Float32Array([

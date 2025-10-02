@@ -11,6 +11,9 @@ layout(std140) uniform UniformBlock {
     mat4 camera_rotation;
     vec3 camera_position;
     float fov;
+
+    float fade;
+    float shading;
 } uniforms;
 
 struct Ray {
@@ -76,8 +79,8 @@ void main() {
 
     vec4 r = traverse(camera_ray);
     if (r.w > 0.0) {
-        float diffuse = mix(0.25, 1.0, dot(r.xyz, normalize(vec3(1.0, 0.5, 0.75))) * 0.5 + 0.5);
-        float height = mix(0.25, 1.0, (camera_ray.origin + camera_ray.direction * r.w).z / (uniforms.grid_size.x * 0.25));
+        float diffuse = mix(1.0 - uniforms.shading, 1.0, dot(r.xyz, normalize(vec3(1.0, 0.5, 0.75))) * 0.5 + 0.5);
+        float height = mix(1.0 - uniforms.fade, 1.0, (camera_ray.origin + camera_ray.direction * r.w).z / (uniforms.grid_size.x * 0.25));
         output_color = vec4(vec3(diffuse * height), 1.0);
     } else {
         output_color = vec4(vec3(0.0), 1.0);

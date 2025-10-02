@@ -136,7 +136,6 @@ export default class GUIManager {
             (value) => { this.switchTab(value, false); }, 
             [
                 '<i class="fa fa-cog"></i>General', 
-                // '<i class="fa fa-info"></i>Controls'
             ], 
             '<i class="fa fa-cog"></i>General',
             undefined,
@@ -146,12 +145,13 @@ export default class GUIManager {
         Widgets.createToggle(document.getElementById("group-display"), (value) => { this.toggleFullscreen(); }, () => this.isFullscreen(), "Fullscreen");
         Widgets.createIncrement(document.getElementById("group-display"), (value) => {gpu.uniforms.render_scale = value; gpu.synchronize();},() => gpu.uniforms.render_scale , "Resolution division", 1, 16).addTooltip("Higher number = lower resolution, improves performance");
         Widgets.createButton(document.getElementById("group-display"), () => {gpu.synchronize();}, "Fix aspect ratio").addTooltip("Click this if the image is stretched");
-        // Widgets.createButton(document.getElementById("group-display"), () => {
-        //     var current_date = new Date(); 
-        //     var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
-        //     gpu.screenshot(date_time);
-        // }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Save current rendered image and download");
+        Widgets.createButton(document.getElementById("group-display"), () => {
+            var current_date = new Date(); 
+            var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
+            gpu.screenshot(date_time);
+        }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Save current rendered image and download");
 
+        Widgets.createToggle(document.getElementById("group-camera"), (value) => camera.orbit_mode = value, () => camera.orbit_mode, "Orbit mode");
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 0.1);
@@ -160,7 +160,9 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
-        Widgets.createToggle(document.getElementById("group-camera"), (value) => camera.orbit_mode = value, () => camera.orbit_mode, "Orbit mode");
+
+        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.shading = value;}, () => gpu.uniforms.shading, "Shading", 0.0, 1.0);
+        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.fade = value;}, () => gpu.uniforms.fade, "Fade", 0.0, 1.0);
     }
 }
 
