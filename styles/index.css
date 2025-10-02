@@ -174,9 +174,9 @@ figure:hover>div {
 #c:hover {
     border-color: #41c498;
 }
-/* #c>div {
-    background-image: url(../assets/images/icons/lensing.jpg);
-} */
+#c>div {
+    background-image: url(../assets/images/icons/voxels.jpg);
+}
 
 /* ----------------------------------------------------------------------------- */
 

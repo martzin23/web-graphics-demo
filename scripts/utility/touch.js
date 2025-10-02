@@ -6,6 +6,7 @@ export function addTouchListener(element, callback) {
     let previous_distance;
 
     element.addEventListener("touchstart", (event) => {
+        event.preventDefault();
         if (event.touches.length == 1) {
             const touch_a = event.touches.item(0);
             previous_a = Vector.vec(touch_a.clientX, touch_a.clientY, 0.0);
