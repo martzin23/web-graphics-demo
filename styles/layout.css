@@ -45,8 +45,8 @@ figure:hover>figcaption>p {
 /* ----------------------------------------- */
 
 body {
-    height: 100vh;
-    width: 100vw;
+    height: 100dvh;
+    width: 100dvw;
     background: linear-gradient(0deg, var(--background-dark) 0%, var(--background-light) 100%);
     box-shadow: 0rem 0rem 1rem var(--shadow) inset;
     position: relative;
@@ -127,7 +127,7 @@ section {
     margin-top: var(--spacing);
 }
 
-:root:fullscreen header>nav {
+/* :root:fullscreen header>nav {
     animation-name: hide-upward;
     animation-duration: 0.25s;
     animation-fill-mode: forwards;
@@ -137,7 +137,7 @@ section {
     animation-name: appear-downward;
     animation-duration: 0.25s;
     animation-fill-mode: forwards;
-}
+} */
 
 :root:fullscreen body>* {
     z-index: 2;

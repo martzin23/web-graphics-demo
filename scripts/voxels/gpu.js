@@ -40,7 +40,7 @@ export default class WebGLManager {
 
             fade: 1.0,
             shading: 0.0,
-            padding_a: 0.0,
+            normals: 0.0,
             padding_b: 0.0,
         };
 
@@ -83,7 +83,7 @@ export default class WebGLManager {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
-        this.height_texture.create(this.gl, "height_texture", this.gl.TEXTURE0, this.program, this.gl.NEAREST);
+        this.height_texture.create(this.gl, "height_texture", this.gl.TEXTURE0, this.program, this.gl.NEAREST, this.gl.CLAMP_TO_EDGE);
 
         this.synchronize();
     }

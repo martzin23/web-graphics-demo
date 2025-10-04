@@ -9,7 +9,7 @@
     --roundness: 1rem;
 }
 
-body {
+/* body {
     display: grid;
     grid-template-areas: 'h c' 'm c';
     grid-template-columns: 30rem 1fr;
@@ -23,4 +23,4 @@ body {
         grid-template-columns: 1fr;
         grid-template-rows: 0fr 1fr 1fr;
     }
-}
+} */

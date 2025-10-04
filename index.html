@@ -1,11 +1,14 @@
 <!-- 
 TODO
-touch panning
-camera orbit mode polishing
+accesibility
+    touch panning
+    camera orbit mode polishing
+webgl wrapper
+    texture class rewrite
 
 BUGS
 tablet rendering fix
-tablet zoom fix
+touch zoom fix
 -->
 
 <!DOCTYPE html>
@@ -13,17 +16,25 @@ tablet zoom fix
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Web Graphics Demos</title>
+	<script type="module" defer src="./scripts/particles/particle_simulator.js"></script>
 	<link rel="stylesheet" href="./styles/general.css">
 	<link rel="stylesheet" href="./styles/style_neutral.css">
 	<link rel="stylesheet" href="./styles/keyframes.css">
 	<link rel="stylesheet" href="./styles/widgets.css">
 	<link rel="stylesheet" href="./styles/index.css">
-    <title>Web Graphics Demo</title>
-	<script type="module" defer src="./scripts/particles/particle_simulator.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <header>
-        <p>Web Graphics Demo</p>
+        <h1>Web Graphics Demos</h1>
+        <div class="row">
+            <p>by Martin Golub</p>
+            <a href="https://github.com/martzin23/web-graphics-demo" class="button">
+                <p>GitHub</p>
+                <i class="fa fa-external-link"></i>
+            </a>
+        </div>
         <hr>
     </header>
     <main>
@@ -39,7 +50,7 @@ tablet zoom fix
         </figure>
         <figure id="c">
             <div></div>
-            <figcaption>Voxel Ray Traversal (WIP)</figcaption>
+            <figcaption>Voxel Ray Traversal</figcaption>
             <a href="./pages/voxels.html"></a>
         </figure>
     </main>

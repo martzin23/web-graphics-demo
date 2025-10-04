@@ -15,7 +15,7 @@ export default class Texture {
         this.location;
     }
 
-    create(gl, name, binding, program, mag_filter, wrap_mode, ) {
+    create(gl, name, binding, program, mag_filter, wrap_mode) {
         this.binding = binding;
         this.location = gl.getUniformLocation(program, name);
         this.buffer = gl.createTexture();

@@ -136,6 +136,7 @@ export default class GUIManager {
             (value) => { this.switchTab(value, false); }, 
             [
                 '<i class="fa fa-cog"></i>General', 
+                '<i class="fa fa-info"></i>Controls', 
             ], 
             '<i class="fa fa-cog"></i>General',
             undefined,
@@ -152,17 +153,18 @@ export default class GUIManager {
         }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Save current rendered image and download");
 
         Widgets.createToggle(document.getElementById("group-camera"), (value) => camera.orbit_mode = value, () => camera.orbit_mode, "Orbit mode");
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.x = value;}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.y = value;}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
+                Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 1.0);
+                Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 1.0);
+                Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 1.0);
+                Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.x = value;}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
+                Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.y = value;}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
 
-        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.shading = value;}, () => gpu.uniforms.shading, "Shading", 0.0, 1.0);
-        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.fade = value;}, () => gpu.uniforms.fade, "Fade", 0.0, 1.0);
+        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.shading = value;}, () => gpu.uniforms.shading, "Shading", 0.0, 1.0).addTooltip("Adds shading to individual voxels (zoom in)");
+        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.fade = value;}, () => gpu.uniforms.fade, "Fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
+        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.normals = value;}, () => gpu.uniforms.normals, "Normals", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
     }
 }
 
