@@ -32,8 +32,8 @@ out vec4 output_color;
 
 vec3 sampleSky(sampler2D texture, vec3 direction);
 float sdCappedCylinder(vec3 p, float h, float r);
-float sampleDensity(vec3 p);
 float diskIntersect(in vec3 ro, in vec3 rd, vec3 c, vec3 n, float r);
+float sampleDensity(vec3 p);
 
 void main() {
     vec3 pixel_color = vec3(0.0);
@@ -48,17 +48,20 @@ void main() {
     vec3 force;
     vec3 position = ray.origin;
     for (int marches; marches < int(uniforms.max_marches); marches++) {
+        if (uniforms.ring_radius > 0.0) {
+            float t = diskIntersect(position, ray.direction, vec3(0.0), vec3(0.0, 0.0, 1.0), uniforms.ring_radius);
+            float mask = float(t >= 0.0 && t <= uniforms.march_size);
+            density += sampleDensity(position + ray.direction * t) * mask;
+
+            // float d = length(position * vec3(1.0, 1.0, 100.0)) + 100.0;
+            // float d = sdCappedCylinder(position, 0.0, uniforms.ring_radius);
+            // float m = max(-d + 0.5, 0.0);
+            // density += sampleDensity(position) * m;
+        }
+
         force = uniforms.force_strength * uniforms.march_size * -normalize(position) / (length(position) * length(position));
         ray.direction = normalize(ray.direction + force);
         position += ray.direction * uniforms.march_size;
-        // if (sdCappedCylinder(position, 0.2, 10.0) < 0.0)
-            // density += sampleDensity(position);
-        // density += sampleDensity(position) * float(length(position * vec3(1.0, 1.0, uniforms.ring_radius * 10.0)) - uniforms.ring_radius < 0.0) * (1.0 - abs(dot(vec3(0.0, 0.0, 1.0), ray.direction)));
-        if (uniforms.ring_density > 0.0) {
-        // density += sampleDensity(position) / pow(sdCappedCylinder(position, 0.0, uniforms.ring_radius), 2.0);
-            float t = diskIntersect(position, ray.direction, vec3(0.0), vec3(0.0, 0.0, 1.0), uniforms.ring_radius);
-            density += sampleDensity(position + ray.direction * t) * float(t >= 0.0 && t <= uniforms.march_size);
-        }
     }
 
     bool collided = length(force) >= uniforms.force_threshold;
@@ -68,7 +71,7 @@ void main() {
         pixel_color = sampleSky(sky_buffer, ray.direction);
     }
 
-    pixel_color +=  + mix(vec3(0.0), vec3(1.0, 0.5, 0.2), density * uniforms.march_size * uniforms.ring_density);
+    pixel_color += vec3(1.0, 0.5, 0.3) * density * uniforms.march_size * uniforms.ring_density;
     output_color = vec4(pixel_color, 1.0);
 }
 
@@ -89,20 +92,14 @@ float sdCappedCylinder(vec3 p, float h, float r) {
 }
 
 float sampleDensity(vec3 p) {
-    // float amplitudes[] = float[](0.01, 0.01, 0.01, 0.01);
-    float periods[] = float[](0.921, 6.43, 2.14, 12.4, 5.21, 6.32, 10.2, 43.2, 76.3, 0.1);
+    float amplitudes[] = float[](0.01, 0.03, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01);
+    float periods[] = float[](6.43, 2.14, 12.4, 5.21, 6.32, 10.2, 43.2, 76.3);
 
     float density = 0.0;
-    for (int i = 0; i < 10; i++)
-        density += (sin(length(p) * periods[i]) + 0.25) * 0.1; 
+    for (int i = 0; i < periods.length(); i++)
+        density += (sin(length(p) * periods[i]) + 0.25) * amplitudes[i]; 
     float r = clamp(length(p) - uniforms.force_strength * 2.0, 0.0, 1.0);
     return max(density, 0.0) * r;
-
-    // float a = sin(length(p) * 0.921) + 1.0;
-    // float b = sin(length(p) * 6.643) + 1.0;
-    // float c = sin(length(p) * 2.14) + 1.0;
-    // float r = clamp(length(p) - uniforms.force_strength * 2.0, 0.0, 1.0);
-    // return (0.01 * a + 0.01 * b + 0.01 * c) * r;
 }
 
 // https://iquilezles.org/articles/intersectors/

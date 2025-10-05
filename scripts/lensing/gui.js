@@ -177,12 +177,12 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
 
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.ring_density = value;}, () => gpu.uniforms.ring_density, "Ring density", 0.0, Infinity);
+        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.ring_radius = value;}, () => gpu.uniforms.ring_radius, "Disc radius", 0.0, Infinity);
         Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.max_marches = value;}, () => gpu.uniforms.max_marches, "Max marches", 0, Infinity, 1);
         Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.march_size = value;}, () => gpu.uniforms.march_size, "March size", 0, Infinity);
         Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_strenth = value;}, () => gpu.uniforms.force_strenth, "Force strength", 0, Infinity, 0.01);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_threshold = value;}, () => gpu.uniforms.force_threshold, "Force threshold", 0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.ring_density = value;}, () => gpu.uniforms.ring_density, "Ring density", 0.0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.ring_radius = value;}, () => gpu.uniforms.ring_radius, "Ring radius", 0.0, Infinity);
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_threshold = value;}, () => gpu.uniforms.force_threshold, "Force threshold", 0, Infinity);
     }
 }
 

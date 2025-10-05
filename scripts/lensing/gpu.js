@@ -43,9 +43,9 @@ export default class WebGLManager {
             max_marches: 200,
             march_size: 0.5,
             force_strenth: 1.0,
-            ring_density: 0.0,
+            ring_density: 50.0,
 
-            ring_radius: 10.0,
+            ring_radius: 0.0,
             padding_a: 0.0,
             padding_b: 0.0,
             padding_c: 0.0,
