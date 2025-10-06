@@ -29,9 +29,18 @@ class Engine {
             const x = document.getElementById("input-x").value;
             const y = document.getElementById("input-y").value;
             const url = `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`;
-            const image = await Loader.loadImage(url);
-            this.gpu.height_texture.store(this.gpu.gl, image.data);
+            const element_error = document.getElementById("output-error");
+
+            try {
+                const image = await Loader.loadImage(url);
+                this.gpu.height_texture.store(this.gpu.gl, image.data);
+                element_error.innerText = "";
+            } catch (error) {
+                element_error.innerText = "Invalid set of coordinates! X and Y should be lower than (2^Z - 1).";
+            }
         });
+
+        document.getElementById("input-fetch").click();
     }
 
     update() {

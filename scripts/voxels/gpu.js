@@ -31,7 +31,7 @@ export default class WebGLManager {
             buffer_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
 
             grid_size: Vector.vec(height_texture.height, height_texture.width, 256),
-            render_scale: 1,
+            render_scale: 2,
             
             camera_rotation: Matrix.mat(1.0),
             camera_position: Vector.vec(0.0, -3.0, 0.0),
@@ -82,7 +82,7 @@ export default class WebGLManager {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
-        this.height_texture.setup(this.gl, "height_texture", this.program, this.gl.TEXTURE0, "NEAREST", "CLAMP_TO_EDGE");
+        this.height_texture.setup(this.gl, "height_texture", this.program, this.gl.TEXTURE0, "LINEAR", "CLAMP_TO_EDGE");
 
         this.synchronize();
     }

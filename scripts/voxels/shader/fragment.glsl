@@ -37,6 +37,7 @@ vec4 traverse(Ray ray);
 vec2 intersect(Ray ray, vec3 p_min, vec3 p_max);
 bool testVoxel(vec3 position);
 vec3 derivateNormal(vec3 position, float epsilon);
+float getHeight(vec3 position);
 
 void main() {
     float aspect_ratio = uniforms.canvas_size.y / uniforms.canvas_size.x;
@@ -51,7 +52,7 @@ void main() {
     if (r.w > 0.0) {
         vec3 normal = derivateNormal(camera_ray.origin + camera_ray.direction * r.w, uniforms.normals) * 0.5 + 0.5;
         float diffuse = mix(1.0 - uniforms.shading, 1.0, dot(r.xyz, normalize(vec3(1.0, 0.5, 0.75))) * 0.5 + 0.5);
-        float height = mix(1.0 - uniforms.fade, 1.0, (camera_ray.origin + camera_ray.direction * r.w).z / (uniforms.grid_size.x * 0.25));
+        float height = mix(1.0 - uniforms.fade, 1.0, (camera_ray.origin + camera_ray.direction * r.w).z / (uniforms.grid_size.x * 0.5));
         output_color = vec4(vec3(diffuse * height) * ((uniforms.normals > 0.0) ? normal : vec3(1.0)), 1.0);
     } else {
         output_color = vec4(vec3(0.0), 1.0);
@@ -78,7 +79,7 @@ vec4 traverse(Ray ray) {
     while (true) {
 
         // voxel hit
-        if (testVoxel(position)) {
+        if (position.z <= getHeight(position)) {
             return vec4(normal, length(ray.origin - position));
         }
 
@@ -126,19 +127,37 @@ vec2 intersect(Ray ray, vec3 p_min, vec3 p_max) {
 }
 
 bool testVoxel(vec3 position) {
-    float height = texelFetch(height_texture, ivec2(position).xy, 0).x;
+    // float height = texelFetch(height_texture, ivec2(position).xy, 0).x;
     // float height = texture(height_texture, position.xy / uniforms.grid_size.xy).x;
-    return (position.z) <= (height * uniforms.grid_size.x * 0.25 + 1.0);
+    // return (position.z) <= (height * uniforms.grid_size.x * 0.25 + 1.0);
+    vec4 data = texelFetch(height_texture, ivec2(position).xy, 0);
+    float height = (data.r * 256.0 + data.g + data.b / 256.0);
+    return (position.z) <= (height * 0.25);
 }
 
+float getHeight(vec3 position) {
+    vec4 data = texture(height_texture, (vec2(1.0, 0.0) - position.xy / uniforms.grid_size.xy) * vec2(1.0, -1.0));
+    // vec4 data = texelFetch(height_texture, ivec2(position).xy, 0);
+    float height = (data.r * 256.0 + data.g + data.b / 256.0);
+    return height - 96.0;
+}
+
+// vec3 derivateNormal(vec3 position, float epsilon) {
+//     vec2 temp_position = position.xy / uniforms.grid_size.xy;
+//     float temp_epsilon = epsilon / uniforms.grid_size.x;
+//     vec3 normal;
+// 	normal.x = (texture(height_texture, temp_position + vec2(temp_epsilon, 0.0)).x - texture(height_texture, temp_position - vec2(temp_epsilon, 0.0)).x);
+// 	normal.y = (texture(height_texture, temp_position + vec2(0.0, temp_epsilon)).x - texture(height_texture, temp_position - vec2(0.0, temp_epsilon)).x);
+// 	normal.z = 2.0 * temp_epsilon;
+//     return normalize(normal / vec3(2.0 * temp_epsilon));
+// }
+
 vec3 derivateNormal(vec3 position, float epsilon) {
-    vec2 temp_position = position.xy / uniforms.grid_size.xy;
-    float temp_epsilon = epsilon / uniforms.grid_size.x;
     vec3 normal;
-	normal.x = (texture(height_texture, temp_position + vec2(temp_epsilon, 0.0)).x - texture(height_texture, temp_position - vec2(temp_epsilon, 0.0)).x);
-	normal.y = (texture(height_texture, temp_position + vec2(0.0, temp_epsilon)).x - texture(height_texture, temp_position - vec2(0.0, temp_epsilon)).x);
-	normal.z = 2.0 * temp_epsilon;
-    return normalize(normal / vec3(2.0 * temp_epsilon));
+	normal.x = getHeight(position + vec3(epsilon, 0.0, 0.0)) - getHeight(position - vec3(epsilon, 0.0, 0.0));
+	normal.y = getHeight(position + vec3(0.0, epsilon, 0.0)) - getHeight(position - vec3(0.0, epsilon, 0.0));
+	normal.z = 2.0 * epsilon;
+    return normalize(normal / vec3(2.0 * epsilon));
 }
 
 // vec3 derivateNormal(vec3 position, float epsilon) {
