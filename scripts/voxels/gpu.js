@@ -2,12 +2,11 @@ import * as Matrix from "../utility/matrix.js";
 import * as Vector from "../utility/vector.js";
 import * as WebGL from "../utility/webgl.js";
 import * as Loader from "../utility/loader.js";
-import Texture from "../utility/texture.js";
 
 export default class WebGLManager {
     static async initialize(canvas) {
         const fragment_shader_code = await (await fetch('../scripts/voxels/shader/fragment.glsl')).text();
-        const height_texture = await Texture.load('../assets/images/textures/height.jpg');
+        const height_texture = await WebGL.Texture.load('../assets/images/textures/height.jpg');
         return new WebGLManager(canvas, fragment_shader_code, height_texture);
     }
 
@@ -41,7 +40,7 @@ export default class WebGLManager {
             fade: 1.0,
             shading: 0.0,
             normals: 0.0,
-            padding_b: 0.0,
+            lighting: 0.0,
         };
 
         const vertices = new Float32Array([
@@ -83,7 +82,7 @@ export default class WebGLManager {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
-        this.height_texture.create(this.gl, "height_texture", this.gl.TEXTURE0, this.program, this.gl.NEAREST, this.gl.CLAMP_TO_EDGE);
+        this.height_texture.setup(this.gl, "height_texture", this.program, this.gl.TEXTURE0, "NEAREST", "CLAMP_TO_EDGE");
 
         this.synchronize();
     }

@@ -1,5 +1,7 @@
 import * as Matrix from "../utility/matrix.js";
 import * as Vector from "../utility/vector.js";
+import * as WebGL from "../utility/webgl.js";
+import * as Loader from "../utility/loader.js";
 
 export default class WebGLManager {
     static async initialize(canvas) {
@@ -114,6 +116,12 @@ export default class WebGLManager {
         this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.color_buffers[1], 0);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
+        const uniform_binding_number = 1;
+        const uniform_array = new Float32Array(packUniforms(this.uniforms));
+        this.uniform_buffer = this.gl.createBuffer();
+        this.gl.bindBufferBase(this.gl.UNIFORM_BUFFER, uniform_binding_number, this.uniform_buffer);
+        this.gl.bufferData(this.gl.UNIFORM_BUFFER, uniform_array.byteLength, this.gl.DYNAMIC_DRAW);
+
         this.setup(compute_shader_code + "\n" + sdf_code, render_shader_code);
         this.synchronize();
     }
@@ -130,17 +138,12 @@ export default class WebGLManager {
             }
         `;
 
-        this.compute_program = makeProgram(this.gl, vertex_shader_code, compute_fragment_shader_code);
-        this.render_program = makeProgram(this.gl, vertex_shader_code, render_fragment_shader_code);
+        this.compute_program = WebGL.createProgram(this.gl, vertex_shader_code, compute_fragment_shader_code);
+        this.render_program = WebGL.createProgram(this.gl, vertex_shader_code, render_fragment_shader_code);
 
         const uniform_binding_number = 1;
-        const uniform_array = new Float32Array(packUniforms(this.uniforms));
         this.gl.uniformBlockBinding(this.compute_program, this.gl.getUniformBlockIndex(this.compute_program, "UniformBlock"), uniform_binding_number);
         this.gl.uniformBlockBinding(this.render_program, this.gl.getUniformBlockIndex(this.render_program, "UniformBlock"), uniform_binding_number);
-
-        this.uniform_buffer = this.gl.createBuffer();
-        this.gl.bindBufferBase(this.gl.UNIFORM_BUFFER, uniform_binding_number, this.uniform_buffer);
-        this.gl.bufferData(this.gl.UNIFORM_BUFFER, uniform_array.byteLength, this.gl.DYNAMIC_DRAW);
 
         this.compute_color_buffer_location = this.gl.getUniformLocation(this.compute_program, 'color_buffer');
         this.render_color_buffer_location = this.gl.getUniformLocation(this.render_program, 'color_buffer');
@@ -250,59 +253,11 @@ export default class WebGLManager {
 
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
-        const data = new Uint8ClampedArray(render_width * render_height * 4);
-        this.gl.readPixels(0, 0, render_width, render_height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+        const image = WebGL.textureToImage(this.gl, color_buffer, render_width, render_height);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
-        const image_data = new ImageData(data, render_width, render_height);
-        const image_bitmap = await createImageBitmap(image_data);
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = render_width;
-        canvas.height = render_height;
-        const context = canvas.getContext('2d');
-        context.scale(1, -1);
-        context.drawImage(image_bitmap, 0, -render_height);
-        
-        canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file_name;
-            a.click();
-            URL.revokeObjectURL(url);
-        }, 'image/png');
+        Loader.saveImage(file_name, image);
     }
-}
-
-function compileShader(gl, shader_code, type) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, shader_code);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        const error_message = gl.getShaderInfoLog(shader);
-        throw new SyntaxError("Error in shader compiling:\n" + error_message);
-    }
-    return shader;
-}
-
-function linkProgram(gl, vertex_shader, fragment_shader) {
-    const program = gl.createProgram();
-    gl.attachShader(program, vertex_shader);
-    gl.attachShader(program, fragment_shader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        const error_message = gl.getProgramInfoLog(program);
-        throw new SyntaxError("Error in program linking:\n" + error_message);
-    }
-    return program;
-}
-
-function makeProgram(gl, vertex_shader_code, fragment_shader_code) {
-    const vertex_shader = compileShader(gl, vertex_shader_code, gl.VERTEX_SHADER);
-    const fragment_shader = compileShader(gl, fragment_shader_code, gl.FRAGMENT_SHADER);
-    const program = linkProgram(gl, vertex_shader, fragment_shader);
-    return program;
 }
 
 function packUniforms(data) {

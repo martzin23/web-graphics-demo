@@ -15,6 +15,7 @@ layout(std140) uniform UniformBlock {
     float fade;
     float shading;
     float normals;
+    float lighting;
 } uniforms;
 
 struct Ray {
@@ -75,6 +76,7 @@ vec4 traverse(Ray ray) {
     vec3 t = (planes - ray.origin) * ray.inverse;
 
     while (true) {
+
         // voxel hit
         if (testVoxel(position)) {
             return vec4(normal, length(ray.origin - position));
@@ -136,5 +138,13 @@ vec3 derivateNormal(vec3 position, float epsilon) {
 	normal.x = (texture(height_texture, temp_position + vec2(temp_epsilon, 0.0)).x - texture(height_texture, temp_position - vec2(temp_epsilon, 0.0)).x);
 	normal.y = (texture(height_texture, temp_position + vec2(0.0, temp_epsilon)).x - texture(height_texture, temp_position - vec2(0.0, temp_epsilon)).x);
 	normal.z = 2.0 * temp_epsilon;
-    return normalize(normal / vec3(2.0 * epsilon));
+    return normalize(normal / vec3(2.0 * temp_epsilon));
 }
+
+// vec3 derivateNormal(vec3 position, float epsilon) {
+//     vec3 normal;
+// 	normal.x = texture(height_texture, floor(position.xy + vec2(epsilon, 0.0)) / uniforms.grid_size.xy).x - texture(height_texture, floor(position.xy - vec2(epsilon, 0.0)) / uniforms.grid_size.xy).x;
+// 	normal.y = texture(height_texture, floor(position.xy + vec2(0.0, epsilon)) / uniforms.grid_size.xy).x - texture(height_texture, floor(position.xy - vec2(0.0, epsilon)) / uniforms.grid_size.xy).x;
+// 	normal.z = epsilon / uniforms.grid_size.z;
+//     return normalize(normal / (2.0 * epsilon));
+// }

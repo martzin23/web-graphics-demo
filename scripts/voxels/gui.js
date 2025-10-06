@@ -165,6 +165,7 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.shading = value;}, () => gpu.uniforms.shading, "Shading", 0.0, 1.0).addTooltip("Adds shading to individual voxels (zoom in)");
         Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.fade = value;}, () => gpu.uniforms.fade, "Fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
         Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.normals = value;}, () => gpu.uniforms.normals, "Normals", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
+        // Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.lighting = value;}, () => gpu.uniforms.lighting, "Lighting", 0.0, 1.0);
     }
 }
 

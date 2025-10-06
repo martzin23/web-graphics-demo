@@ -2,12 +2,11 @@ import * as Matrix from "../utility/matrix.js";
 import * as Vector from "../utility/vector.js";
 import * as WebGL from "../utility/webgl.js";
 import * as Loader from "../utility/loader.js";
-import Texture from "../utility/texture.js";
 
 export default class WebGLManager {
     static async initialize(canvas) {
         const fragment_shader_code = await (await fetch('../scripts/lensing/shader/fragment.glsl')).text();
-        const sky_texture = await Texture.load('../assets/images/textures/sky.jpg');
+        const sky_texture = await WebGL.Texture.load('../assets/images/textures/sky.jpg');
         return new WebGLManager(canvas, fragment_shader_code, sky_texture);
     }
 
@@ -90,7 +89,7 @@ export default class WebGLManager {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
-        this.sky_texture.create(this.gl, "sky_buffer", this.gl.TEXTURE0, this.program, this.gl.LINEAR, this.gl.CLAMP_TO_EDGE);
+        this.sky_texture.setup(this.gl, "sky_buffer", this.program, this.gl.TEXTURE0, "LINEAR", "CLAMP_TO_EDGE");
 
         this.synchronize();
     }
@@ -146,12 +145,9 @@ export default class WebGLManager {
 
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
-        // const data = new Uint8ClampedArray(render_width * render_height * 4);
-        // this.gl.readPixels(0, 0, render_width, render_height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
         const image = WebGL.textureToImage(this.gl, color_buffer, render_width, render_height);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
-        // const image_data = new ImageData(data, render_width, render_height);
         Loader.saveImage(file_name, image);
     }
 }
