@@ -31,7 +31,7 @@ export default class WebGLManager {
             buffer_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
 
             grid_size: Vector.vec(height_texture.height, height_texture.width, 256),
-            render_scale: 2,
+            render_scale: 1,
             
             camera_rotation: Matrix.mat(1.0),
             camera_position: Vector.vec(0.0, -3.0, 0.0),
@@ -40,7 +40,12 @@ export default class WebGLManager {
             fade: 1.0,
             shading: 0.0,
             normals: 0.0,
-            lighting: 0.0,
+            mode: 0.0,
+            
+            height_offset: 0.0,
+            height_multiplier: 0.25,
+            height_gamma: 1.0,
+            padding_b: 0.0,
         };
 
         const vertices = new Float32Array([

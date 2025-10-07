@@ -1,14 +1,14 @@
 import * as Widgets from '../utility/widgets.js';
 
 export default class GUIManager {
-    constructor(canvas, gpu, camera, storage) {
+    constructor(canvas, gpu, camera) {
         this.current_tab = 0;
         this.key_states = {};
         this.mouse_states = [false, false, false, false, false];
         this.update_event = new CustomEvent('updategui', {bubbles: true, cancelable: true });
 
         this.setupListeners(canvas, gpu, camera);
-        this.setupWidgets(gpu, camera, storage);
+        this.setupWidgets(gpu, camera);
         this.update_handler = setInterval(() => { this.updateValues(); }, 500);
     }
 
@@ -128,7 +128,7 @@ export default class GUIManager {
         });
     }
 
-    setupWidgets(gpu, camera, storage) {
+    setupWidgets(gpu, camera) {
         Widgets.setupAddTooltip();
 
         Widgets.createSwitch(
@@ -166,6 +166,9 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.fade = value;}, () => gpu.uniforms.fade, "Fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
         Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.normals = value;}, () => gpu.uniforms.normals, "Normals", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
         // Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.lighting = value;}, () => gpu.uniforms.lighting, "Lighting", 0.0, 1.0);
+        Widgets.createDrag(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.height_offset = value;}, () => gpu.uniforms.height_offset, "Height offset", -Infinity, Infinity, 1.0);
+        Widgets.createDrag(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.height_multiplier = value;}, () => gpu.uniforms.height_multiplier, "Height multiplier", 0, Infinity);
+        // Widgets.createDrag(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.height_gamma = value;}, () => gpu.uniforms.height_gamma, "Height gamma", 0, Infinity);
     }
 }
 
