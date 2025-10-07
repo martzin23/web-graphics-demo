@@ -3,7 +3,7 @@
 <head>
     <title>Demo</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
             font-size: 14px;
@@ -16,7 +16,6 @@
             box-sizing: border-box;
             margin: 0rem;
             font-family: sans-serif;
-            touch-action: none;
         }
 
         body {
@@ -108,7 +107,7 @@
                         // this.gpu.uniforms.height_multiplier = Math.sqrt((parseFloat(z) + 1.0)) * 0.5;
                         this.gpu.uniforms.height_multiplier = (parseFloat(z) + 1.0) * 0.5;
                     } catch (error) {
-                        element_error.innerText = "Invalid coordinates: X and Y should be lower than (2^Z - 1)!";
+                        element_error.innerText = "Invalid coordinates: X and Y should be lower or equal than (2^Z - 1)!";
                     }
                 });
 
