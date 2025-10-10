@@ -125,7 +125,7 @@ export default class Camera {
 
     }
 
-    updateRotation(dh, dv) {
+    updateRotation(dh = 0.0, dv = 0.0) {
         this.rotation.x += dh * this.sensitivity * Math.min(this.fov, 1.0);
         this.rotation.y += dv * this.sensitivity * Math.min(this.fov, 1.0);
         this.rotation.x = this.rotation.x % 360.0;

@@ -130,16 +130,18 @@ export class Texture {
         this.location;
     }
 
-    setup(gl, name, program, binding = 0x84C0, filter, wrap_mode) {
-        this.binding = binding;
+    setup(gl, name, program, binding, filter, wrap_mode) {
+        this.binding = 0x84C0 + binding;
         this.location = gl.getUniformLocation(program, name);
         this.texture = createTexture(gl, this.width, this.height, "RGBA8", filter, wrap_mode, this.data);
+
+        gl.useProgram(program);
+        gl.uniform1i(this.location, binding);
     }
 
     bind(gl) {
         gl.activeTexture(this.binding);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.uniform1i(this.location, 0);
     }
 
     store(gl, data) {

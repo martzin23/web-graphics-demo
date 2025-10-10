@@ -7,10 +7,11 @@ export default class WebGLManager {
     static async initialize(canvas) {
         const fragment_shader_code = await (await fetch('../scripts/lensing/shader/fragment.glsl')).text();
         const sky_texture = await WebGL.Texture.load('../assets/images/textures/sky.jpg');
-        return new WebGLManager(canvas, fragment_shader_code, sky_texture);
+        const disc_texture = await WebGL.Texture.load('../assets/images/textures/disc.jpg');
+        return new WebGLManager(canvas, fragment_shader_code, sky_texture, disc_texture);
     }
 
-    constructor(canvas, fragment_shader_code, sky_texture) {
+    constructor(canvas, fragment_shader_code, sky_texture, disc_texture) {
         this.canvas = canvas;
         this.vertex_buffer;
         this.vertex_location;
@@ -18,6 +19,7 @@ export default class WebGLManager {
         this.program;
         this.base_render_size = {x: 2560, y: 1440};
         this.sky_texture = sky_texture;
+        this.disc_texture = disc_texture;
 
         this.gl = this.canvas.getContext("webgl2");
         if (!this.gl)
@@ -42,9 +44,9 @@ export default class WebGLManager {
             max_marches: 200,
             march_size: 0.5,
             force_strenth: 1.0,
-            ring_density: 50.0,
+            disc_enabled: 0.0,
 
-            ring_radius: 0.0,
+            disc_radius: 17.0,
             padding_a: 0.0,
             padding_b: 0.0,
             padding_c: 0.0,
@@ -89,7 +91,8 @@ export default class WebGLManager {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
-        this.sky_texture.setup(this.gl, "sky_buffer", this.program, this.gl.TEXTURE0, "LINEAR", "CLAMP_TO_EDGE");
+        this.sky_texture.setup(this.gl, "sky_texture", this.program, 0, "LINEAR", "CLAMP_TO_EDGE");
+        this.disc_texture.setup(this.gl, "disc_texture", this.program, 1, "LINEAR", "CLAMP_TO_EDGE");
 
         this.synchronize();
     }
@@ -105,6 +108,7 @@ export default class WebGLManager {
         this.gl.useProgram(this.program);
         this.gl.enableVertexAttribArray(this.vertex_location);
         this.sky_texture.bind(this.gl);
+        this.disc_texture.bind(this.gl);
 
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
     }
@@ -142,6 +146,7 @@ export default class WebGLManager {
         this.gl.useProgram(this.program);
         this.gl.enableVertexAttribArray(this.vertex_location);
         this.sky_texture.bind(this.gl);
+        this.disc_texture.bind(this.gl);
 
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 

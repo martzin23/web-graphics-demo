@@ -1,4 +1,6 @@
 import * as Widgets from '../utility/widgets.js';
+import * as Vector from '../utility/vector.js';
+import * as Matrix from '../utility/matrix.js';
 
 export default class GUIManager {
     constructor(canvas, gpu, camera, storage) {
@@ -167,21 +169,36 @@ export default class GUIManager {
             gpu.screenshot(date_time);
         }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Save current rendered image and download");
 
-        Widgets.createComment(document.getElementById("group-camera"), "The black hole won't be visible if you are too far away!")
-            Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
-            Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
-            Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 0.1);
-            Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.x = value;}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
-            Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.y = value;}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
-        Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
-        Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
+        Widgets.createSwitch(
+            document.getElementById("group-camera-1"),
+            (value) => {
+                switchAttribute(document.getElementById("group-camera-2"), value, undefined, "hidden");
+                camera.orbit_mode = value;
+            },
+            ["First person", "Orbit"],
+            "Orbit",
+            "Camera mode"
+        );
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.rotation.x = value;}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.rotation.y = value;}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
+        
+        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.position = Vector.add(Vector.mul(Matrix.rot2dir(camera.rotation.x, -camera.rotation.y), -value), camera.orbit_anchor)}, () => Vector.len(Vector.sub(camera.position, camera.orbit_anchor)), "Distance", 0, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.rotation.x = value; camera.updateOrbit();}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.rotation.y = value; camera.updateOrbit();}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
+        
+        Widgets.createSlider(document.getElementById("group-camera-3"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
+        Widgets.createSlider(document.getElementById("group-camera-3"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
+        Widgets.createDrag(document.getElementById("group-camera-3"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
 
-        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.ring_density = value;}, () => gpu.uniforms.ring_density, "Ring density", 0.0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.ring_radius = value;}, () => gpu.uniforms.ring_radius, "Disc radius", 0.0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.max_marches = value;}, () => gpu.uniforms.max_marches, "Max marches", 0, Infinity, 1);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.march_size = value;}, () => gpu.uniforms.march_size, "March size", 0, Infinity);
-        Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_strenth = value;}, () => gpu.uniforms.force_strenth, "Force strength", 0, Infinity, 0.01);
+        Widgets.createComment(document.getElementById("group-marching"), "The black hole won't be visible if you are too far away!")
+        Widgets.createToggle(document.getElementById("group-marching"), (value) => {gpu.uniforms.disc_enabled = value;}, () => gpu.uniforms.disc_enabled, "Enable disc");
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.disc_radius = value;}, () => gpu.uniforms.disc_radius, "Disc radius", 0.0, Infinity);
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.max_marches = value;}, () => gpu.uniforms.max_marches, "Max marches", 0, Infinity, 1);
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.march_size = value;}, () => gpu.uniforms.march_size, "March size", 0, Infinity);
+        // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_strenth = value;}, () => gpu.uniforms.force_strenth, "Force strength", 0, Infinity, 0.01);
         // Widgets.createDrag(document.getElementById("group-marching"), (value) => {gpu.uniforms.force_threshold = value;}, () => gpu.uniforms.force_threshold, "Force threshold", 0, Infinity);
     }
 }

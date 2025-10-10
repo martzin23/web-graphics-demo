@@ -87,7 +87,7 @@ export default class WebGLManager {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertex_buffer);
         this.gl.vertexAttribPointer(this.vertex_location, 2, this.gl.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
 
-        this.height_texture.setup(this.gl, "height_texture", this.program, this.gl.TEXTURE0, "LINEAR", "CLAMP_TO_EDGE");
+        this.height_texture.setup(this.gl, "height_texture", this.program, 0, "LINEAR", "CLAMP_TO_EDGE");
 
         this.synchronize();
     }
