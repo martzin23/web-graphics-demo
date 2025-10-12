@@ -214,6 +214,8 @@ export default class WebGLManager {
     recompile(sdf_code) {
         let message = "";
         try {
+            this.gl.deleteProgram(this.render_program);
+            this.gl.deleteProgram(this.compute_program);
             this.setup(this.compute_shader_code + "\n" + sdf_code, this.render_shader_code);
             this.refresh();
         } catch (error) {

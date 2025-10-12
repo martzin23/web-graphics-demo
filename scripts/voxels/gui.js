@@ -1,6 +1,7 @@
 import * as Widgets from '../utility/widgets.js';
 import * as Vector from '../utility/vector.js';
 import * as Matrix from '../utility/matrix.js';
+import * as Loader from '../utility/loader.js';
 
 export default class GUIManager {
     constructor(canvas, gpu, camera) {
@@ -128,6 +129,37 @@ export default class GUIManager {
         document.addEventListener('mouseup', (event) => {
             this.mouse_states[event.button] = false;
         });
+
+        document.getElementById("input-file").addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file || !file.type.startsWith('image/'))
+                    return;
+
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    const url = event.target.result;
+                    
+                    document.getElementById("output-preview").src = url;
+
+                    const image = new Image();
+                    image.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = image.width;
+                        canvas.height = image.height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(image, 0, 0);
+                        
+                        const image_data = ctx.getImageData(0, 0, image.width, image.height);
+
+                        gpu.reloadImage(image_data);
+                    };
+                    image.src = url;
+                };
+                
+                reader.readAsDataURL(file);
+        });
     }
 
     setupWidgets(gpu, camera) {
@@ -138,6 +170,7 @@ export default class GUIManager {
             (value) => { this.switchTab(value, false); }, 
             [
                 '<i class="fa fa-cog"></i>Settings', 
+                '<i class="fa fa-area-chart"></i>Heightmap', 
                 '<i class="fa fa-info"></i>Controls', 
             ], 
             '<i class="fa fa-cog"></i>Settings',
@@ -178,13 +211,13 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera-general"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
 
-        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.shading = value;}, () => gpu.uniforms.shading, "Shading", 0.0, 1.0).addTooltip("Adds shading to individual voxels (zoom in)");
-        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.fade = value;}, () => gpu.uniforms.fade, "Fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
-        Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.normals = value;}, () => gpu.uniforms.normals, "Normals", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
-        // Widgets.createSlider(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.lighting = value;}, () => gpu.uniforms.lighting, "Lighting", 0.0, 1.0);
-        Widgets.createDrag(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.height_offset = value;}, () => gpu.uniforms.height_offset, "Height offset", -Infinity, Infinity, 1.0);
-        Widgets.createDrag(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.height_multiplier = value;}, () => gpu.uniforms.height_multiplier, "Height multiplier", 0, Infinity);
-        // Widgets.createDrag(document.getElementById("group-uniforms"), (value) => {gpu.uniforms.height_gamma = value;}, () => gpu.uniforms.height_gamma, "Height gamma", 0, Infinity);
+        Widgets.createSlider(document.getElementById("group-visuals"), (value) => {gpu.uniforms.shading = value;}, () => gpu.uniforms.shading, "Voxel shading", 0.0, 1.0).addTooltip("Adds shading to individual voxels (zoom in)");
+        Widgets.createSlider(document.getElementById("group-visuals"), (value) => {gpu.uniforms.fade = value;}, () => gpu.uniforms.fade, "Height fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
+        Widgets.createSlider(document.getElementById("group-visuals"), (value) => {gpu.uniforms.normals = value;}, () => gpu.uniforms.normals, "Terrain normals", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
+
+        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.sampling_scale = value;}, () => gpu.uniforms.sampling_scale, "Grid multiplier", 0, Infinity);
+        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_multiplier = value;}, () => gpu.uniforms.height_multiplier, "Height multiplier", 0, Infinity);
+        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_offset = value;}, () => gpu.uniforms.height_offset, "Height offset", -Infinity, Infinity, 1.0);
     }
 }
 

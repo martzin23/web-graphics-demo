@@ -79,6 +79,8 @@ export function createProgram(gl, vertex_shader_code, fragment_shader_code) {
     const vertex_shader = compileShader(gl, vertex_shader_code, gl.VERTEX_SHADER);
     const fragment_shader = compileShader(gl, fragment_shader_code, gl.FRAGMENT_SHADER);
     const program = linkProgram(gl, vertex_shader, fragment_shader);
+    gl.deleteShader(vertex_shader);
+    gl.deleteShader(fragment_shader);
     return program;
 }
 
@@ -128,6 +130,10 @@ export class Texture {
         this.texture;
         this.binding;
         this.location;
+    }
+
+    destroy(gl) {
+        gl.deleteTexture(this.texture);
     }
 
     setup(gl, name, program, binding, filter, wrap_mode) {

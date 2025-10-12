@@ -30,7 +30,7 @@ export default class WebGLManager {
             canvas_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
             buffer_size: Vector.vec(this.base_render_size.x, this.base_render_size.y),
 
-            grid_size: Vector.vec(height_texture.height, height_texture.width, 256),
+            grid_size: Vector.vec(this.height_texture.width, this.height_texture.height, 256),
             render_scale: 1,
             
             camera_rotation: Matrix.mat(1.0),
@@ -45,7 +45,7 @@ export default class WebGLManager {
             height_offset: 0.0,
             height_multiplier: 0.25,
             height_gamma: 1.0,
-            padding_b: 0.0,
+            sampling_scale: 1.0,
         };
 
         const vertices = new Float32Array([
@@ -113,6 +113,15 @@ export default class WebGLManager {
         this.uniforms.canvas_size = Vector.vec(width, height);
         this.canvas.width = width / this.uniforms.render_scale;
         this.canvas.height = height / this.uniforms.render_scale;
+    }
+
+    reloadImage(image) {
+        this.height_texture.destroy(this.gl);
+        this.height_texture = new WebGL.Texture(image.data, image.width, image.height);
+        this.height_texture.setup(this.gl, "height_texture", this.program, 0, "LINEAR", "CLAMP_TO_EDGE");
+        this.uniforms.grid_size.x = this.height_texture.width;
+        this.uniforms.grid_size.y = this.height_texture.height;
+        this.uniforms.grid_size.z = 256;
     }
 
     async screenshot(file_name) {

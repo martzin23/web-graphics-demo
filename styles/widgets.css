@@ -102,6 +102,21 @@ input[type="range"]::-webkit-slider-thumb:hover {
     background-color: var(--general-highlight);
 }
 
+input[type="file"]::file-selector-button {
+    transition: 0.25s;
+    background-color: var(--general-default);
+    border-radius: var(--roundness);
+    border: none;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    color: var(--text-default);
+    font-size: 1rem;
+}
+input[type="file"]::file-selector-button:hover {
+    transition: 0.25s;
+    background-color: var(--general-highlight);
+    cursor: pointer;
+}
+
 /* ----------------------------------------- */
 
 .row {

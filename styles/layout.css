@@ -1,6 +1,15 @@
 
 /* ----------------------------------------- */
 
+img {
+    border-radius: var(--roundness);
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+/* ----------------------------------------- */
+
 figure {
     border-radius: var(--roundness);
     
