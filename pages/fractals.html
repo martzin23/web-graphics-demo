@@ -61,6 +61,12 @@
 					<hr>
 					<p>Camera</p>
 				</figcaption>
+				<div id="group-camera-mode" class="column"></div>
+				<div>
+					<div id="group-camera-firstperson" class="column"></div>
+					<div id="group-camera-orbit" class="column"></div>
+				</div>
+				<div id="group-camera-general" class="column"></div>
 			</figure>
 		</section>
 
@@ -122,7 +128,7 @@
 					<hr>
 					<p>Instructions</p>
 				</figcaption>
-				<p>Here you can write a custom signed distance function in GLSL that is then rendered. The function that is required here is "SDF()". The parameters and return value type are defined here:</p>
+				<p>Here you can write a custom signed distance function in GLSL that describes a body. The parameters and return value type are defined here:</p>
 				<div class="row">
 					<div class="value">p</div>
 					<p class="comment">parameter - a position in 3D space</p>
@@ -168,14 +174,6 @@
 					<p class="comment">Toggle camera control (click on the canvas)</p>
 				</div>
 				<div class="row">
-					<p class="value">WASDQE (controlling)</p>
-					<p class="comment">Movement</p>
-				</div>
-				<div class="row">
-					<p class="value">Scroll (controlling)</p>
-					<p class="comment">Change camera speed</p>
-				</div>
-				<div class="row">
 					<p class="value">F11</p>
 					<p class="comment">Toggle fullscreen</p>
 				</div>
@@ -186,6 +184,46 @@
 				<div class="row">
 					<p class="value">Tab</p>
 					<p class="comment">Toggle auto refresh</p>
+				</div>
+			</figure>
+			<figure>
+				<figcaption>
+					<hr>
+					<p>Controls (PC) (Orbit mode)</p>
+				</figcaption>
+				<div class="row">
+					<p class="value">ADQE</p>
+					<p class="comment">Rotate</p>
+				</div>
+				<div class="row">
+					<p class="value">WS</p>
+					<p class="comment">Zoom</p>
+				</div>
+				<div class="row">
+					<p class="value">Mouse</p>
+					<p class="comment">Rotate</p>
+				</div>
+				<div class="row">
+					<p class="value">Scroll</p>
+					<p class="comment">Zoom</p>
+				</div>
+			</figure>
+			<figure>
+				<figcaption>
+					<hr>
+					<p>Controls (PC) (First person mode)</p>
+				</figcaption>
+				<div class="row">
+					<p class="value">WASDQE</p>
+					<p class="comment">Movement</p>
+				</div>
+				<div class="row">
+					<p class="value">Mouse</p>
+					<p class="comment">Rotate</p>
+				</div>
+				<div class="row">
+					<p class="value">Scroll</p>
+					<p class="comment">Change camera speed</p>
 				</div>
 			</figure>
 			<figure>

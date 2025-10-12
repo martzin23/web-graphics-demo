@@ -1,4 +1,6 @@
 import * as Widgets from '../utility/widgets.js';
+import * as Vector from '../utility/vector.js';
+import * as Matrix from '../utility/matrix.js';
 
 export default class GUIManager {
     constructor(canvas, gpu, camera, storage) {
@@ -211,16 +213,33 @@ export default class GUIManager {
             storage.delete();
             location.reload();
         }, '<i class="fa fa-refresh"></i>Reset variables').addTooltip("Click this if you can't see anything or if some values became invalid");
+        
+        Widgets.createSwitch(
+            document.getElementById("group-camera-mode"),
+            (value) => {
+                switchAttribute(document.getElementById("group-camera-firstperson").parentNode, value, undefined, "hidden");
+                camera.orbit_mode = value;
+            },
+            ["First person", "Orbit"],
+            "First person",
+            "Camera mode"
+        );
+        
+        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.position = Vector.add(Vector.mul(Matrix.rot2dir(camera.rotation.x, -camera.rotation.y), -value), camera.orbit_anchor)}, () => Vector.len(Vector.sub(camera.position, camera.orbit_anchor)), "Distance", 0, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.rotation.x = value; camera.updateOrbit();}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.rotation.y = value; camera.updateOrbit();}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
 
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.x = value;}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.rotation.y = value;}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
-        Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
-        Widgets.createSlider(document.getElementById("group-camera"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
-        Widgets.createDrag(document.getElementById("group-camera"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
-        storage.markGroup("group-camera");
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.rotation.x = value;}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
+        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.rotation.y = value;}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
+        
+        Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
+        Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
+        Widgets.createDrag(document.getElementById("group-camera-general"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
+        storage.markGroup("group-camera-firstperson");
+        storage.markGroup("group-camera-general");
 
         Widgets.createSwitch(
             document.getElementById("group-shading"),

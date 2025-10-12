@@ -167,12 +167,12 @@ export default class GUIManager {
             var current_date = new Date(); 
             var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
             gpu.screenshot(date_time);
-        }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Save current rendered image and download");
+        }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Download current rendered image");
 
         Widgets.createSwitch(
-            document.getElementById("group-camera-1"),
+            document.getElementById("group-camera-mode"),
             (value) => {
-                switchAttribute(document.getElementById("group-camera-2"), value, undefined, "hidden");
+                switchAttribute(document.getElementById("group-camera-firstperson").parentNode, value, undefined, "hidden");
                 camera.orbit_mode = value;
             },
             ["First person", "Orbit"],
@@ -189,9 +189,9 @@ export default class GUIManager {
         Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.rotation.x = value; camera.updateOrbit();}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
         Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.rotation.y = value; camera.updateOrbit();}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
         
-        Widgets.createSlider(document.getElementById("group-camera-3"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
-        Widgets.createSlider(document.getElementById("group-camera-3"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
-        Widgets.createDrag(document.getElementById("group-camera-3"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
+        Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
+        Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
+        Widgets.createDrag(document.getElementById("group-camera-general"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
 
         Widgets.createComment(document.getElementById("group-marching"), "The black hole won't be visible if you are too far away!")
         Widgets.createToggle(document.getElementById("group-marching"), (value) => {gpu.uniforms.disc_enabled = value;}, () => gpu.uniforms.disc_enabled, "Enable disc");

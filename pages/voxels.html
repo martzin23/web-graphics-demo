@@ -55,11 +55,17 @@
 				</figcaption>
 			</figure>
 
-			<figure id="group-camera">
+			<figure>
 				<figcaption>
 					<hr>
 					<p>Camera</p>
 				</figcaption>
+				<div id="group-camera-mode" class="column"></div>
+				<div>
+					<div id="group-camera-firstperson" class="column"></div>
+					<div id="group-camera-orbit" class="column"></div>
+				</div>
+				<div id="group-camera-general" class="column"></div>
 			</figure>
 		</section>
 
@@ -87,7 +93,6 @@
 					<hr>
 					<p>Controls (PC) (Orbit mode)</p>
 				</figcaption>
-				<p class="comment">This is the default camera mode</p>
 				<div class="row">
 					<p class="value">ADQE</p>
 					<p class="comment">Rotate</p>
@@ -95,6 +100,10 @@
 				<div class="row">
 					<p class="value">WS</p>
 					<p class="comment">Zoom</p>
+				</div>
+				<div class="row">
+					<p class="value">Mouse</p>
+					<p class="comment">Rotate</p>
 				</div>
 				<div class="row">
 					<p class="value">Scroll</p>
@@ -106,10 +115,13 @@
 					<hr>
 					<p>Controls (PC) (First person mode)</p>
 				</figcaption>
-				<p class="comment">These apply when orbit mode is disabled in the camera settings</p>
 				<div class="row">
 					<p class="value">WASDQE</p>
 					<p class="comment">Movement</p>
+				</div>
+				<div class="row">
+					<p class="value">Mouse</p>
+					<p class="comment">Rotate</p>
 				</div>
 				<div class="row">
 					<p class="value">Scroll</p>
