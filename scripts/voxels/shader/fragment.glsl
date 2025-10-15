@@ -12,15 +12,20 @@ layout(std140) uniform UniformBlock {
     vec3 camera_position;
     float fov;
 
-    float fade;
-    float shading;
-    float normals;
-    float mode;
+    float grid_scale;
+    float shading_mode;
+    float padding_a;
+    float padding_b;
 
     float height_offset;
     float height_multiplier;
     float height_gamma;
-    float sampling_scale;
+    float height_invert;
+
+    float fade_blend;
+    float voxel_blend;
+    float grayscale_blend;
+    float normals_epsilon;
 } uniforms;
 
 struct Ray {
@@ -48,26 +53,32 @@ void main() {
     vec2 centered_coordinates = (texture_coordinates - 0.5) * 2.0 * vec2(1.0, aspect_ratio);
     
     Ray camera_ray;
-    camera_ray.origin = uniforms.camera_position + uniforms.grid_size * vec3(0.5, 0.5, 0.0) * uniforms.sampling_scale;
+    camera_ray.origin = uniforms.camera_position;
+    camera_ray.origin *= uniforms.grid_scale;
+    camera_ray.origin += uniforms.grid_size * vec3(0.5, 0.5, 0.0) * uniforms.grid_scale;
     camera_ray.direction = (uniforms.camera_rotation * vec4(normalize(vec3(centered_coordinates.x * uniforms.fov, 1.0, centered_coordinates.y * uniforms.fov)), 1.0)).xyz;
     camera_ray.inverse = 1.0 / camera_ray.direction;
 
     vec4 r = traverse(camera_ray);
+    vec3 position = camera_ray.origin + camera_ray.direction * r.w;
+    vec3 sun = normalize(vec3(1.0, 0.5, 0.75));
+    float voxel = mix(1.0, abs(dot(r.xyz, normalize(vec3(1.0, 0.5, 0.75)))), uniforms.voxel_blend);
     if (r.w > 0.0) {
-        // vec3 position = camera_ray.origin + camera_ray.direction * r.w;
-        // output_color = vec4(floor(position) * 0.1, 1.0);
-        // return;
-
-        if (uniforms.mode == 0.0) {
-            vec3 normal = getNormal(camera_ray.origin + camera_ray.direction * r.w, uniforms.normals) * 0.5 + 0.5;
-            float diffuse = mix(1.0, abs(dot(r.xyz, normalize(vec3(1.0, 0.5, 0.75)))), uniforms.shading);
-            float height = mix(1.0, ((camera_ray.origin + camera_ray.direction * r.w).z) / (uniforms.grid_size.z * uniforms.height_multiplier * uniforms.sampling_scale), uniforms.fade);
-            output_color = vec4(vec3(diffuse * height) * ((uniforms.normals > 0.0) ? normal : vec3(1.0)), 1.0);
+        if (uniforms.shading_mode == 1.0) {
+            float height = mix(1.0, position.z / (uniforms.grid_size.z * uniforms.height_multiplier * uniforms.grid_scale), uniforms.fade_blend);
+            vec3 normal = getNormal(position, uniforms.normals_epsilon);
+            float diffuse = dot(normal, sun) * 0.5 + 0.5;
+            output_color = vec4(vec3(diffuse * height * voxel), 1.0);
+        } else if (uniforms.shading_mode == 2.0) {
+            vec3 normal = getNormal(position, uniforms.normals_epsilon) * 0.5 + 0.5;
+            output_color = vec4(normal * voxel, 1.0);
+        } else if (uniforms.shading_mode == 3.0) {
+            vec3 color = texture(height_texture, (vec2(1.0, 0.0) - position.xy / (uniforms.grid_size.xy * uniforms.grid_scale)) * vec2(1.0, -1.0)).xyz;
+            float value = (color.r + color.g + color.b) / 3.0;
+            output_color = vec4(mix(color, vec3(value), uniforms.grayscale_blend) * voxel, 1.0);
         } else {
-            float height = mix(0.5, 1.0, (camera_ray.origin + camera_ray.direction * r.w).z / (uniforms.grid_size.x * uniforms.height_multiplier * 0.15));
-            vec3 normal = getNormal(camera_ray.origin + camera_ray.direction * r.w, uniforms.normals);
-            float diffuse = dot(normalize(normal), normalize(vec3(1.0, 0.5, 0.75))) * 0.5 + 0.5;
-            output_color = vec4(vec3(diffuse * height), 1.0);
+            float height = mix(1.0, position.z / (uniforms.grid_size.z * uniforms.height_multiplier * uniforms.grid_scale), uniforms.fade_blend);
+            output_color = vec4(vec3(voxel * height), 1.0);
         }
     } else {
         output_color = vec4(0.0);
@@ -77,7 +88,7 @@ void main() {
 vec4 traverse(Ray ray) {
     vec3 normal = vec3(0.0, 0.0, 1.0);
 
-    vec2 bbox_t = intersect(ray, vec3(0.0), uniforms.grid_size * uniforms.sampling_scale);
+    vec2 bbox_t = intersect(ray, vec3(0.0), uniforms.grid_size * uniforms.grid_scale);
     if (bbox_t.x > bbox_t.y) {
         return vec4(normal, -1.0);
     }
@@ -87,7 +98,7 @@ vec4 traverse(Ray ray) {
     vec3 delta = (ray.inverse) * march;
     vec3 select = march * 0.5 + 0.5;
     vec3 planes = position + select;
-    vec3 limit = floor(uniforms.grid_size * uniforms.sampling_scale);
+    vec3 limit = floor(uniforms.grid_size * uniforms.grid_scale);
     vec3 t = (planes - ray.origin) * ray.inverse;
 
     while (true) {
@@ -129,22 +140,22 @@ vec4 traverse(Ray ray) {
 
 vec2 intersect(Ray ray, vec3 p_min, vec3 p_max) {
     vec2 t = vec2(0.0, 1.0 / 0.0);
-
     for (int i = 0; i < 3; i++) {
         float t1 = (p_min[i] - ray.origin[i]) * ray.inverse[i];
         float t2 = (p_max[i] - ray.origin[i]) * ray.inverse[i];
         t.x = max(t.x, min(t1, t2));
         t.y = min(t.y, max(t1, t2));
     }
-
     return t;
 }
 
 float getHeight(vec3 position) {
-    vec4 data = texture(height_texture, (vec2(1.0, 0.0) - position.xy / (uniforms.grid_size.xy * uniforms.sampling_scale)) * vec2(1.0, -1.0));
-    // vec4 data = texelFetch(height_texture, ivec2(position).xy, 0);
+    vec4 data = texture(height_texture, (vec2(1.0, 0.0) - position.xy / (uniforms.grid_size.xy * uniforms.grid_scale)) * vec2(1.0, -1.0));
     float height = (data.r * 256.0 + data.g + data.b / 256.0);
-    return (height + uniforms.height_offset) * uniforms.height_multiplier * uniforms.sampling_scale;
+    // float height = 256.0 * (data.r + data.g + data.b) / 3.0;
+    if (uniforms.height_invert == 1.0)
+        height = (uniforms.grid_size.z + 2.0) * uniforms.height_invert - height;
+    return (height + uniforms.height_offset) * uniforms.height_multiplier * uniforms.grid_scale;
 }
 
 vec3 getNormal(vec3 position, float epsilon) {
@@ -154,29 +165,3 @@ vec3 getNormal(vec3 position, float epsilon) {
 	normal.z = 2.0 * epsilon;
     return normalize(normal / vec3(2.0 * epsilon));
 }
-
-// vec3 getNormal(vec3 position, float epsilon) {
-//     vec3 normal;
-// 	normal.x = getHeight(floor(position + vec3(epsilon, 0.0, 0.0))) - getHeight(floor(position - vec3(epsilon, 0.0, 0.0)));
-// 	normal.y = getHeight(floor(position + vec3(0.0, epsilon, 0.0))) - getHeight(floor(position - vec3(0.0, epsilon, 0.0)));
-// 	normal.z = 2.0 * epsilon;
-//     return normalize(normal / vec3(2.0 * epsilon));
-// }
-
-// vec3 getNormal(vec3 position, float epsilon) {
-//     vec2 temp_position = position.xy / uniforms.grid_size.xy;
-//     float temp_epsilon = epsilon / uniforms.grid_size.x;
-//     vec3 normal;
-// 	normal.x = (texture(height_texture, temp_position + vec2(temp_epsilon, 0.0)).x - texture(height_texture, temp_position - vec2(temp_epsilon, 0.0)).x);
-// 	normal.y = (texture(height_texture, temp_position + vec2(0.0, temp_epsilon)).x - texture(height_texture, temp_position - vec2(0.0, temp_epsilon)).x);
-// 	normal.z = 2.0 * temp_epsilon;
-//     return normalize(normal / vec3(2.0 * temp_epsilon));
-// }
-
-// vec3 getNormal(vec3 position, float epsilon) {
-//     vec3 normal;
-// 	normal.x = texture(height_texture, floor(position.xy + vec2(epsilon, 0.0)) / uniforms.grid_size.xy).x - texture(height_texture, floor(position.xy - vec2(epsilon, 0.0)) / uniforms.grid_size.xy).x;
-// 	normal.y = texture(height_texture, floor(position.xy + vec2(0.0, epsilon)) / uniforms.grid_size.xy).x - texture(height_texture, floor(position.xy - vec2(0.0, epsilon)) / uniforms.grid_size.xy).x;
-// 	normal.z = epsilon / uniforms.grid_size.z;
-//     return normalize(normal / (2.0 * epsilon));
-// }

@@ -37,15 +37,20 @@ export default class WebGLManager {
             camera_position: Vector.vec(0.0, -3.0, 0.0),
             fov: 1.0,
 
-            fade: 1.0,
-            shading: 0.0,
-            normals: 0.0,
-            mode: 0.0,
+            grid_scale: 1.0,
+            shading_mode: 0.0,
+            padding_a: 0.0,
+            padding_b: 0.0,
             
             height_offset: 0.0,
             height_multiplier: 0.25,
             height_gamma: 1.0,
-            sampling_scale: 1.0,
+            height_invert: 0.0,
+
+            fade_blend: 1.0,
+            voxel_blend: 0.0,
+            grayscale_blend: 0.0,
+            normals_epsilon: 2.0,
         };
 
         const vertices = new Float32Array([

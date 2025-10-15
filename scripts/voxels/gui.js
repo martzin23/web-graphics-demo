@@ -210,14 +210,27 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
         Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
         Widgets.createDrag(document.getElementById("group-camera-general"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
-
-        Widgets.createSlider(document.getElementById("group-visuals"), (value) => {gpu.uniforms.shading = value;}, () => gpu.uniforms.shading, "Voxel shading", 0.0, 1.0).addTooltip("Adds shading to individual voxels (zoom in)");
-        Widgets.createSlider(document.getElementById("group-visuals"), (value) => {gpu.uniforms.fade = value;}, () => gpu.uniforms.fade, "Height fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
-        Widgets.createSlider(document.getElementById("group-visuals"), (value) => {gpu.uniforms.normals = value;}, () => gpu.uniforms.normals, "Terrain normals", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
-
-        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.sampling_scale = value;}, () => gpu.uniforms.sampling_scale, "Grid multiplier", 0, Infinity);
+        
+        Widgets.createToggle(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_invert = value;}, () => gpu.uniforms.height_invert, "Invert height");
+        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.grid_scale = value;}, () => gpu.uniforms.grid_scale, "Grid multiplier", 0, Infinity);
         Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_multiplier = value;}, () => gpu.uniforms.height_multiplier, "Height multiplier", 0, Infinity);
         Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_offset = value;}, () => gpu.uniforms.height_offset, "Height offset", -Infinity, Infinity, 1.0);
+
+        Widgets.createSwitch(
+            document.getElementById("group-shading-mode"),
+            (value) => {
+                switchAttribute(document.getElementById("group-shading-shaded").parentNode, value, undefined, "hidden");
+                gpu.uniforms.shading_mode = value;
+            },
+            ["Flat", "Shaded", "Normals", "Color"],
+            "Flat"
+        );
+        Widgets.createSlider(document.getElementById("group-shading-flat"), (value) => {gpu.uniforms.fade_blend = value;}, () => gpu.uniforms.fade_blend, "Height fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
+        Widgets.createSlider(document.getElementById("group-shading-shaded"), (value) => {gpu.uniforms.fade_blend = value;}, () => gpu.uniforms.fade_blend, "Height fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
+        Widgets.createSlider(document.getElementById("group-shading-shaded"), (value) => {gpu.uniforms.normals_epsilon = value;}, () => gpu.uniforms.normals_epsilon, "Normals epsilon", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
+        Widgets.createSlider(document.getElementById("group-shading-normal"), (value) => {gpu.uniforms.normals_epsilon = value;}, () => gpu.uniforms.normals_epsilon, "Normals epsilon", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
+        Widgets.createSlider(document.getElementById("group-shading-color"), (value) => {gpu.uniforms.grayscale_blend = value;}, () => gpu.uniforms.grayscale_blend, "Grayscale", 0.0, 1.0).addTooltip("Level of desaturation");
+        Widgets.createSlider(document.getElementById("group-shading"), (value) => {gpu.uniforms.voxel_blend = value;}, () => gpu.uniforms.voxel_blend, "Voxel shading", 0.0, 1.0).addTooltip("Adds shading to individual voxels (zoom in)");
     }
 }
 
