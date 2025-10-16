@@ -1,28 +1,40 @@
-// import * as Vector from '../utility/vector.js';
+import * as Vector from '../utility/vector.js';
+import * as Image from './image.js';
 
-// const max_tiles = 4;
+const max_tiles = 4;
 // const tile_size = 1.0;
-// const tile_resolution = 1000;
+const pixel_size = 30.91;
+const tile_resolution = 3601;
+const elevation_offset = 32768;
 
-// function getTileSetSize(min_x, min_y, max_x, max_y) {
-//     const width_tiles = Math.ceil(max_x) - Math.floor(min_x);
-//     const height_tiles = Math.ceil(max_y) - Math.floor(min_y);
-//     return width_tiles * height_tiles;
-// }
-
-export function isValidTileSet(min_x, min_y, max_x, max_y) {
-    const max_tiles = 1;
-    if (Math.abs(min_x) > 180 || Math.abs(min_y) > 180 || Math.abs(max_x) > 180 || Math.abs(max_y) > 180)
+export function isValidTileSet(min_lon, min_lat, max_lon, max_lat) {
+    if (Math.abs(min_lon) > 180 || Math.abs(min_lat) > 90 || Math.abs(max_lon) > 180 || Math.abs(max_lat) > 90)
         return false;
+    if (max_lon < min_lon)
+        [min_lon, max_lon] = [max_lon, min_lon];
+    if (max_lat < min_lat)
+        [min_lat, max_lat] = [max_lat, min_lat];
 
-    const width_tiles = Math.ceil(max_x) - Math.floor(min_x);
-    const height_tiles = Math.ceil(max_y) - Math.floor(min_y);
+    const width_tiles = Math.ceil(max_lon) - Math.floor(min_lon);
+    const height_tiles = Math.ceil(max_lat) - Math.floor(min_lat);
     return (width_tiles * height_tiles) <= max_tiles;
 }
 
+function encodeHeight(height) {
+    const r = (height >> 8) & 0xFF;
+    const g = height & 0xFF;
+    const b = 0;
+    const a = 255;
+    return Vector.vec(r, g, b, a);
+}
+
+function decodeHeight(color) {
+    return color.x * 256.0 + color.y;
+}
+
 function getUrl(lat, lon) {
-    const lat_hemisphere = lat >= 0 ? 'N' : 'S';
-    const lon_hemisphere = lon >= 0 ? 'E' : 'W';
+    const lat_hemisphere = (lat >= 0) ? 'N' : 'S';
+    const lon_hemisphere = (lon >= 0) ? 'E' : 'W';
     
     const lat_tile = Math.abs(Math.floor(lat));
     const lon_tile = Math.abs(Math.floor(lon));
@@ -32,94 +44,115 @@ function getUrl(lat, lon) {
 }
 
 export async function fetchTile(lat, lon) {
+    console.log("Fetching: ", lat, lon);
     const url = getUrl(lat, lon);
     const compressed_data = await (await fetch(url)).arrayBuffer();
     const decompressed_data = pako.inflate(new Uint8Array(compressed_data));
+    const data_view = new DataView(decompressed_data.buffer);
+    const image = new ImageData(tile_resolution, tile_resolution);
 
-    const dataView = new DataView(decompressed_data.buffer);
-    const resolution = 1201; // SRTM-1 resolution
-    const elevation_data = new Array(resolution);
-    
-    for (let row = 0; row < resolution; row++) {
-        elevation_data[row] = new Array(resolution);
-        for (let col = 0; col < resolution; col++) {
-            const offset = (row * resolution + col) * 2;
-            // Big-endian signed 16-bit integer
-            elevation_data[row][col] = dataView.getInt16(offset, false);
+    for (let y = 0; y < tile_resolution; y++) {
+        for (let x = 0; x < tile_resolution; x++) {
+            const offset = (y * tile_resolution + x) * 2;
+            const height = data_view.getInt16(offset, false) + elevation_offset;
+            if (height == 0)
+                height = elevation_offset;
+            const pixel = encodeHeight(height);
+            Image.setPixel(image, Vector.vec(x, tile_resolution - 1 - y), pixel);
         }
     }
     
-    return {
-        data: elevation_data,
-        width: resolution,
-        height: resolution,
-    };
+    return image;
 }
 
-export function formatTile(data) {
-    let image = new Uint8Array(data.width * data.height * 4);
-    // let image = new ImageData(array, data.width, data.height, undefined);
-
-    for (let x = 0; x < data.width; x++) {
-        for (let y = 0; y < data.height; y++) {
-            const offset = (x * data.width + y) * 4;
-            const raw_height = data.data[x][y];
-            const height = (raw_height + 32768);
-            if (height == -32768)
-                height = 0;
-            image[offset] = height / (256.0);
-            image[offset + 1] = height % (256.0);
-            image[offset + 2] = height % (256.0 * 256.0);
-            image[offset + 3] = 255;
-        }
-    }
-
-    return {
-        data: image,
-        width: data.width,
-        height: data.height,
-    };
-}
-
-async function getTileSet(min_x, min_y, max_x, max_y) {
-    if (!isValidTileSet(min_x, min_y, max_x, max_y))
+async function getTileSet(min_lon, min_lat, max_lon, max_lat) {
+    if (!isValidTileSet(min_lon, min_lat, max_lon, max_lat))
         throw Error("Invalid coordinates or maximum ammount of tiles exceeded!");
 
-    tiles = [];
-    for (let x = Math.floor(min_x); x <= Math.ceil(max_x); x++) {
-        tile_column = [];
-        for (let y = Math.floor(min_y); y <= Math.ceil(max_y); y++) {
-            const tile = formatTile(await fetchTile(x, y));
-            tile_column.append(tile);
+    let counter = 0;
+    let tiles = [];
+    for (let x = Math.floor(min_lon); x < Math.ceil(max_lon); x++) {
+        let tile_column = [];
+        for (let y = Math.floor(min_lat); y < Math.ceil(max_lat); y++) {
+            if (counter > max_tiles)
+                throw new Error("Maximum ammount of tiles exceeded!");
+            const tile = await fetchTile(x, y);
+            console.log("Pushing tile: ", tile);
+            tile_column.push(tile);
+            counter += 1;
         }
-        tiles.append(tile_column);
+        console.log("Pushing column: ", tile_column);
+        tiles.push(tile_column);
     }
+
+    console.log("Tiles: ", tiles);
     return tiles;
 }
 
-function cropImage(tiles, min_x, min_y, max_x, max_y) {
-    // return image;
+function combineTiles(tiles) {
+    const width = tiles[0].length * tile_resolution;
+    const height = tiles.length * tile_resolution;
+    const image = new ImageData(width, height);
+
+    for (let tile_x = 0; tile_x < tiles[0].length; tile_x++) {
+        for (let tile_y = 0; tile_y < tiles.length; tile_y++) {
+            for (let pixel_x = 0; pixel_x < tile_resolution; pixel_x++) {
+                for (let pixel_y = 0; pixel_y < tile_resolution; pixel_y++) {
+                    const coordinate = Vector.vec(pixel_x + tile_x * tile_resolution, pixel_y * tile_y * tile_resolution);
+                    const value = Image.getPixel(tiles[tile_y][tile_x], Vector.vec(pixel_x, pixel_y));
+                    Image.setPixel(image, coordinate, value);
+                }
+            }
+        }
+    }
+
+    return image;
 }
 
-function analyzeImage(image) {
-    // return {
-    //     min: 1,
-    //     max: 1,
-    // };
-}
+export async function getData(min_lon, min_lat, max_lon, max_lat) {
+    const image = await fetchTile(min_lat, min_lon);
+    // const tiles = await getTileSet(min_lon, min_lat, max_lon, max_lat);
+    // const combined = combineTiles(tiles);
+    // ... calc
+    // const cropped = Image.crop(combined, min_lon, min_lat, max_lon, max_lat);
+    // const resized = Image.resize(cropped, 256, 256);
 
-export async function getData(min_x, min_y, max_x, max_y) {
-    const tiles = await getTileSet(min_x, min_y, max_x, max_y);
-    const image = cropImage(tiles, min_x, min_y, max_x, max_y);
-    const data = analyzeImage(image);
+    let min = Infinity;
+    let max = -Infinity;
+    Image.iterate(image, (value, uv) => {
+        const height = decodeHeight(value);
+        min = Math.min(min, height);
+        max = Math.max(max, height);
+    });
 
     return {
         image: image,
-        min: data.min,
-        max: data.max,
-        horizontal_scaling: 1,
-        vertical_scaling: 1,
+        min: min,
+        max: max,
+        range: (max - min) / pixel_size,
+        multiplier: 1.0 / pixel_size,
+        offset: -min,
     }
 }
 
-// console.log(await fetchTile(27.9881, 86.9253));
+// export function normalize(image) {
+//     let min_height = Infinity;
+//     let max_height = -Infinity;
+//     Image.iterate(image, (value, xy) => {
+//         const height = decodeHeight(value);
+//         min_height = Math.min(min_height, height);
+//         max_height = Math.max(max_height, height);
+//     });
+
+//     function mapRange(value, from_min, from_max, to_min, to_max) {
+//         return to_min * ((value - from_min) * (to_max - to_min)) / (from_max - from_min)
+//     }
+
+//     Image.iterate(image, (value, xy) => {
+//         const height = decodeHeight(value);
+//         const new_height = mapRange(height, 0, 65536, min_height, max_height);
+//         return encodeHeight(new_height);
+//     });
+
+//     return image;
+// }

@@ -61,7 +61,7 @@ void main() {
 
     vec4 r = traverse(camera_ray);
     vec3 position = camera_ray.origin + camera_ray.direction * r.w;
-    vec3 sun = normalize(vec3(1.0, 0.5, 0.75));
+    vec3 sun = normalize(vec3(1.0, 0.5, 0.0));
     float voxel = mix(1.0, abs(dot(r.xyz, normalize(vec3(1.0, 0.5, 0.75)))), uniforms.voxel_blend);
     if (r.w > 0.0) {
         if (uniforms.shading_mode == 1.0) {
@@ -151,8 +151,9 @@ vec2 intersect(Ray ray, vec3 p_min, vec3 p_max) {
 
 float getHeight(vec3 position) {
     vec4 data = texture(height_texture, (vec2(1.0, 0.0) - position.xy / (uniforms.grid_size.xy * uniforms.grid_scale)) * vec2(1.0, -1.0));
-    float height = (data.r * 256.0 + data.g + data.b / 256.0);
-    // float height = 256.0 * (data.r + data.g + data.b) / 3.0;
+    // float height = 256.0 * (data.r + data.g + data.b) / 3.0; // average
+    // float height = (data.r * 256.0 + data.g + data.b / 256.0); // first
+    float height = (data.r * 256.0 + data.g) * 256.0; // second
     if (uniforms.height_invert == 1.0)
         height = (uniforms.grid_size.z + 2.0) * uniforms.height_invert - height;
     return (height + uniforms.height_offset) * uniforms.height_multiplier * uniforms.grid_scale;

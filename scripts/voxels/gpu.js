@@ -120,13 +120,13 @@ export default class WebGLManager {
         this.canvas.height = height / this.uniforms.render_scale;
     }
 
-    reloadImage(image) {
+    reloadImage(image, height = 256) {
         this.height_texture.destroy(this.gl);
         this.height_texture = new WebGL.Texture(image.data, image.width, image.height);
         this.height_texture.setup(this.gl, "height_texture", this.program, 0, "LINEAR", "CLAMP_TO_EDGE");
         this.uniforms.grid_size.x = this.height_texture.width;
         this.uniforms.grid_size.y = this.height_texture.height;
-        this.uniforms.grid_size.z = 256;
+        this.uniforms.grid_size.z = height;
     }
 
     async screenshot(file_name) {

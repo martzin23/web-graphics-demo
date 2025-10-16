@@ -1,5 +1,6 @@
 import * as Loader from '../utility/loader.js'
 import * as Tile from './tile.js';
+import * as Image from './image.js';
 
 export default class GUIManager {
     constructor(canvas, gpu, camera) {
@@ -15,30 +16,16 @@ export default class GUIManager {
         document.addEventListener("keypress", (event) => {
             if (event.key == " ")
                 camera.orbit_mode = !camera.orbit_mode;
+            if (event.key == "r")
+                camera.speed *= 1.25;
+            if (event.key == "f")
+                camera.speed /= 1.25;
         });
 
-        document.getElementById("input-fetch").addEventListener("click", async () => {
-            const z = document.getElementById("input-z").value;
-            const x = document.getElementById("input-x").value;
-            const y = document.getElementById("input-y").value;
-            const url = `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`;
-            const element_error = document.getElementById("output-error");
-
-            try {
-                const image = await Loader.loadImage(url);
-                gpu.reloadImage(image);
-                element_error.innerText = "";
-                gpu.uniforms.height_multiplier = (parseFloat(z) + 1.0) * 0.5;
-            } catch (error) {
-                console.log(error);
-                element_error.innerText = "Invalid coordinates: X and Y should be lower or equal than (2^Z - 1)!";
-            }
-        });
-
-        document.getElementById("map").addEventListener('pointerdown', (event_start) => {
-            const element_rect = document.getElementById("rect");
-            const element_map = document.getElementById("map");
-            const map_rect = element_map.getBoundingClientRect();
+        document.getElementById("map-select").addEventListener('pointerdown', (event_start) => {
+            const element_rectangle = document.getElementById("map-rectangle");
+            const element_select = document.getElementById("map-select");
+            const map_rect = element_select.getBoundingClientRect();
 
             const setRect = function setRect(element, start_x, start_y, end_x, end_y) {
                 if (end_x < start_x)
@@ -52,56 +39,71 @@ export default class GUIManager {
                 element.style.height = (end_y - start_y) + "px";
             }
 
-            element_rect.style.display = "block";
+            element_rectangle.style.display = "block";
             let start_x = event_start.x - map_rect.x;
             let start_y = event_start.y - map_rect.y
             let end_x = start_x;
             let end_y = start_y;
-            setRect(element_rect, start_x, start_y, end_x, end_y);
-            console.log("start");
+            setRect(element_rectangle, start_x, start_y, end_x, end_y);
 
             const callback_move = (event_move) => {
-                if (Math.abs(end_x - start_x) > 100 || Math.abs(end_y - start_y) > 100)
-                    element_rect.classList.add("invalid");
-                else
-                    element_rect.classList.remove("invalid");
-
                 end_x = event_move.x - map_rect.x;
                 end_y = event_move.y - map_rect.y;
-                setRect(element_rect, start_x, start_y, end_x, end_y);
+                setRect(element_rectangle, start_x, start_y, end_x, end_y);
 
-                // const normalized_x = map_x / map_rect.width;
-                // const normalized_y = map_y / map_rect.height;
+                const min_lon = ((start_x / map_rect.width) * 2.0 - 1.0) * 180;
+                const min_lat = ((start_y / map_rect.height) * 2.0 - 1.0) * -90;
+                const max_lon = ((end_x / map_rect.width) * 2.0 - 1.0) * 180;
+                const max_lat = ((end_y / map_rect.height) * 2.0 - 1.0) * -90;
+
+                if (!Tile.isValidTileSet(min_lon, min_lat, max_lon, max_lat))
+                    element_rectangle.classList.add("invalid");
+                else
+                    element_rectangle.classList.remove("invalid");
             };
+
             const callback_submit = async function() {
-                element_map.removeEventListener("pointermove", callback_move);
-                element_map.removeEventListener("pointerup", callback_submit);
-                element_map.removeEventListener("pointercancel", callback_submit);
-                element_map.removeEventListener("pointerleave", callback_submit);
-                
-                if (end_x < start_x)
+                element_select.removeEventListener("pointermove", callback_move);
+                element_select.removeEventListener("pointerup", callback_submit);
+                element_select.removeEventListener("pointercancel", callback_submit);
+                element_select.removeEventListener("pointerleave", callback_submit);
+
+                if (end_x > start_x)
                     [start_x, end_x] = [end_x, start_x];
-                if (end_y < start_y)
+                if (end_y > start_y)
                     [start_y, end_y] = [end_y, start_y];
 
-                const lat = ((start_x / map_rect.width) * 2.0 - 1.0) * 180;
-                const long = ((start_y / map_rect.height) * 2.0 - 1.0) * 180;
-                console.log(lat, long)
-                const image = Tile.formatTile(await Tile.fetchTile(lat, long));
-                console.log(image)
-                gpu.reloadImage(image);
+                const min_lon = ((start_x / map_rect.width) * 2.0 - 1.0) * 180;
+                const min_lat = ((start_y / map_rect.height) * 2.0 - 1.0) * -90;
+                const max_lon = ((end_x / map_rect.width) * 2.0 - 1.0) * 180;
+                const max_lat = ((end_y / map_rect.height) * 2.0 - 1.0) * -90;
+
+                if (!Tile.isValidTileSet(min_lon, min_lat, max_lon, max_lat))
+                    return;
+
+                // const image = await Tile.fetchTile(45.880899, 15.956237);
+                // const image = await Tile.fetchTile(min_lat, min_lon);
+                // const image = await Loader.loadImage("../assets/images/textures/disc.jpg");
+                // console.log("Region: ", min_lon, min_lat, max_lon, max_lat);
+                const data = await Tile.getData(min_lon, min_lat, max_lon, max_lat);
+                console.log("Data: ", data);
+
+                // const test = Image.resize(image, 256, 512);
+                // Loader.saveImage("a.png", test);
+
+                gpu.reloadImage(data.image, data.range * 3.0);
+                gpu.uniforms.height_offset = data.offset;
+                gpu.uniforms.height_multiplier = data.multiplier * 3.0;
 
                 // const data = Tile.getData(start_x, start_y, end_x, end_y);
                 // gpu.reloadImage(data.image);
 
-                console.log("end");
             };
 
-            element_map.addEventListener("pointermove", callback_move);
-            element_map.addEventListener("pointerup", callback_submit);
-            element_map.addEventListener("pointercancel", callback_submit);
-            element_map.addEventListener("pointerleave", callback_submit);
+            element_select.addEventListener("pointermove", callback_move);
+            element_select.addEventListener("pointerup", callback_submit);
+            element_select.addEventListener("pointercancel", callback_submit);
+            element_select.addEventListener("pointerleave", callback_submit);
         });
     }
 }
-

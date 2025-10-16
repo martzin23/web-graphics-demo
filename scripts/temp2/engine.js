@@ -11,16 +11,17 @@
 
         constructor(gpu) {
             this.gpu = gpu;
-            this.camera = new Camera(document.getElementById("canvas"), Vector.vec(this.gpu.height_texture.width), Vector.vec(-135.0, 35.0), 0.3, 5.0, 0.5, false, true);
+            this.camera = new Camera(document.getElementById("canvas"), Vector.vec(this.gpu.height_texture.width), Vector.vec(-135.0, 35.0), 0.5, 5.0, 0.5, false, true);
             this.gui = new GUIManager(document.getElementById("canvas"), this.gpu, this.camera);
 
-            // document.getElementById("input-fetch").click();
-            this.gpu.uniforms.normals = 2.0;
-            this.gpu.uniforms.fade = 0.0;
-            this.gpu.uniforms.render_scale = 2.5;
-            // this.gpu.uniforms.height_offset = -100.0;
-            // this.gpu.uniforms.height_multiplier = 1.0;
-            this.gpu.uniforms.mode = 1.0;
+            this.gpu.uniforms.shading_mode = 1.0;
+            this.gpu.uniforms.normals_epsilon = 2.0;
+            this.gpu.uniforms.fade_blend = 0.0;
+            this.gpu.uniforms.render_scale = 2.0;
+            this.gpu.uniforms.grid_scale = 0.15;
+            this.gpu.uniforms.voxel_blend = 0.0;
+            this.gpu.uniforms.height_offset = -32768.0;
+            this.gpu.uniforms.height_multiplier = 0.15;
             this.gpu.synchronize();
         }
 

@@ -17,6 +17,13 @@ export function vec(...args) {
     return result;
 }
 
+export function copy(v) {
+    let result = {};
+    for (const el in v)
+        result[el] = v[el];
+    return result;
+}
+
 export function array(v) {
     return Object.values(v);
 }
@@ -41,10 +48,10 @@ export function xy(v) {
     return vec(v.x, v.y);
 }
 
-export function dot(first, second) {
+export function dot(a, b) {
     let result = 0;
-    for (const el in first)
-        result += first[el] * second[el];
+    for (const el in a)
+        result += a[el] * b[el];
     return result;
 }
 
@@ -57,6 +64,15 @@ export function norm(v) {
         return vec(0.0);
     else
         return div(v, len(v));
+}
+
+export function mix(a, b, factor) {
+    let result = {};
+    for (const el in a) {
+        const value = (a[el] * (1.0 - factor)) + (b[el] * factor);
+        result[el] = value;
+    }
+    return result;
 }
 
 export function add(...args) {
@@ -73,12 +89,23 @@ export function add(...args) {
             result.z += el;
         }
     }
-    return result;
+    return result;        
+    // let result = {};
+    // for (const el in args[0])
+    //     result[el] = 0.0;
+    // for (const el in result) {
+    //     for (const arg of args)
+    //         if (test(arg))
+    //             result[el] += arg[el];
+    //         else
+    //             result[el] += arg;
+    // }
+    // return result;
 }
 
-export function sub(first, ...second) {
-    let result = first;
-    for (let el of second) {
+export function sub(a, ...b) {
+    let result = a;
+    for (let el of b) {
         if (test(el)) {
             result.x -= el.x;
             result.y -= el.y;
@@ -90,37 +117,63 @@ export function sub(first, ...second) {
             result.z -= el;
         }
     }
-    return result;
+    return result;    
+    // let result = a;
+    // for (const el in a) {
+    //     for (const arg of b)
+    //         if (test(b))
+    //             result[el] -= arg[el];
+    //         else
+    //             result[el] -= arg;
+    // }
+    // return result;
 }
 
-export function mul(first, second) {
-    let result = first;
-    if (test(second)) {
-        result.x *= second.x;
-        result.y *= second.y;
-        result.z *= second.z;
+export function mul(a, b) {
+    let result = a;
+    if (test(b)) {
+        result.x *= b.x;
+        result.y *= b.y;
+        result.z *= b.z;
     } else {
-        result.x *= second;
-        result.y *= second;
-        result.z *= second;
+        result.x *= b;
+        result.y *= b;
+        result.z *= b;
+    }
+    return result;    
+    // let result = a;
+    // for (const el in a) {
+    //     if (test(b))
+    //         result[el] *= b[el];
+    //     else
+    //         result[el] *= b;
+    // }
+    // return result;
+}
+
+export function div(a, b) {
+    let result = a;
+    if (test(b)) {
+        result.x /= b.x;
+        result.y /= b.y;
+        result.z /= b.z;
+    } else {
+        result.x /= b;
+        result.y /= b;
+        result.z /= b;
     }
     return result;
+    // let result = a;
+    // for (const el in a) {
+    //     if (test(b))
+    //         result[el] /= b[el];
+    //     else
+    //         result[el] /= b;
+    // }
+    // return result;
 }
 
-export function div(first, second) {
-    let result = first;
-    if (test(second)) {
-        result.x /= second.x;
-        result.y /= second.y;
-        result.z /= second.z;
-    } else {
-        result.x /= second;
-        result.y /= second;
-        result.z /= second;
-    }
-    return result;
+export function cross(a, b) {
+    return vec(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
 }
 
-export function cross(first, second) {
-    return vec(first.y * second.z - first.z * second.y, first.z * second.x - first.x * second.z, first.x * second.y - first.y * second.x);
-}

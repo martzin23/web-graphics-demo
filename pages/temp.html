@@ -112,12 +112,13 @@
                 });
 
                 document.getElementById("input-fetch").click();
-                this.gpu.uniforms.normals = 2.0;
-                this.gpu.uniforms.fade = 0.0;
-                this.gpu.uniforms.render_scale = 2.5;
+                this.gpu.uniforms.render_scale = 2.0;
+                this.gpu.uniforms.shading_mode = 1.0;
                 this.gpu.uniforms.height_offset = -100.0;
                 this.gpu.uniforms.height_multiplier = 1.0;
-                this.gpu.uniforms.mode = 1.0;
+                this.gpu.uniforms.grid_scale = 0.5;
+                this.gpu.uniforms.normals_epsilon = 2.0;
+                this.gpu.uniforms.fade_blend = 0.0;
                 this.gpu.synchronize();
             }
 
