@@ -25,7 +25,6 @@ export default class Camera {
         this.orbit_anchor = orbit_anchor;
         this.key_states = {};
         this.enabled = false;
-        this.canvas = canvas;
 
         document.addEventListener('keydown', (event) => {
             if (event.key == 'w' || event.key == 'a' || event.key == 's' || event.key == 'd' || event.key == 'q' || event.key == 'e')
@@ -37,9 +36,7 @@ export default class Camera {
         });
 
         canvas.addEventListener('mousedown', () => {
-            if (!this.enabled) {
-                this.enabled = true;
-            }
+            this.enable();
         });
 
         document.addEventListener('mousemove', (event) => {
@@ -48,12 +45,6 @@ export default class Camera {
                     this.updateOrbit(event.movementX, event.movementY);
                 else
                     this.updateRotation(event.movementX, event.movementY);
-            }
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && this.enabled) {
-                this.enabled = false;
             }
         });
 
@@ -155,11 +146,7 @@ export default class Camera {
     }
 
     toggle(canvas) {
-        if (this.isEnabled()) {
-            this.enabled = false;
-        } else {
-            this.enabled = true;
-        }
+        this.enabled = !this.isEnabled();
     }
 
     enable(canvas) {
