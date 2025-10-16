@@ -24,7 +24,9 @@ export default class Camera {
         this.orbit_mode = orbit_mode;
         this.orbit_anchor = orbit_anchor;
         this.key_states = {};
-        
+        this.enabled = false;
+        this.canvas = canvas;
+
         document.addEventListener('keydown', (event) => {
             if (event.key == 'w' || event.key == 'a' || event.key == 's' || event.key == 'd' || event.key == 'q' || event.key == 'e')
                 this.key_states[event.key] = true;
@@ -33,6 +35,13 @@ export default class Camera {
             if (event.key == 'w' || event.key == 'a' || event.key == 's' || event.key == 'd' || event.key == 'q' || event.key == 'e')
                 this.key_states[event.key] = false;
         });
+
+        canvas.addEventListener('mousedown', () => {
+            if (!this.enabled) {
+                this.enabled = true;
+            }
+        });
+
         document.addEventListener('mousemove', (event) => {
             if (this.isEnabled()) {
                 if (this.orbit_mode)
@@ -41,6 +50,13 @@ export default class Camera {
                     this.updateRotation(event.movementX, event.movementY);
             }
         });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && this.enabled) {
+                this.enabled = false;
+            }
+        });
+
         TouchListener.addTouchListener(canvas, (event) => {
             if (this.isOrbiting()) 
                 this.updateOrbit(event.drag_x, event.drag_y);
@@ -50,6 +66,7 @@ export default class Camera {
             if (event.zoom != 0)
                 this.position = Vector.add(this.position, Vector.mul(Matrix.rot2dir(this.rotation.x, -this.rotation.y), this.speed * event.zoom));
         });
+
         document.addEventListener('wheel', (event) => {
             if (this.isEnabled()) {
                 if (this.isOrbiting()) {
@@ -122,7 +139,6 @@ export default class Camera {
         } else {
             this.updateOrbit(-local_direction.x / this.sensitivity * this.speed, local_direction.z / this.sensitivity * this.speed, 1.0 + -0.003 / this.sensitivity * this.speed * local_direction.y);
         }
-
     }
 
     updateRotation(dh = 0.0, dv = 0.0) {
@@ -139,22 +155,23 @@ export default class Camera {
     }
 
     toggle(canvas) {
-        if (this.isEnabled())
-            document.exitPointerLock();
-        else
-            canvas.requestPointerLock({ unadjustedMovement: true }).catch(() => {});
+        if (this.isEnabled()) {
+            this.enabled = false;
+        } else {
+            this.enabled = true;
+        }
     }
 
     enable(canvas) {
-        canvas.requestPointerLock({ unadjustedMovement: true }).catch(() => {});
+        this.enabled = true;
     }
 
     disable() {
-        document.exitPointerLock();
+        this.enabled = false;
     }
 
     isEnabled() {
-        return document.pointerLockElement !== null;
+        return this.enabled;
     }
 
     isOrbiting() {
