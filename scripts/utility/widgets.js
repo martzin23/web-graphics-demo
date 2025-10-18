@@ -257,257 +257,6 @@ export function createDrag(parent, set = (value) => {}, get = () => 0.0, name = 
     return element_base;
 }
 
-export function createVector(parent, set = (value) => {}, get = () => {return {x:0, y:0, z:0};}, name = "Vector", sen = 0.01) {
-    const default_value = get();
-
-    const element_text_x = document.createElement("input");
-    element_text_x.setAttribute("type", "text");
-    element_text_x.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
-    element_text_x.setAttribute("required", "");
-    element_text_x.setAttribute("value", default_value.x);
-
-    const element_left_x = document.createElement("i");
-    element_left_x.className = "fa fa-sort-desc fa-rotate-90";
-
-    const element_right_x = document.createElement("i");
-    element_right_x.className = "fa fa-sort-asc fa-rotate-90";
-
-    const element_button_x = document.createElement("div");
-    element_button_x.className = "button";
-    element_button_x.appendChild(element_left_x);
-    element_button_x.appendChild(element_right_x);
-
-    const element_name_x = document.createElement("p");
-    element_name_x.innerText = "X";
-
-    const element_drag_x = document.createElement("div");
-    element_drag_x.className = "drag";
-    element_drag_x.appendChild(element_text_x);
-    element_drag_x.appendChild(element_button_x);
-    element_drag_x.appendChild(element_name_x);
-
-
-
-    const element_text_y = document.createElement("input");
-    element_text_y.setAttribute("type", "text");
-    element_text_y.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
-    element_text_y.setAttribute("required", "");
-    element_text_y.setAttribute("value", default_value.y);
-
-    const element_left_y = document.createElement("i");
-    element_left_y.className = "fa fa-sort-desc fa-rotate-90";
-
-    const element_right_y = document.createElement("i");
-    element_right_y.className = "fa fa-sort-asc fa-rotate-90";
-
-    const element_button_y = document.createElement("div");
-    element_button_y.className = "button";
-    element_button_y.appendChild(element_left_y);
-    element_button_y.appendChild(element_right_y);
-
-    const element_name_y = document.createElement("p");
-    element_name_y.innerText = "Y";
-
-    const element_drag_y = document.createElement("div");
-    element_drag_y.className = "drag";
-    element_drag_y.appendChild(element_text_y);
-    element_drag_y.appendChild(element_button_y);
-    element_drag_y.appendChild(element_name_y);
-
-    
-
-    const element_text_z = document.createElement("input");
-    element_text_z.setAttribute("type", "text");
-    element_text_z.setAttribute("pattern", '-?([0-9]+)(.[0-9]+)?');
-    element_text_z.setAttribute("required", "");
-    element_text_z.setAttribute("value", default_value.z);
-
-    const element_left_z = document.createElement("i");
-    element_left_z.className = "fa fa-sort-desc fa-rotate-90";
-
-    const element_right_z = document.createElement("i");
-    element_right_z.className = "fa fa-sort-asc fa-rotate-90";
-
-    const element_button_z = document.createElement("div");
-    element_button_z.className = "button";
-    element_button_z.appendChild(element_left_z);
-    element_button_z.appendChild(element_right_z);
-
-    const element_name_z = document.createElement("p");
-    element_name_z.innerText = "Z";
-
-    const element_drag_z = document.createElement("div");
-    element_drag_z.className = "drag";
-    element_drag_z.appendChild(element_text_z);
-    element_drag_z.appendChild(element_button_z);
-    element_drag_z.appendChild(element_name_z);
-
-
-
-    element_text_x.addEventListener("focusout", function() {
-        if (this.checkValidity()) {
-            const value = resizeNumber(parseFloat(this.value));
-            this.value = value;
-            set({
-                x: parseFloat(value),
-                y: parseFloat(element_text_y.value),
-                z: parseFloat(element_text_z.value)
-            });
-        } else {
-            this.value = get().x;
-        }
-    });
-    
-    element_text_x.addEventListener("updategui", function() {
-        if (this.matches(":focus")) return;
-        this.value = resizeNumber(get().x);
-    });
-
-    element_button_x.addEventListener("mousedown", function() {
-        const mousemove_listener = (event) => {
-            const value = resizeNumber(parseFloat(element_text_x.value) + event.movementX * sen);
-            element_text_x.value = value;
-            set({
-                x: parseFloat(value),
-                y: parseFloat(element_text_y.value),
-                z: parseFloat(element_text_z.value)
-            });
-            const mouseup_listener = () => {
-                document.removeEventListener("mousemove", mousemove_listener);
-                document.removeEventListener("mouseup", mouseup_listener);
-            }
-            document.addEventListener("mouseup", mouseup_listener);
-        }
-        document.addEventListener("mousemove", mousemove_listener);
-    });
-
-    TouchListener.addTouchListener(element_button_x, function(event) {
-        const value = resizeNumber(parseFloat(element_text_x.value) + event.drag_x * sen);
-        element_text_x.value = value;
-        set({
-            x: parseFloat(value),
-            y: parseFloat(element_text_y.value),
-            z: parseFloat(element_text_z.value)
-        });
-    });
-
-
-
-    element_text_y.addEventListener("focusout", function() {
-        if (this.checkValidity()) {
-            const value = resizeNumber(parseFloat(this.value));
-            this.value = value;
-            set({
-                x: parseFloat(element_text_x.value),
-                y: parseFloat(value),
-                z: parseFloat(element_text_z.value)
-            });
-        } else {
-            this.value = get().y;
-        }
-    });
-    
-    element_text_y.addEventListener("updategui", function() {
-        if (this.matches(":focus")) return;
-        this.value = resizeNumber(get().y);
-    });
-
-    element_button_y.addEventListener("mousedown", function() {
-        const mousemove_listener = (event) => {
-            const value = resizeNumber(parseFloat(element_text_y.value) + event.movementX * sen);
-            element_text_y.value = value;
-            set({
-                x: parseFloat(element_text_x.value),
-                y: parseFloat(value),
-                z: parseFloat(element_text_z.value)
-            });
-            const mouseup_listener = () => {
-                document.removeEventListener("mousemove", mousemove_listener);
-                document.removeEventListener("mouseup", mouseup_listener);
-            }
-            document.addEventListener("mouseup", mouseup_listener);
-        }
-        document.addEventListener("mousemove", mousemove_listener);
-    });
-
-    TouchListener.addTouchListener(element_button_y, function(event) {
-        const value = resizeNumber(parseFloat(element_text_y.value) + event.drag_x * sen);
-        element_text_y.value = value;
-        set({
-            x: parseFloat(element_text_x.value),
-            y: parseFloat(value),
-            z: parseFloat(element_text_z.value)
-        });
-    });
-
-
-
-    element_text_z.addEventListener("focusout", function() {
-        if (this.checkValidity()) {
-            const value = resizeNumber(parseFloat(this.value));
-            this.value = value;
-            set({
-                x: parseFloat(element_text_x.value),
-                y: parseFloat(element_text_y.value),
-                z: parseFloat(value)
-            });
-        } else {
-            this.value = get().z;
-        }
-    });
-    
-    element_text_z.addEventListener("updategui", function() {
-        if (this.matches(":focus")) return;
-        this.value = resizeNumber(get().z);
-    });
-
-    element_button_z.addEventListener("mousedown", function() {
-        const mousemove_listener = (event) => {
-            const value = resizeNumber(parseFloat(element_text_z.value) + event.movementX * sen);
-            element_text_z.value = value;
-            set({
-                x: parseFloat(element_text_x.value),
-                y: parseFloat(element_text_y.value),
-                z: parseFloat(value)
-            });
-            const mouseup_listener = () => {
-                document.removeEventListener("mousemove", mousemove_listener);
-                document.removeEventListener("mouseup", mouseup_listener);
-            }
-            document.addEventListener("mouseup", mouseup_listener);
-        }
-        document.addEventListener("mousemove", mousemove_listener);
-    });
-
-    TouchListener.addTouchListener(element_button_z, function(event) {
-        const value = resizeNumber(parseFloat(element_text_z.value) + event.drag_x * sen);
-        element_text_z.value = value;
-        set({
-            x: parseFloat(element_text_x.value),
-            y: parseFloat(element_text_y.value),
-            z: parseFloat(value)
-        });
-    });
-
-
-    const element_column = document.createElement("div");
-    element_column.className = "column";
-    element_column.appendChild(element_drag_x);
-    element_column.appendChild(element_drag_y);
-    element_column.appendChild(element_drag_z);
-
-    const element_name = document.createElement("p");
-    element_name.innerText = name;
- 
-    const element_base = document.createElement("div");
-    element_base.className = "vector";
-    element_base.appendChild(element_column);
-    element_base.appendChild(element_name);
-
-    parent.appendChild(element_base);
-    return element_base;
-}
-
 export function createSwitch(parent, set = (value) => {}, options = ['a', 'b', 'c', 'd'], def = 'a', name, unselectable = false) {
     const element_base = document.createElement("div");
     element_base.className = "switch";
@@ -566,6 +315,9 @@ export function switchSetIndex(element_switch, active_index) {
 }
 
 export function setupAddTooltip() {
+    if (HTMLElement.prototype.addTooltip !== undefined)
+        return;
+
     HTMLElement.prototype.addTooltip = function(tooltip, symbol) {
         if (symbol === undefined) {
             this.setAttribute("tooltip", tooltip)
@@ -583,67 +335,26 @@ export function setupAddTooltip() {
     }
 }
 
+export function switchAttribute(element_parent, index_true, attribute_true, attribute_false) {
+    Array.from(element_parent.childNodes).filter((el) => (el.nodeType !== Node.TEXT_NODE)).forEach((element, index) => {
+        if (index == index_true) {
+            if (attribute_true !== undefined)
+                element.classList.add(attribute_true);
+            if (attribute_false !== undefined)
+                element.classList.remove(attribute_false);
+        } else {
+            if (attribute_true !== undefined)
+                element.classList.remove(attribute_true);
+            if (attribute_false !== undefined)
+                element.classList.add(attribute_false);
+        }
+    });
+}
+
 function resizeNumber(number, size = 7) {
     const digits = number.toString().replace(".","").length;
     const decimals = number.toString().split(".")[1] ? number.toString().split(".")[1].length : 0;
     const delta = digits > size ? decimals - (digits - size) : decimals;
     return number.toFixed(delta); 
 }
-
-// DOESNT WORK
-// export function createColor(parent, set = (value) => {}, get = () => "#ffffff", name = "Name", hex = false) {
-//     const default_value = hex ? get() : rgb2hex(get());
-//     console.log(default_value);
-//     console.log(get());
-
-//     const element_color = document.createElement("input");
-//     element_color.setAttribute("type", "color");
-//     element_color.setAttribute("value", default_value);
-    
-
-//     const element_name = document.createElement("p");
-//     element_name.innerText = name;
-
-//     const element_base = document.createElement("div");
-//     element_base.className = "color";
-//     element_base.appendChild(element_color);
-//     element_base.appendChild(element_name);
-
-//     element_color.addEventListener("input", function() {
-//         set(hex ? this.value : hex2rgb(this.value));
-//     });
-    
-//     element_color.addEventListener("updategui", function() {
-//         if (this.matches(":focus")) return;
-//         this.value = hex ? get() : rgb2hex(get());
-//     });
-    
-//     parent.appendChild(element_base);
-//     return element_base;
-// }
-
-// function hex2rgb(hex) {
-//     const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
-//     const hex2float = (hex) => (digits.indexOf(hex[0]) * 16 + digits.indexOf(hex[1])) / 255.0;
-
-//     const hexes = hex.replace("#", "").split(/(?=(?:..)*$)/);
-
-//     return {
-//         x: hex2float(hexes[0]), 
-//         y: hex2float(hexes[1]), 
-//         z: hex2float(hexes[2])
-//     };
-// }
-
-// function rgb2hex(rgb) {
-//     const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
-//     return "#" + 
-//         digits.indexOf(Math.floor(rgb.x * 256 / 16)) +    
-//         digits.indexOf(Math.floor(rgb.x * 256 % 16)) +    
-//         digits.indexOf(Math.floor(rgb.y * 256 / 16)) +    
-//         digits.indexOf(Math.floor(rgb.y * 256 % 16)) +    
-//         digits.indexOf(Math.floor(rgb.z * 256 / 16)) +    
-//         digits.indexOf(Math.floor(rgb.z * 256 % 16))
-//     ;
-// }
 

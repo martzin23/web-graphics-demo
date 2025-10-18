@@ -1,7 +1,5 @@
 import * as Widgets from '../utility/widgets.js';
-import * as Vector from '../utility/vector.js';
-import * as Matrix from '../utility/matrix.js';
-import * as Loader from '../utility/loader.js';
+import * as GUIUtils from '../utility/gui_utils.js';
 
 export default class GUIManager {
     constructor(canvas, gpu, camera) {
@@ -10,7 +8,7 @@ export default class GUIManager {
         this.mouse_states = [false, false, false, false, false];
         this.update_event = new CustomEvent('updategui', {bubbles: true, cancelable: true });
 
-        this.setupListeners(canvas, gpu, camera);
+        this.setupListeners(gpu);
         this.setupWidgets(gpu, camera);
         this.update_handler = setInterval(() => { this.updateValues(); }, 500);
     }
@@ -75,13 +73,13 @@ export default class GUIManager {
         if (value === null) {
             if (this.isFullscreen())
                 element_menu.classList.add("hidden");
-            switchAttribute(element_menu, 0, undefined, "hidden");
+            Widgets.switchAttribute(element_menu, 0, undefined, "hidden");
         } else {
-            switchAttribute(element_menu, value + 1, undefined, "hidden");
+            Widgets.switchAttribute(element_menu, value + 1, undefined, "hidden");
         }
     }
 
-    setupListeners(canvas, gpu, camera) {
+    setupListeners(gpu) {
         ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach((eventType) => {
             document.addEventListener(eventType, () => {
                 const menu = document.getElementById("menu");
@@ -160,15 +158,18 @@ export default class GUIManager {
     setupWidgets(gpu, camera) {
         Widgets.setupAddTooltip();
 
+        GUIUtils.createControlsInfo(document.getElementById("group-controls"));
+
         Widgets.createSwitch(
             document.getElementById("group-tabs"), 
             (value) => { this.switchTab(value, false); }, 
             [
-                '<i class="fa fa-cog"></i>Settings', 
+                '<i class="fa fa-cog"></i>General', 
+                '<i class="fa fa-compass"></i>Traversal', 
                 '<i class="fa fa-area-chart"></i>Heightmap', 
                 '<i class="fa fa-info"></i>Controls', 
             ], 
-            '<i class="fa fa-cog"></i>Settings',
+            '<i class="fa fa-cog"></i>General',
             undefined,
             true
         );
@@ -180,46 +181,24 @@ export default class GUIManager {
             var current_date = new Date(); 
             var date_time = "" + current_date.getFullYear() + (current_date.getMonth() + 1) + current_date.getDate() + current_date.getHours() + current_date.getMinutes() + current_date.getSeconds();
             gpu.screenshot(date_time);
-        }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Save current rendered image and download");
+        }, '<i class="fa fa-download"></i>Screenshot').addTooltip("Save and download current rendered image");
 
-        Widgets.createSwitch(
-            document.getElementById("group-camera-mode"),
-            (value) => {
-                switchAttribute(document.getElementById("group-camera-firstperson").parentNode, value, undefined, "hidden");
-                camera.orbit_mode = value;
-            },
-            ["First person", "Orbit"],
-            "Orbit",
-            "Camera mode"
-        );
-        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.x = value;}, () => camera.position.x, "X", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.y = value;}, () => camera.position.y, "Y Position", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.position.z = value;}, () => camera.position.z, "Z", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.rotation.x = value;}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera-firstperson"), (value) => {camera.rotation.y = value;}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
+        GUIUtils.createCameraWidgets(camera, document.getElementById("group-camera"));
         
-        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.position = Vector.add(Vector.mul(Matrix.rot2dir(camera.rotation.x, -camera.rotation.y), -value), camera.orbit_anchor)}, () => Vector.len(Vector.sub(camera.position, camera.orbit_anchor)), "Distance", 0, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.rotation.x = value; camera.updateOrbit();}, () => camera.rotation.x, "Horizontal rotation", -Infinity, Infinity, 0.1);
-        Widgets.createDrag(document.getElementById("group-camera-orbit"), (value) => {camera.rotation.y = value; camera.updateOrbit();}, () => camera.rotation.y, "Vertical rotation", -90, 90, 0.1);
-        
-        Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.speed = value;}, () => camera.speed, "Speed", 0, 10, true);
-        Widgets.createSlider(document.getElementById("group-camera-general"), (value) => {camera.sensitivity = value;}, () => camera.sensitivity, "Sensitivity", 0.01, 0.5, true);
-        Widgets.createDrag(document.getElementById("group-camera-general"), (value) => {camera.fov = value;}, () => camera.fov, "Field of view", 0, Infinity, 0.005);
-        
-        Widgets.createToggle(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_invert = value;}, () => gpu.uniforms.height_invert, "Invert height");
-        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.grid_scale = value;}, () => gpu.uniforms.grid_scale, "Grid multiplier", 0, Infinity);
-        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_multiplier = value;}, () => gpu.uniforms.height_multiplier, "Height multiplier", 0, Infinity);
-        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_offset = value;}, () => gpu.uniforms.height_offset, "Height offset", -Infinity, Infinity, 1.0);
+        Widgets.createToggle(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_invert = value;}, () => gpu.uniforms.height_invert, "Invert height").addTooltip("The highest points become the lowest, the lowest become the highest");
+        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.grid_scale = value;}, () => gpu.uniforms.grid_scale, "Grid multiplier", 0, Infinity).addTooltip("Change the resolution of the grid, performance heavy");
+        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_multiplier = value;}, () => gpu.uniforms.height_multiplier, "Height multiplier", 0, Infinity).addTooltip("Multiply the calculated height by this value");
+        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_offset = value;}, () => gpu.uniforms.height_offset, "Height offset", -Infinity, Infinity, 1.0).addTooltip("Add this value to the height calculation");
 
         Widgets.createSwitch(
             document.getElementById("group-shading-mode"),
             (value) => {
-                switchAttribute(document.getElementById("group-shading-shaded").parentNode, value, undefined, "hidden");
+                Widgets.switchAttribute(document.getElementById("group-shading-shaded").parentNode, value, undefined, "hidden");
                 gpu.uniforms.shading_mode = value;
             },
             ["Flat", "Shaded", "Normals", "Color"],
             "Flat"
-        );
+        ).addTooltip("The visual style of the surface");
         Widgets.createSlider(document.getElementById("group-shading-flat"), (value) => {gpu.uniforms.fade_blend = value;}, () => gpu.uniforms.fade_blend, "Height fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
         Widgets.createSlider(document.getElementById("group-shading-shaded"), (value) => {gpu.uniforms.fade_blend = value;}, () => gpu.uniforms.fade_blend, "Height fade", 0.0, 1.0).addTooltip("Adds a darkening effect the lower the height is");
         Widgets.createSlider(document.getElementById("group-shading-shaded"), (value) => {gpu.uniforms.normals_epsilon = value;}, () => gpu.uniforms.normals_epsilon, "Normals epsilon", 0.0, 25.0).addTooltip("Terrain surface direction approximation, doesn't display when at 0.0, highter numbers mean lower precision");
@@ -227,20 +206,4 @@ export default class GUIManager {
         Widgets.createSlider(document.getElementById("group-shading-color"), (value) => {gpu.uniforms.grayscale_blend = value;}, () => gpu.uniforms.grayscale_blend, "Grayscale", 0.0, 1.0).addTooltip("Level of desaturation");
         Widgets.createSlider(document.getElementById("group-shading"), (value) => {gpu.uniforms.voxel_blend = value;}, () => gpu.uniforms.voxel_blend, "Voxel shading", 0.0, 1.0).addTooltip("Adds shading to individual voxels (zoom in)");
     }
-}
-
-function switchAttribute(element_parent, index_true, attribute_true, attribute_false) {
-    Array.from(element_parent.childNodes).filter((el) => (el.nodeType !== Node.TEXT_NODE)).forEach((element, index) => {
-        if (index == index_true) {
-            if (attribute_true !== undefined)
-                element.classList.add(attribute_true);
-            if (attribute_false !== undefined)
-                element.classList.remove(attribute_false);
-        } else {
-            if (attribute_true !== undefined)
-                element.classList.remove(attribute_true);
-            if (attribute_false !== undefined)
-                element.classList.add(attribute_false);
-        }
-    });
 }
