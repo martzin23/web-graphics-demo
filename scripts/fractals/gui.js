@@ -161,13 +161,13 @@ export default class GUIManager {
         });
         
         document.addEventListener('wheel', (event) => {
-            if (camera.isOrbiting()) {
+            if (camera.orbit_mode) {
                 gpu.refresh();
             }
         });
 
         document.addEventListener('mousemove', () => {
-            if ((this.isMousePressed() || camera.isEnabled()) && this.auto_refresh)
+            if ((this.isMousePressed() || camera.enabled) && this.auto_refresh)
                 gpu.refresh();
         });
 
