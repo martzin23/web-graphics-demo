@@ -8,7 +8,6 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* gap: var(--spacing); */
     padding: var(--spacing);
     padding-top: calc(var(--spacing) * 2);
 
@@ -25,8 +24,6 @@ body {
 
 header {
     border-radius: var(--roundness);
-    /* background-color: var(--transluscent); */
-    /* background-color: var(--background-light); */
     background: linear-gradient(0deg, var(--background-dark) -100%, var(--background-light) 100%);
     box-shadow: var(--thickness) var(--thickness) 0rem var(--shadow);
 

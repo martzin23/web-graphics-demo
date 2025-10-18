@@ -321,7 +321,6 @@ textarea {
     width: 100vw;
     height: 100vh;
     background-color: var(--transluscent);
-    /* backdrop-filter: blur(4px); */
 
     display: flex;
     justify-content: center;

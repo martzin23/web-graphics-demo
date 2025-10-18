@@ -82,11 +82,6 @@ export default class GUIManager {
     }
 
     setupListeners(canvas, gpu, camera) {
-        canvas.addEventListener('click', (event) => {
-            if (event.button == 0)
-                camera.toggle(canvas);
-        });
-
         ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach((eventType) => {
             document.addEventListener(eventType, () => {
                 const menu = document.getElementById("menu");
@@ -131,34 +126,34 @@ export default class GUIManager {
         });
 
         document.getElementById("input-file").addEventListener('change', async (event) => {
-                const file = event.target.files[0];
-                if (!file || !file.type.startsWith('image/'))
-                    return;
+            const file = event.target.files[0];
+            if (!file || !file.type.startsWith('image/'))
+                return;
 
-                const reader = new FileReader();
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                const url = event.target.result;
                 
-                reader.onload = function(event) {
-                    const url = event.target.result;
+                document.getElementById("output-preview").src = url;
+
+                const image = new Image();
+                image.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(image, 0, 0);
                     
-                    document.getElementById("output-preview").src = url;
+                    const image_data = ctx.getImageData(0, 0, image.width, image.height);
 
-                    const image = new Image();
-                    image.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = image.width;
-                        canvas.height = image.height;
-
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(image, 0, 0);
-                        
-                        const image_data = ctx.getImageData(0, 0, image.width, image.height);
-
-                        gpu.reloadImage(image_data);
-                    };
-                    image.src = url;
+                    gpu.reloadImage(image_data);
                 };
-                
-                reader.readAsDataURL(file);
+                image.src = url;
+            };
+            
+            reader.readAsDataURL(file);
         });
     }
 

@@ -75,6 +75,7 @@ export function mix(a, b, factor) {
     return result;
 }
 
+// TODO rewrite
 export function add(...args) {
     let result = vec(0.0);
     for (let el of args) {
@@ -103,6 +104,7 @@ export function add(...args) {
     // return result;
 }
 
+// TODO rewrite
 export function sub(a, ...b) {
     let result = a;
     for (let el of b) {
@@ -129,6 +131,7 @@ export function sub(a, ...b) {
     // return result;
 }
 
+// TODO rewrite
 export function mul(a, b) {
     let result = a;
     if (test(b)) {
@@ -151,6 +154,7 @@ export function mul(a, b) {
     // return result;
 }
 
+// TODO rewrite
 export function div(a, b) {
     let result = a;
     if (test(b)) {

@@ -5,8 +5,8 @@ import * as Loader from "../utility/loader.js";
 
 export default class WebGLManager {
     static async initialize(canvas) {
-        const fragment_shader_code = await (await fetch('../scripts/voxels/shader/fragment.glsl')).text();
-        const height_texture = await WebGL.Texture.load('../assets/images/textures/height.jpg');
+        const fragment_shader_code = await (await fetch('/scripts/voxels/shader/fragment.glsl')).text();
+        const height_texture = await WebGL.Texture.load('/assets/images/textures/height.jpg');
         return new WebGLManager(canvas, fragment_shader_code, height_texture);
     }
 

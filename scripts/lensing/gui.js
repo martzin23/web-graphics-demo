@@ -96,11 +96,6 @@ export default class GUIManager {
     }
 
     setupListeners(canvas, gpu, camera) {
-        canvas.addEventListener('click', (event) => {
-            if (event.button == 0)
-                camera.toggle(canvas);
-        });
-
         ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach((eventType) => {
             document.addEventListener(eventType, () => {
                 const menu = document.getElementById("menu");

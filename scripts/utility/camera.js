@@ -3,6 +3,8 @@ import * as Matrix from './matrix.js';
 import * as TouchListener from './touch.js';
 
 export default class Camera {
+    #key_states;
+
     constructor(
         canvas,
         position = Vector.vec(0.0), 
@@ -23,33 +25,40 @@ export default class Camera {
         this.free_mode = free_mode;
         this.orbit_mode = orbit_mode;
         this.orbit_anchor = orbit_anchor;
-        this.key_states = {};
         this.enabled = false;
+        this.#key_states = {};
 
         document.addEventListener('keydown', (event) => {
             if (event.key == 'w' || event.key == 'a' || event.key == 's' || event.key == 'd' || event.key == 'q' || event.key == 'e')
-                this.key_states[event.key] = true;
+                this.#key_states[event.key] = true;
         });
+
         document.addEventListener('keyup', (event) => {
             if (event.key == 'w' || event.key == 'a' || event.key == 's' || event.key == 'd' || event.key == 'q' || event.key == 'e')
-                this.key_states[event.key] = false;
+                this.#key_states[event.key] = false;
         });
 
         canvas.addEventListener('mousedown', () => {
-            this.enable();
-        });
-
-        document.addEventListener('mousemove', (event) => {
-            if (this.isEnabled()) {
+            this.enabled = true;
+            const move_handler = (event) => {
                 if (this.orbit_mode)
                     this.updateOrbit(event.movementX, event.movementY);
                 else
-                    this.updateRotation(event.movementX, event.movementY);
-            }
+                    this.updateRotation(-event.movementX, -event.movementY);
+            };
+
+            const exit_handler = () => {
+                this.enabled = false;
+                document.removeEventListener("mousemove", move_handler);
+                document.removeEventListener("mouseup", exit_handler);
+            };
+
+            document.addEventListener("mousemove", move_handler);
+            document.addEventListener("mouseup", exit_handler);
         });
 
         TouchListener.addTouchListener(canvas, (event) => {
-            if (this.isOrbiting()) 
+            if (this.orbit_mode) 
                 this.updateOrbit(event.drag_x, event.drag_y);
             else
                 this.updateRotation(-event.drag_x, -event.drag_y);
@@ -59,13 +68,9 @@ export default class Camera {
         });
 
         document.addEventListener('wheel', (event) => {
-            if (this.isEnabled()) {
-                if (this.isOrbiting()) {
-                    let delta;
-                    if(event.deltaY < 0)
-                        delta = 1.0 / 1.1;
-                    else
-                        delta = 1.1;
+            if (this.enabled) {
+                if (this.orbit_mode) {
+                    const delta = (event.deltaY < 0) ? 1.0 / 1.1 : 1.1;
                     this.updateOrbit(0.0, 0.0, delta);
                 } else {
                     if(event.deltaY < 0)
@@ -83,31 +88,34 @@ export default class Camera {
         return temp;
     }
 
-    update() {
-        if (this.isEnabled())
-            this.updatePosition();
-    }
-
-    updatePosition() {
+    getLocalDirection() {
         let local_direction = Vector.vec(0.0);
-        if (!!this.key_states.w)
+        if (!!this.#key_states.w)
             local_direction = Vector.add(local_direction, Vector.vec(0.0, 1.0, 0.0));
-        if (!!this.key_states.s)
+        if (!!this.#key_states.s)
             local_direction = Vector.add(local_direction, Vector.vec(0.0, -1.0, 0.0));
-        if (!!this.key_states.a)
+        if (!!this.#key_states.a)
             local_direction = Vector.add(local_direction, Vector.vec(-1.0, 0.0, 0.0));
-        if (!!this.key_states.d)
+        if (!!this.#key_states.d)
             local_direction = Vector.add(local_direction, Vector.vec(1.0, 0.0, 0.0));
-        if (!!this.key_states.q)
+        if (!!this.#key_states.q)
             local_direction = Vector.add(local_direction, Vector.vec(0.0, 0.0, -1.0));
-        if (!!this.key_states.e)
+        if (!!this.#key_states.e)
             local_direction = Vector.add(local_direction, Vector.vec(0.0, 0.0, 1.0));
 
-        if (Vector.len(local_direction) == 0)
+        return local_direction;
+    }
+
+    update() {
+        if (this.enabled)
+            this.updatePosition(this.getLocalDirection());
+    }
+
+    updatePosition(local_direction) {
+        if (Vector.len(local_direction) == 0.0)
             return;
 
-
-        if (!this.isOrbiting()) {
+        if (!this.orbit_mode) {
             let forward, up, right;
 
             if (!this.free_mode) {
@@ -128,7 +136,7 @@ export default class Camera {
                 Vector.mul(up, local_direction.z * this.speed)
             );
         } else {
-            this.updateOrbit(-local_direction.x / this.sensitivity * this.speed, local_direction.z / this.sensitivity * this.speed, 1.0 + -0.003 / this.sensitivity * this.speed * local_direction.y);
+            this.updateOrbit(-local_direction.x * this.speed, local_direction.z * this.speed, 1.0 + -0.003 * this.speed * local_direction.y);
         }
     }
 
@@ -141,27 +149,7 @@ export default class Camera {
 
     updateOrbit(dh = 0.0, dv = 0.0, dz = 1.0) {
         const radius = Vector.len(Vector.sub(this.position, this.orbit_anchor)) * dz;
-        this.updateRotation(dh, dv);
+        this.updateRotation(dh / this.sensitivity, dv / this.sensitivity);
         this.position = Vector.add(Vector.mul(Matrix.rot2dir(this.rotation.x, -this.rotation.y), -radius), this.orbit_anchor);
-    }
-
-    toggle(canvas) {
-        this.enabled = !this.isEnabled();
-    }
-
-    enable(canvas) {
-        this.enabled = true;
-    }
-
-    disable() {
-        this.enabled = false;
-    }
-
-    isEnabled() {
-        return this.enabled;
-    }
-
-    isOrbiting() {
-        return this.orbit_mode;
     }
 }

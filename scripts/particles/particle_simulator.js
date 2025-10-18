@@ -212,6 +212,7 @@ class ParticleSimulator {
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 
 
+        // swap buffers
         [this.color_buffer[0], this.color_buffer[1]] = [this.color_buffer[1], this.color_buffer[0]];
         [this.frame_buffer[0], this.frame_buffer[1]] = [this.frame_buffer[1], this.frame_buffer[0]];
         [this.position_buffer[0], this.position_buffer[1]] = [this.position_buffer[1], this.position_buffer[0]];

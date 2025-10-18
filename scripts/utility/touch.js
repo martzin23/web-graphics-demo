@@ -1,5 +1,6 @@
 import * as Vector from "./vector.js";
 
+// TODO rewrite
 export function addTouchListener(element, callback) {
     let previous_a = Vector.vec(0.0);
     let previous_b = Vector.vec(0.0);
