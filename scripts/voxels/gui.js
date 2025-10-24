@@ -186,7 +186,7 @@ export default class GUIManager {
         GUIUtils.createCameraWidgets(camera, document.getElementById("group-camera"));
         
         Widgets.createToggle(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_invert = value;}, () => gpu.uniforms.height_invert, "Invert height").addTooltip("The highest points become the lowest, the lowest become the highest");
-        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.grid_scale = value;}, () => gpu.uniforms.grid_scale, "Grid multiplier", 0, Infinity).addTooltip("Change the resolution of the grid, performance heavy");
+        Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.grid_scale = value;}, () => gpu.uniforms.grid_scale, "Grid multiplier", 0, Infinity, 0.001).addTooltip("Change the resolution of the grid, performance heavy");
         Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_multiplier = value;}, () => gpu.uniforms.height_multiplier, "Height multiplier", 0, Infinity).addTooltip("Multiply the calculated height by this value");
         Widgets.createDrag(document.getElementById("group-grid"), (value) => {gpu.uniforms.height_offset = value;}, () => gpu.uniforms.height_offset, "Height offset", -Infinity, Infinity, 1.0).addTooltip("Add this value to the height calculation");
 
