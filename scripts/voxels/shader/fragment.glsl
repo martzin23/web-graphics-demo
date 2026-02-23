@@ -43,7 +43,7 @@ uniform sampler2D height_texture;
 in vec2 texture_coordinates;
 out vec4 output_color;
 
-vec4 traverse(Ray ray);
+vec3 traverse(Ray ray, out vec3 normal);
 vec2 intersect(Ray ray, vec3 p_min, vec3 p_max);
 vec3 getNormal(vec3 position, float epsilon);
 float getHeight(vec3 position);
@@ -59,11 +59,11 @@ void main() {
     camera_ray.direction = (uniforms.camera_rotation * vec4(normalize(vec3(centered_coordinates.x * uniforms.fov, 1.0, centered_coordinates.y * uniforms.fov)), 1.0)).xyz;
     camera_ray.inverse = 1.0 / camera_ray.direction;
 
-    vec4 r = traverse(camera_ray);
-    vec3 position = camera_ray.origin + camera_ray.direction * r.w;
+    vec3 voxel_normal;
+    vec3 position = traverse(camera_ray, voxel_normal);
     vec3 sun = normalize(vec3(1.0, 0.5, 0.0));
-    float voxel = mix(1.0, abs(dot(r.xyz, normalize(vec3(1.0, 0.5, 0.75)))), uniforms.voxel_blend);
-    if (r.w > 0.0) {
+    float voxel = mix(1.0, abs(dot(voxel_normal, normalize(vec3(1.0, 0.5, 0.75)))), uniforms.voxel_blend);
+    if (position.x != -1.0) {
         if (uniforms.shading_mode == 1.0) {
             float height = mix(1.0, position.z / (uniforms.grid_size.z * uniforms.height_multiplier * uniforms.grid_scale), uniforms.fade_blend);
             vec3 normal = getNormal(position, uniforms.normals_epsilon);
@@ -85,13 +85,12 @@ void main() {
     }
 }
 
-vec4 traverse(Ray ray) {
-    vec3 normal = vec3(0.0, 0.0, 1.0);
+vec3 traverse(Ray ray, out vec3 normal) {
+    normal = vec3(0.0, 0.0, 1.0);
 
     vec2 bbox_t = intersect(ray, vec3(0.0), uniforms.grid_size * uniforms.grid_scale);
-    if (bbox_t.x > bbox_t.y) {
-        return vec4(normal, -1.0);
-    }
+    if (bbox_t.x > bbox_t.y)
+        return vec3(-1.0);
 
     vec3 position = floor(ray.origin + ray.direction * (bbox_t.x + 0.01));
     vec3 march = sign(ray.inverse);
@@ -101,40 +100,39 @@ vec4 traverse(Ray ray) {
     vec3 limit = floor(uniforms.grid_size * uniforms.grid_scale);
     vec3 t = (planes - ray.origin) * ray.inverse;
 
+    int axis;
     while (true) {
-        if (position.z <= getHeight(position)) {
-            return vec4(normal, length(ray.origin - position));
-        }
-
         if (t.x < t.y) {
             if (t.x < t.z) {
                 position.x += march.x;
-                if (position.x > limit.x || position.x < 0.0)
-                    return vec4(normal, -1.0);
                 t.x += delta.x;
-                normal = vec3(-march.x, 0.0, 0.0);
+                axis = 0;
             } else {
                 position.z += march.z;
-                if (position.z > limit.z || position.z < 0.0)
-                    return vec4(normal, -1.0);
                 t.z += delta.z;
-                normal = vec3(0.0, 0.0, -march.z);
+                axis = 2;
             }
         } else {
             if (t.y < t.z) {
                 position.y += march.y;
-                if (position.y > limit.y || position.y < 0.0)
-                    return vec4(normal, -1.0);
                 t.y += delta.y;
-                normal = vec3(0.0, -march.y, 0.0);
+                axis = 1;
             } else {
                 position.z += march.z;
-                if (position.z > limit.z || position.z < 0.0)
-                    return vec4(normal, -1.0);
                 t.z += delta.z;
-                normal = vec3(0.0, 0.0, -march.z);
+                axis = 2;
             }
         }
+
+        if (position.z <= getHeight(position)) {
+            vec3 mask = vec3(0.0);
+            mask[axis] = 1.0;
+            normal = mask;
+            return ray.origin + ray.direction * (dot(t, mask) - dot(delta, mask) + 0.01);
+        }
+
+        if (position.x > limit.x || position.x < 0.0 || position.y > limit.y || position.y < 0.0 || position.z > limit.z || position.z < 0.0)
+            return vec3(-1.0);
     }
 }
 
@@ -152,8 +150,7 @@ vec2 intersect(Ray ray, vec3 p_min, vec3 p_max) {
 float getHeight(vec3 position) {
     vec4 data = texture(height_texture, (vec2(1.0, 0.0) - position.xy / (uniforms.grid_size.xy * uniforms.grid_scale)) * vec2(1.0, -1.0));
     float height = 256.0 * (data.r + data.g + data.b) / 3.0; // average
-    // float height = (data.r * 256.0 + data.g + data.b / 256.0); // first
-    // float height = (data.r * 256.0 + data.g) * 256.0; // second
+    // float height = (data.r * 256.0 + data.g + data.b / 256.0); // full
     if (uniforms.height_invert == 1.0)
         height = (uniforms.grid_size.z + 2.0) * uniforms.height_invert - height;
     return (height + uniforms.height_offset) * uniforms.height_multiplier * uniforms.grid_scale;
