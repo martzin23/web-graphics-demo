@@ -16,7 +16,7 @@ This repository contains some demos I made to learn WebGL2. They can be viewed u
     <tr>
         <td>
             <p><strong>Fractal ray marcher</strong></p>
-            <!-- <small><em>(code has been migrated to <a href="">another repository</a>)</em></small> -->
+            <small><em>(code has been migrated to <a href="https://github.com/martzin23/webgl2-fractal-raymarcher">another repository</a>)</em></small>
         </td>
         <td><img src="assets/images/showcase/2.jpg"/></td>
     </tr>
